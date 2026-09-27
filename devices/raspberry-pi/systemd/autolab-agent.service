@@ -1,0 +1,18 @@
+[Unit]
+Description=Autolab Raspberry Pi camera agent
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=YOUR_USER
+WorkingDirectory=/home/YOUR_USER/AutoLab/devices/raspberry-pi
+EnvironmentFile=/home/YOUR_USER/AutoLab/devices/raspberry-pi/.env
+ExecStart=/home/YOUR_USER/AutoLab/devices/raspberry-pi/.venv/bin/python -m autolab_agent.main
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

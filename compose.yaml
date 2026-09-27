@@ -1,0 +1,8 @@
+services:
+  gateway:
+    build: ./services/gateway
+    ports: ["8000:8000"]
+    environment:
+      AUTOLAB_MODE: demo
+      ALLOWED_ORIGINS: http://localhost:3000
+    restart: unless-stopped
