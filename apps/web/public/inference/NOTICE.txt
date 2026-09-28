@@ -1,0 +1,14 @@
+Object detection model: YOLOv10n, ONNX Community conversion of THU-MIG YOLOv10.
+Model license: GNU Affero General Public License v3.0.
+Model source and metadata: https://huggingface.co/onnx-community/yolov10n/tree/57657320425ee34056408a57ad9d29c4d4815bd8
+Architecture, training code and license: https://github.com/THU-MIG/yolov10
+License text: https://www.gnu.org/licenses/agpl-3.0.txt
+Included license: YOLO-LICENSE.txt
+
+Inference engine: Microsoft ONNX Runtime Web, MIT License.
+Source and license: https://github.com/microsoft/onnxruntime
+Included license: ONNX-RUNTIME-LICENSE.txt
+
+The preparation script copies runtime artifacts from the locked npm dependency
+and fetches the pinned model with SHA-256 verification. No user images are sent
+to these source repositories.

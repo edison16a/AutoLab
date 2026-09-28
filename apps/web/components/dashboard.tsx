@@ -28,24 +28,18 @@ import { usePathname, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import DigitalTwin from "./autolab-3d/DigitalTwin";
 import type { DeviceRealtimeState } from "./autolab-3d/state/useAutolab3DState";
+import {
+  detectObjects,
+  disposeDetector,
+  watchDetector,
+  type Analysis,
+} from "@/lib/detection";
+import ComputerCamera from "./computer-camera";
 const OnboardingWizard = dynamic(
   () => import("./autolab-3d/onboarding/OnboardingWizard"),
   { ssr: false },
 );
 
-type Detection = {
-  label: string;
-  confidence: number;
-  bbox: number[];
-  polygon: number[][];
-};
-type Analysis = {
-  model: string;
-  width: number;
-  height: number;
-  detections: Detection[];
-  frame_id?: string;
-};
 type Photo = {
   id: string;
   url: string;
@@ -54,6 +48,7 @@ type Photo = {
   captured_at: string;
   analysis?: Analysis;
   bytes?: number;
+  cloudImage?: boolean;
 };
 type Device = { id: string; name: string };
 type Frame = {
@@ -88,8 +83,8 @@ function View({
     ctx.lineWidth = 2 * scale;
     ctx.font = `${12 * scale}px sans-serif`;
     for (const d of frame.analysis.detections) {
-      ctx.strokeStyle = "#57a5ff";
-      ctx.fillStyle = "rgba(38,132,255,.18)";
+      ctx.strokeStyle = "#b9f08b";
+      ctx.fillStyle = "rgba(185,240,139,.12)";
       if (d.polygon?.length) {
         ctx.beginPath();
         d.polygon.forEach(([x, y], i) =>
@@ -103,14 +98,14 @@ function View({
       ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
       const label = `${d.label} ${Math.round(d.confidence * 100)}%`;
       const tw = ctx.measureText(label).width;
-      ctx.fillStyle = "#2684ff";
+      ctx.fillStyle = "#b9f08b";
       ctx.fillRect(
         x1,
         Math.max(0, y1 - 20 * scale),
         tw + 12 * scale,
         20 * scale,
       );
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = "#172511";
       ctx.fillText(label, x1 + 6 * scale, Math.max(14 * scale, y1 - 6 * scale));
     }
   }, [frame, overlays]);
@@ -130,7 +125,7 @@ export default function Dashboard() {
   const router = useRouter(),
     pathname = usePathname();
   const [hasMore, setHasMore] = useState(false);
-  const [tab, setTabState] = useState("Overview"),
+  const [tab, setTabState] = useState("Components"),
     [gateway, setGateway] = useState(defaultGateway),
     [gatewayInput, setGatewayInput] = useState(defaultGateway);
   const [devices, setDevices] = useState<Device[]>([]),
@@ -153,6 +148,21 @@ export default function Dashboard() {
     [photos, setPhotos] = useState<Photo[]>([]),
     [selected, setSelected] = useState<Photo | null>(null),
     [overlay, setOverlay] = useState(true);
+  const [detectorStatus, setDetectorStatus] = useState("Not loaded"),
+    [cameraSource, setCameraSource] = useState<"pi" | "computer">("pi");
+  const latestFrame = useRef<Frame | null>(null);
+  const imageGeneration = useRef(0);
+  useEffect(() => {
+    latestFrame.current = frame;
+  }, [frame]);
+  useEffect(() => watchDetector(setDetectorStatus), []);
+  useEffect(
+    () => () => {
+      imageGeneration.current++;
+      disposeDetector();
+    },
+    [],
+  );
   const [capturing, setCapturing] = useState(false),
     [analyzing, setAnalyzing] = useState<string[]>([]),
     [notice, setNotice] = useState(""),
@@ -183,7 +193,7 @@ export default function Dashboard() {
       setDevice((old) =>
         old?.id === match[1] ? old : { id: match[1], name: "Autolab" },
       );
-    } else setTabState((old) => (old === "Components" ? "Overview" : old));
+    }
   }, [pathname]);
   const addEvent = useCallback((text: string) => {
     setEvents((v) =>
@@ -259,6 +269,7 @@ export default function Dashboard() {
       const mapped = rows.map((r: Record<string, unknown>) => ({
         ...r,
         id: r.id,
+        cloudImage: true,
         analysis: (r.image_analysis as { result_json: Analysis }[])?.at(-1)
           ?.result_json,
       }));
@@ -279,6 +290,7 @@ export default function Dashboard() {
       reconnect: ReturnType<typeof setTimeout>,
       delay = 1000;
     const deviceId = device.id;
+    imageGeneration.current++;
     setPhotos([]);
     setSelected(null);
     setFrame(null);
@@ -347,6 +359,7 @@ export default function Dashboard() {
                   height: h.height,
                   captured_at: h.captured_at,
                   bytes: blob.size,
+                  cloudImage: cloudEnabled,
                 };
                 setPhotos((list) => {
                   const next = [
@@ -382,8 +395,6 @@ export default function Dashboard() {
               addEvent("Gateway connected");
               if (previewRef.current)
                 socket.send(JSON.stringify({ type: "start_preview" }));
-              if (mlRef.current)
-                socket.send(JSON.stringify({ type: "live_ml", enabled: true }));
             }
             if (m.type === "status") {
               setStatus(m);
@@ -477,6 +488,43 @@ export default function Dashboard() {
     makeUrl,
     revoke,
   ]);
+  useEffect(() => {
+    if (!ml || !preview) return;
+    let stopped = false,
+      timer: ReturnType<typeof setTimeout>,
+      lastId = "";
+    async function tick() {
+      const f = latestFrame.current;
+      if (f && f.id !== lastId) {
+        lastId = f.id;
+        try {
+          const response = await fetch(f.url);
+          if (!response.ok) throw new Error("Could not read camera frame");
+          const blob = await response.blob();
+          const analysis = await detectObjects(blob);
+          if (stopped) return;
+          const copy = makeUrl(blob);
+          setAnalyzedFrame((old) => {
+            if (old) revoke(old.url);
+            return { ...f, url: copy, analysis };
+          });
+        } catch (e) {
+          if (!stopped) {
+            error(String(e));
+            setMl(false);
+            mlRef.current = false;
+          }
+          return;
+        }
+      }
+      if (!stopped) timer = setTimeout(tick, 100);
+    }
+    tick();
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+    };
+  }, [ml, preview, device?.id, makeUrl, revoke, error]);
   function send(type: string, extra: Record<string, unknown> = {}) {
     if (ws.current?.readyState !== WebSocket.OPEN) {
       error("Connect to the gateway first");
@@ -504,47 +552,106 @@ export default function Dashboard() {
       if (!value) {
         mlRef.current = false;
         setMl(false);
-        send("live_ml", { enabled: false });
       }
     }
   }
   function toggleMl() {
     const value = !ml;
-    if (send("live_ml", { enabled: value })) {
-      mlRef.current = value;
-      setMl(value);
-      if (!value)
-        setAnalyzedFrame((old) => {
-          if (old) revoke(old.url);
-          return null;
-        });
-    }
+    mlRef.current = value;
+    setMl(value);
+    if (!value)
+      setAnalyzedFrame((old) => {
+        if (old) revoke(old.url);
+        return null;
+      });
   }
   async function connectDevice(id: string, name: string) {
-    setStatus({online:false,camera_online:false,worker_online:false,simulated:false,last_seen:null});
+    setStatus({
+      online: false,
+      camera_online: false,
+      worker_online: false,
+      simulated: false,
+      last_seen: null,
+    });
     const d = { id, name: name.trim() || "My Autolab" };
     setDevices((v) => [...v.filter((x) => x.id !== id), d]);
     setDevice(d);
-    setTab("Overview");
+    setTab("Components");
   }
   async function analyze(p: Photo) {
-    try {
-      if (!status.worker_online)
-        throw new Error("Connect your local ML worker first");
-      const b = await (await fetch(p.url)).arrayBuffer();
-      const head = new TextEncoder().encode(
-        JSON.stringify({ type: "analyze", image_id: p.id }),
-      );
-      const packet = new Uint8Array(4 + head.length + b.byteLength);
-      new DataView(packet.buffer).setUint32(0, head.length);
-      packet.set(head, 4);
-      packet.set(new Uint8Array(b), 4 + head.length);
-      if (ws.current?.readyState !== 1) throw new Error("Gateway disconnected");
-      ws.current.send(packet);
-      setAnalyzing((v) => [...v, p.id]);
-    } catch (e) {
-      error(String(e));
+    // Cloud captures retain the gateway's authenticated, durable analysis path.
+    if (cloudEnabled && p.cloudImage) {
+      try {
+        if (!status.worker_online)
+          throw new Error("Connect your cloud ML worker to save an analysis");
+        const response = await fetch(p.url);
+        if (!response.ok) throw new Error("Could not read image");
+        const bytes = await response.arrayBuffer();
+        const header = new TextEncoder().encode(
+          JSON.stringify({ type: "analyze", image_id: p.id }),
+        );
+        const packet = new Uint8Array(4 + header.length + bytes.byteLength);
+        new DataView(packet.buffer).setUint32(0, header.length);
+        packet.set(header, 4);
+        packet.set(new Uint8Array(bytes), 4 + header.length);
+        if (ws.current?.readyState !== 1)
+          throw new Error("Gateway disconnected");
+        ws.current.send(packet);
+        setAnalyzing((v) => [...v, p.id]);
+      } catch (e) {
+        error(String(e));
+      }
+      return;
     }
+    const generation = imageGeneration.current;
+    setAnalyzing((v) => [...v, p.id]);
+    try {
+      const response = await fetch(p.url);
+      if (!response.ok) throw new Error("Could not read image");
+      const analysis = await detectObjects(await response.blob());
+      if (generation !== imageGeneration.current) return;
+      setPhotos((list) =>
+        list.map((photo) =>
+          photo.id === p.id ? { ...photo, analysis } : photo,
+        ),
+      );
+      setSelected((photo) =>
+        photo?.id === p.id ? { ...photo, analysis } : photo,
+      );
+    } catch (e) {
+      if (generation === imageGeneration.current) error(String(e));
+    } finally {
+      if (generation === imageGeneration.current)
+        setAnalyzing((v) => v.filter((id) => id !== p.id));
+    }
+  }
+  async function saveComputerCapture(blob: Blob, analysis?: Analysis) {
+    const generation = imageGeneration.current;
+    const bitmap = await createImageBitmap(blob);
+    if (generation !== imageGeneration.current) {
+      bitmap.close();
+      return;
+    }
+    const photo: Photo = {
+      id: crypto.randomUUID(),
+      url: makeUrl(blob),
+      width: bitmap.width,
+      height: bitmap.height,
+      captured_at: new Date().toISOString(),
+      bytes: blob.size,
+      analysis,
+    };
+    bitmap.close();
+    setPhotos((list) => {
+      const next = [photo, ...list];
+      let bytes = next.reduce((n, p) => n + (p.bytes || 0), 0);
+      while (next.length > 40 || bytes > 100 * 1024 * 1024) {
+        const old = next.pop()!;
+        bytes -= old.bytes || 0;
+        revoke(old.url);
+      }
+      return next;
+    });
   }
   async function download(p: Photo) {
     try {
@@ -568,7 +675,8 @@ export default function Dashboard() {
   async function remove(p: Photo) {
     if (!confirm("Delete this photo and its analysis?")) return;
     try {
-      if (cloudEnabled) await api(gateway, `/images/${p.id}`, "DELETE");
+      if (cloudEnabled && p.cloudImage)
+        await api(gateway, `/images/${p.id}`, "DELETE");
       setPhotos((v) => v.filter((x) => x.id !== p.id));
       setSelected(null);
       revoke(p.url);
@@ -661,10 +769,8 @@ export default function Dashboard() {
             auth(false);
           }}
         >
-          <div className="brand">
-            <FlaskConical /> AUTOLAB
-          </div>
-          <h1>Your lab, connected.</h1>
+          <div className="brand">Autolab</div>
+          <h1>Sign in</h1>
           <p>Sign in to access your devices and image library.</p>
           <label>
             Email
@@ -698,26 +804,13 @@ export default function Dashboard() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <a className="brand" href="/">
-          <span className="brand-icon">
-            <FlaskConical size={22} />
-          </span>
-          AUTOLAB
+        <a className="app-name" href="/">
+          Autolab
         </a>
-        <div className="workspace">
-          <span className="workspace-icon">N</span>
-          <div>
-            Neurotech workspace
-            <small>{cloudEnabled ? "Personal workspace" : "Public demo"}</small>
-          </div>
-          <span className="version">v1</span>
-        </div>
-        <div className="nav-label">WORKSPACE</div>
         <nav>
           {[
-            { name: "Overview", icon: LayoutDashboard },
-            { name: "Live camera", icon: Camera },
             { name: "Components", icon: Boxes },
+            { name: "Live camera", icon: Camera },
             { name: "Image library", icon: FolderOpen },
             { name: "ML analysis", icon: Cpu },
           ].map(({ name, icon: Icon }) => (
@@ -778,52 +871,26 @@ export default function Dashboard() {
             Setup guide
             <ArrowUpRight size={14} />
           </button>
-          <div className="session-card">
-            <span className="dot blue" />
-            <div>
-              {cloudEnabled ? "Cloud workspace" : "Temporary session"}
-              <small>
-                {cloudEnabled
-                  ? "Images saved privately"
-                  : "Images clear on refresh"}
-              </small>
-            </div>
-          </div>
         </div>
       </aside>
       <div className="main-shell">
-        <header className="topbar">
-          <div>
-            <span>Workspace</span>
-            <span className="slash">/</span>
-            {tab}
-          </div>
-          <div className="top-status">
-            <span
-              className={`dot ${connection === "Connected" ? "green" : ""}`}
-            />
-            {connection}
-            <span className="mode-pill">
-              {cloudEnabled ? "CLOUD" : "DEMO MODE"}
-            </span>
-          </div>
-        </header>
         <main className="content">
           <div className="page-heading">
-            <div className="eyebrow">REMOTE IMAGING PLATFORM</div>
             <div className="heading-line">
               <div>
-                <h1>{tab === "Overview" ? "Your lab, in view." : tab}</h1>
+                <h1>{tab === "Overview" ? "Autolab" : tab}</h1>
                 <p>
                   {tab === "Overview"
-                    ? "Capture, observe, and explore. All from one workspace."
+                    ? device?.name || "Connect a device to start a session."
                     : tab === "Image library"
-                      ? "Your captures and analysis, together in one place."
+                      ? ""
                       : tab === "ML analysis"
-                        ? "Connect a local worker to detect and segment objects."
+                        ? "Object detection"
                         : tab === "Live camera"
-                          ? "A direct view into your connected Autolab."
-                          : "Configure your workspace and connected hardware."}
+                          ? "Camera preview and capture."
+                          : tab === "Components"
+                            ? "Select a part to inspect it."
+                            : "Device settings and setup."}
                 </p>
               </div>
               <button className="primary" onClick={() => setConnectOpen(true)}>
@@ -832,20 +899,7 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
-          {!cloudEnabled && (
-            <div className="demo-banner">
-              <Radio size={16} />
-              <span>
-                <strong>You’re in demo mode.</strong> Photos and analysis stay
-                in this tab and disappear on refresh.
-              </span>
-              <button onClick={() => setTab("Setup guide")}>
-                How to connect
-                <ArrowUpRight size={14} />
-              </button>
-            </div>
-          )}
-          {((tab === "Overview" && device) || tab === "Components") && (
+          {(tab === "Overview" || tab === "Components") && (
             <DigitalTwin
               deviceId={device?.id}
               status={status}
@@ -855,6 +909,8 @@ export default function Dashboard() {
               capturing={capturing}
               onCapture={capture}
               onLive={() => {
+                setMl(true);
+                mlRef.current = true;
                 if (!preview && status.camera_online) {
                   send("start_preview");
                   setPreview(true);
@@ -865,7 +921,15 @@ export default function Dashboard() {
               full={tab === "Components"}
               livePanel={
                 displayFrame && preview ? (
-                  <View frame={displayFrame} />
+                  <>
+                    <View frame={displayFrame} />
+                    <div className="camera-actions">
+                      <button aria-pressed={ml} onClick={toggleMl}>
+                        Detect objects
+                      </button>
+                      <span aria-live="polite">{ml ? detectorStatus : ""}</span>
+                    </div>
+                  </>
                 ) : (
                   <div className="twin-preview-empty">
                     {status.camera_online
@@ -876,7 +940,30 @@ export default function Dashboard() {
               }
             />
           )}
-          {(tab === "Overview" || tab === "Live camera") && (
+          {tab === "Live camera" && (
+            <div className="camera-source">
+              <button
+                aria-pressed={cameraSource === "pi"}
+                onClick={() => setCameraSource("pi")}
+              >
+                Autolab camera
+              </button>
+              <button
+                aria-pressed={cameraSource === "computer"}
+                onClick={() => setCameraSource("computer")}
+              >
+                Computer camera
+              </button>
+            </div>
+          )}
+          {tab === "Live camera" && cameraSource === "computer" && (
+            <ComputerCamera
+              onCapture={saveComputerCapture}
+              renderFrame={(f) => <View frame={f} />}
+            />
+          )}
+          {(tab === "Overview" ||
+            (tab === "Live camera" && cameraSource === "pi")) && (
             <>
               <div className="stats-grid">
                 <div className="stat">
@@ -919,27 +1006,24 @@ export default function Dashboard() {
                     {String(photos.length).padStart(2, "0")}
                     <em>images</em>
                   </strong>
-                  <small>
-                    {cloudEnabled
-                      ? "Private cloud storage"
-                      : "Up to 40 images / 100 MB in memory"}
-                  </small>
                 </div>
                 <div className="stat">
                   <span>
-                    ML worker
+                    Object detection
                     <Cpu size={16} />
                   </span>
                   <strong>
                     <i
-                      className={`dot ${status.worker_online ? "green" : ""}`}
+                      className={`dot ${detectorStatus.startsWith("Ready") ? "green" : ""}`}
                     />
-                    {status.worker_online ? "Connected" : "Not connected"}
+                    {detectorStatus}
                   </strong>
                   <small>Optional local inference</small>
                 </div>
               </div>
-              <div className="camera-layout">
+              <div
+                className={`camera-layout ${tab === "Overview" ? "camera-overview" : ""}`}
+              >
                 <section className="panel camera-panel">
                   <div className="panel-heading">
                     <div>
@@ -1023,94 +1107,94 @@ export default function Dashboard() {
                     </button>
                     <div className="live-ml">
                       <Cpu size={16} />
-                      <span>Live ML</span>
+                      <span>Detect objects</span>
                       <button
                         className={`toggle ${ml ? "on" : ""}`}
                         role="switch"
                         aria-checked={ml}
-                        aria-label="Live ML"
+                        aria-label="Detect objects"
                         onClick={toggleMl}
-                        disabled={!preview || !status.worker_online}
+                        disabled={!preview}
                       >
                         <i />
                       </button>
                     </div>
                   </div>
                 </section>
-                <aside className="right-panels">
-                  <section className="panel device-panel">
-                    <div className="panel-heading">
-                      <strong>Device details</strong>
-                      <Activity size={16} />
-                    </div>
-                    <div className="hardware-icon">
-                      <Cpu size={30} />
-                    </div>
-                    <h3>{device?.name || "No device connected"}</h3>
-                    <p>
-                      {status.simulated
-                        ? "Software camera simulator"
-                        : "Raspberry Pi 4 Model B"}
-                    </p>
-                    <dl>
-                      <div>
-                        <dt>Gateway</dt>
-                        <dd>{connection}</dd>
+                {tab === "Live camera" && (
+                  <aside className="right-panels">
+                    <section className="panel device-panel">
+                      <div className="panel-heading">
+                        <strong>Device details</strong>
+                        <Activity size={16} />
                       </div>
-                      <div>
-                        <dt>Camera</dt>
-                        <dd>
-                          {status.camera_online ? "Online" : "Unavailable"}
-                        </dd>
+                      <div className="hardware-icon">
+                        <Cpu size={30} />
                       </div>
-                      <div>
-                        <dt>Last heartbeat</dt>
-                        <dd>
-                          {status.last_seen
-                            ? new Date(status.last_seen).toLocaleTimeString()
-                            : "Waiting"}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Storage</dt>
-                        <dd>{cloudEnabled ? "Supabase" : "Browser memory"}</dd>
-                      </div>
-                    </dl>
-                    <button
-                      className="full"
-                      onClick={() => (device ? rename() : setConnectOpen(true))}
-                    >
-                      {device ? "Rename device" : "Set up device"}
-                      <ArrowUpRight size={14} />
-                    </button>
-                  </section>
-                  <section className="panel activity-panel">
-                    <div className="panel-heading">
-                      <strong>Activity</strong>
-                      <span className="dot blue" />
-                    </div>
-                    {events.length ? (
-                      events.slice(0, 3).map((e, i) => (
-                        <div className="event" key={i}>
-                          <span className="dot" />
-                          <div>
-                            {e.text}
-                            <small>{e.time}</small>
-                          </div>
+                      <h3>{device?.name || "No device connected"}</h3>
+                      <p>
+                        {status.simulated
+                          ? "Software camera simulator"
+                          : "Raspberry Pi 4 Model B"}
+                      </p>
+                      <dl>
+                        <div>
+                          <dt>Gateway</dt>
+                          <dd>{connection}</dd>
                         </div>
-                      ))
-                    ) : (
-                      <div className="quiet">
-                        <Activity size={21} />
-                        <p>
-                          Your workspace is ready.
-                          <br />
-                          Device activity will appear here.
-                        </p>
+                        <div>
+                          <dt>Camera</dt>
+                          <dd>
+                            {status.camera_online ? "Online" : "Unavailable"}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Last heartbeat</dt>
+                          <dd>
+                            {status.last_seen
+                              ? new Date(status.last_seen).toLocaleTimeString()
+                              : "Waiting"}
+                          </dd>
+                        </div>
+                      </dl>
+                      <button
+                        className="full"
+                        onClick={() =>
+                          device ? rename() : setConnectOpen(true)
+                        }
+                      >
+                        {device ? "Rename device" : "Set up device"}
+                        <ArrowUpRight size={14} />
+                      </button>
+                    </section>
+                    <section className="panel activity-panel">
+                      <div className="panel-heading">
+                        <strong>Activity</strong>
+                        <span className="dot blue" />
                       </div>
-                    )}
-                  </section>
-                </aside>
+                      {events.length ? (
+                        events.slice(0, 3).map((e, i) => (
+                          <div className="event" key={i}>
+                            <span className="dot" />
+                            <div>
+                              {e.text}
+                              <small>{e.time}</small>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="quiet">
+                          <Activity size={21} />
+                          <p>
+                            Your workspace is ready.
+                            <br />
+                            Device activity will appear here.
+                          </p>
+                        </div>
+                      )}
+                    </section>
+                  </aside>
+                )}
               </div>
               {tab === "Overview" && (
                 <section className="recent">
@@ -1166,9 +1250,7 @@ export default function Dashboard() {
                 <h2>
                   All captures <span>{photos.length}</span>
                 </h2>
-                <span className="muted">
-                  {cloudEnabled ? "Private storage" : "This session only"}
-                </span>
+                {cloudEnabled && <span className="muted">Private storage</span>}
               </div>
               {photos.length ? (
                 <div className="photo-grid">{photos.map(photoCard)}</div>
@@ -1198,26 +1280,19 @@ export default function Dashboard() {
           {tab === "ML analysis" && (
             <>
               <section className="panel guide">
-                <Cpu size={30} />
-                <h2>Bring your own compute.</h2>
-                <p>
-                  Run the Python ML worker on your computer. It receives images
-                  through the gateway and returns bounding boxes and
-                  segmentation polygons.
-                </p>
-                <pre>{`cd workers/ml\npython -m venv .venv\nsource .venv/bin/activate\npip install -r requirements.txt\npython main.py --gateway ${gateway} --device ${device?.id || "DEVICE_ID"}`}</pre>
-                <p className="muted">
-                  Generic YOLO results demonstrate the pipeline. They are not
-                  validated biological measurements.
-                </p>
-                <div className="worker-state">
-                  <span
-                    className={`dot ${status.worker_online ? "green" : ""}`}
-                  />
-                  {status.worker_online
-                    ? "Worker connected. Select an image below to analyze."
-                    : "Waiting for a local worker"}
-                </div>
+                <h2>Object detection</h2>
+                <p>Select a photo to detect objects, or open your camera.</p>
+                <button
+                  onClick={() => {
+                    setCameraSource("computer");
+                    setTab("Live camera");
+                  }}
+                >
+                  Open computer camera
+                </button>
+                <span className="detector-status" aria-live="polite">
+                  {detectorStatus}
+                </span>
               </section>
               <div className="photo-grid">{photos.map(photoCard)}</div>
             </>
@@ -1244,7 +1319,7 @@ export default function Dashboard() {
                       throw new Error("Use wss:// for a remote gateway");
                     setGateway(gatewayInput.replace(/\/$/, ""));
                     setRetry((v) => v + 1);
-                    setNotice("Gateway updated for this session");
+                    setNotice("Gateway updated");
                   } catch (e) {
                     error(String(e));
                   }
@@ -1260,13 +1335,6 @@ export default function Dashboard() {
                 </label>
                 <button className="primary">Apply connection settings</button>
               </form>
-              <hr />
-              <h3>{cloudEnabled ? "Cloud storage" : "Session storage"}</h3>
-              <p>
-                {cloudEnabled
-                  ? "Your captures are stored in your private Supabase bucket."
-                  : "No account, localStorage, IndexedDB, or database is used. Refreshing clears this session. Download photos you want to keep."}
-              </p>
               {cloudEnabled && (
                 <button onClick={() => supabase().auth.signOut()}>
                   Sign out
@@ -1297,7 +1365,7 @@ export default function Dashboard() {
               <p>
                 {cloudEnabled
                   ? "Enter the six-digit pairing code printed by the agent."
-                  : "Copy the Device ID printed by the agent and paste it into Connect device. Anyone with that ID can view and control the demo camera."}
+                  : "Copy the Device ID printed by the agent and paste it into Connect device."}
               </p>
               <button className="primary" onClick={() => setConnectOpen(true)}>
                 <Plus size={16} />
@@ -1310,14 +1378,6 @@ export default function Dashboard() {
               </p>
             </section>
           )}
-          <footer>
-            <FlaskConical size={13} />
-            <span>AUTOLAB</span>
-            <span>Built for exploration.</span>
-            <span className="footer-right">
-              {cloudEnabled ? "Private workspace" : "Session-only imaging"}
-            </span>
-          </footer>
         </main>
       </div>
       {notice && (
@@ -1381,9 +1441,7 @@ export default function Dashboard() {
               <button
                 className="primary"
                 onClick={() => analyze(selected)}
-                disabled={
-                  !status.worker_online || analyzing.includes(selected.id)
-                }
+                disabled={analyzing.includes(selected.id)}
               >
                 <Cpu size={15} />
                 {analyzing.includes(selected.id)

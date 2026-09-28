@@ -8,10 +8,12 @@ export default function SceneCamera({
   selected,
   exploded,
   reset,
+  isolated = false,
 }: {
   selected: string | null;
   exploded: boolean;
   reset: number;
+  isolated?: boolean;
 }) {
   const controls = useRef<Controls>(null),
     { camera, invalidate } = useThree(),
@@ -29,12 +31,18 @@ export default function SceneCamera({
       .copy(target.current)
       .add(
         c
-          ? new Vector3(3.2, 2.3, 4.6)
-          : new Vector3(exploded ? 10 : 7.6, 5.2, 9.4),
+          ? isolated
+            ? new Vector3(
+                1.3,
+                c.id === "camera" ? -1.1 : 1.25,
+                1.5,
+              ).multiplyScalar(Math.max(...c.size) * 1.15)
+            : new Vector3(3.2, 2.3, 4.6)
+          : new Vector3(exploded ? 9.5 : 7, 4.8, 8.6),
       );
     moving.current = true;
     invalidate();
-  }, [selected, exploded, reset, invalidate]);
+  }, [selected, exploded, reset, isolated, invalidate]);
   useFrame((_, dt) => {
     const c = controls.current;
     if (!c || !moving.current) return;
@@ -52,10 +60,10 @@ export default function SceneCamera({
       makeDefault
       enableDamping
       dampingFactor={0.09}
-      minDistance={3.5}
+      minDistance={isolated ? 0.35 : 2.5}
       maxDistance={20}
       minPolarAngle={0.15}
-      maxPolarAngle={Math.PI / 2 - 0.03}
+      maxPolarAngle={isolated ? Math.PI - 0.1 : Math.PI / 2 - 0.03}
       onStart={() => {
         moving.current = false;
       }}

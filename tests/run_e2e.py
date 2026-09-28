@@ -1,6 +1,7 @@
 """Launch all components in one test environment, then exercise the real web UI."""
 
 import json
+import hashlib
 import os
 import subprocess
 import sys
@@ -12,6 +13,17 @@ from pathlib import Path
 import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
+if not os.environ.get("DETECTION_TEST_IMAGE"):
+    fixture = ROOT / ".test-assets" / "city-streets.jpg"
+    fixture.parent.mkdir(exist_ok=True)
+    expected = "23138717208f27df044467fe56d660887e25072490f1ba0c80871860de836cc0"
+    if not fixture.exists() or hashlib.sha256(fixture.read_bytes()).hexdigest() != expected:
+        response = httpx.get("https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/city-streets.jpg", follow_redirects=True, timeout=60)
+        response.raise_for_status()
+        if hashlib.sha256(response.content).hexdigest() != expected:
+            raise RuntimeError("Detection fixture checksum mismatch")
+        fixture.write_bytes(response.content)
+    os.environ["DETECTION_TEST_IMAGE"] = str(fixture)
 os.environ["NO_PROXY"] = "localhost,127.0.0.1"
 os.environ["no_proxy"] = "localhost,127.0.0.1"
 for key in (
@@ -93,18 +105,6 @@ try:
                 str(cred),
             ],
             ROOT / "devices/raspberry-pi",
-        )
-        start(
-            [
-                sys.executable,
-                "main.py",
-                "--gateway",
-                "ws://127.0.0.1:8000",
-                "--device",
-                device,
-                "--simulate",
-            ],
-            ROOT / "workers/ml",
         )
         env = {**os.environ, "TEST_DEVICE_ID": device}
         result = subprocess.run(

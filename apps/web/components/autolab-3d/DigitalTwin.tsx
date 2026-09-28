@@ -44,12 +44,16 @@ export default memo(function DigitalTwin({
       lastCapture,
     ),
     [selected, setSelected] = useState<string | null>(null),
+    [isolated, setIsolated] = useState(false),
     [exploded, setExploded] = useState(false),
     [connections, setConnections] = useState(false),
     [reset, setReset] = useState(0),
     [search, setSearch] = useState(""),
     [showLive, setShowLive] = useState(false);
-  const select = useCallback((id: string) => setSelected(id), []),
+  const select = useCallback((id: string) => {
+      setSelected(id);
+      setIsolated(true);
+    }, []),
     c = selected ? componentById[selected] : null,
     state = selected ? states[selected] : null;
   const matches = autolabComponents.filter((c) =>
@@ -64,13 +68,8 @@ export default memo(function DigitalTwin({
     >
       <div className="twin-heading">
         <div>
-          <span className="eyebrow">YOUR PHYSICAL WORKSPACE</span>
-          <h2>
-            <Box size={20} />
-            Autolab digital twin
-          </h2>
+          <h2>{c ? c.shortName : "Hardware"}</h2>
         </div>
-        <span className="twin-spec">Imaging MVP / conceptual layout</span>
       </div>
       <div className="twin-toolbar">
         <button
@@ -88,11 +87,23 @@ export default memo(function DigitalTwin({
         </button>
         <button
           aria-pressed={connections}
-          onClick={() => setConnections((v) => !v)}
+          onClick={() => {
+            setIsolated(false);
+            setConnections((v) => !v);
+          }}
         >
           <Link2 size={14} />
           Connections
         </button>
+        {selected && (
+          <button
+            aria-pressed={isolated}
+            onClick={() => setIsolated((v) => !v)}
+          >
+            <Box size={14} />
+            Isolate part
+          </button>
+        )}
         <button
           className={showLive ? "active" : ""}
           onClick={() => {
@@ -110,17 +121,13 @@ export default memo(function DigitalTwin({
           <Scene
             states={states}
             selected={selected}
+            isolated={isolated && !!selected}
             exploded={exploded}
             connections={connections}
             reset={reset}
             onSelect={select}
           />
-          <div className="scene-caption">
-            Orbit to explore. Scroll to zoom. Select a component.
-          </div>
-          <div className="scene-corner">
-            AUTOLAB <span>01</span>
-          </div>
+          <div className="scene-caption">Drag to rotate. Scroll to zoom.</div>
         </div>
         {c && state && (
           <aside className="component-details" aria-label="Component details">
@@ -210,7 +217,7 @@ export default memo(function DigitalTwin({
       {showLive && (
         <div className="twin-live-panel">
           <div className="panel-heading">
-            <strong>Live camera alongside your Autolab</strong>
+            <strong>Live camera</strong>
             <span>{preview ? "Preview active" : "Waiting for preview"}</span>
           </div>
           {livePanel || <p>Start the camera preview to see live images.</p>}
@@ -225,13 +232,12 @@ export default memo(function DigitalTwin({
           <i className={`dot ${status.camera_online ? "green" : ""}`} />
           Camera {status.camera_online ? "connected" : "unavailable"}
         </span>
-        <span>
-          {status.simulated
-            ? "Simulator session"
-            : "Future sensors are not installed"}
-        </span>
+        <span>{status.simulated ? "Simulator session" : ""}</span>
       </div>
-      <div className="components-browser">
+      <details className="components-browser" open={full}>
+        <summary>
+          Components <span>{autolabComponents.length}</span>
+        </summary>
         <div className="component-list-heading">
           <h3>
             Components <span>{autolabComponents.length}</span>
@@ -275,7 +281,7 @@ export default memo(function DigitalTwin({
         {!matches.length && (
           <p className="no-components">No matching components.</p>
         )}
-      </div>
+      </details>
     </section>
   );
 });

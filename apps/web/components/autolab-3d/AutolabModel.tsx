@@ -88,16 +88,30 @@ function Part({
       position={c.position}
       name={c.id}
       userData={{ componentId: c.id }}
-      onPointerOver={over}
-      onPointerOut={() => {
-        setHover(false);
-        gl.domElement.style.cursor = "auto";
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(c.id);
-      }}
     >
+      <mesh
+        name={`hit-${c.id}`}
+        position={c.id === "camera" ? [0, -0.15, 0] : [0, 0, 0]}
+        onPointerOver={over}
+        onPointerOut={() => {
+          setHover(false);
+          gl.domElement.style.cursor = "auto";
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setHover(false);
+          gl.domElement.style.cursor = "auto";
+          onSelect(c.id);
+        }}
+      >
+        <boxGeometry args={c.size} />
+        <meshBasicMaterial
+          transparent
+          opacity={0}
+          depthWrite={false}
+          colorWrite={false}
+        />
+      </mesh>
       {c.model === "raspberry_pi" ? (
         <RaspberryPiModel powered={state.online} />
       ) : c.model === "camera" ? (
@@ -108,12 +122,16 @@ function Part({
         <Model />
       ) : null}
       {(hover || selected) && (
-        <mesh>
+        <mesh raycast={() => {}}>
           <boxGeometry
             args={c.size.map((n) => n + 0.1) as [number, number, number]}
           />
           <meshBasicMaterial visible={false} />
-          <Edges color={selected ? "#66b0ff" : "#6b8199"} linewidth={1.5} />
+          <Edges
+            raycast={() => {}}
+            color={selected ? "#67835b" : "#788575"}
+            linewidth={1}
+          />
         </mesh>
       )}
       {hover && <ComponentLabel name={c.shortName} status={state.status} />}
@@ -125,25 +143,29 @@ export default memo(function AutolabModel({
   selected,
   exploded,
   onSelect,
+  isolated = false,
 }: {
   states: Record<string, AutolabComponentState>;
   selected: string | null;
   exploded: boolean;
   onSelect: (id: string) => void;
+  isolated?: boolean;
 }) {
   return (
     <group>
-      <PrinterFrameModel />
-      {autolabComponents.map((c) => (
-        <Part
-          key={c.id}
-          definition={c}
-          state={states[c.id]}
-          selected={selected === c.id}
-          exploded={exploded}
-          onSelect={onSelect}
-        />
-      ))}
+      {!isolated && <PrinterFrameModel />}
+      {autolabComponents
+        .filter((c) => !isolated || c.id === selected)
+        .map((c) => (
+          <Part
+            key={c.id}
+            definition={c}
+            state={states[c.id]}
+            selected={selected === c.id && !isolated}
+            exploded={exploded}
+            onSelect={onSelect}
+          />
+        ))}
     </group>
   );
 });

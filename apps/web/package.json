@@ -3,6 +3,8 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "predev": "node scripts/prepare-inference.mjs",
+    "prebuild": "node scripts/prepare-inference.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -14,6 +16,7 @@
     "@supabase/supabase-js": "^2.100.0",
     "lucide-react": "^0.468.0",
     "next": "16.3.6",
+    "onnxruntime-web": "1.30.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "three": "^0.186.1"

@@ -1,6 +1,6 @@
 # Autolab
 
-Remote Raspberry Pi imaging with a Next.js dashboard, persistent Python WebSocket gateway, Pi camera agent, and optional local segmentation worker.
+Remote Raspberry Pi imaging with a Next.js dashboard, persistent Python WebSocket gateway, Pi camera agent, and browser object detection.
 
 **The default is a public, account-free demo.** Captures and analyses live only in the current browser tab. Refreshing clears them, the selected device, and connection settings. There is no browser database or gateway image archive in demo mode. Download images before leaving. A device ID is a routing address, not an authentication credential: anyone with it can control that demo camera.
 
@@ -11,10 +11,10 @@ Cloud mode is implemented separately and disabled by default. It adds Supabase e
 - Interactive Three.js digital twin with 16 selectable component nodes, linked details, exploded view, connection lines and an accessible component list.
 - Animated camera/power onboarding with optional Bluetooth Wi-Fi provisioning and manual fallback. See [digital twin](docs/digital-twin.md) and [Bluetooth setup](docs/bluetooth-provisioning.md).
 
-- Blue/black responsive dashboard, live camera, device status and heartbeat, capture library, detail viewer, download, delete, device naming, setup guide, and connection settings.
+- Neutral, responsive dashboard opening directly into the 3D components workspace, with live camera, capture library, detail viewer, download, delete, device naming, setup guide, and connection settings.
 - 640 × 480 binary JPEG preview at about 4 FPS, enabled only while a viewer requests it.
 - Separate high-resolution still capture, camera locking, reconnect/backoff, and bounded queues.
-- Saved-image and sampled live ML, browser canvas boxes/polygons, optional YOLO segmentation worker on your computer.
+- ONNX Runtime object detection on saved images, Pi preview, computer camera and uploads, with WebGPU and CPU fallback. See [browser detection](docs/browser-detection.md).
 - Raspberry Pi Picamera2 agent with camera discovery, persistent credentials and systemd unit.
 - Explicit camera and ML simulators for testing without hardware or model downloads.
 - Supabase migration, RLS, private bucket, gateway-only credentials, atomic expiring claim codes, and cloud activation instructions.
@@ -72,21 +72,11 @@ python -m autolab_agent.main --simulate --gateway ws://localhost:8000
 
 Copy the **Device ID** printed in the terminal. Click **Connect device**, advance through the camera and power guide, choose **Use manual Wi-Fi setup**, and paste it. The guide is illustrative when you are using the simulator. Click **Start preview**, then **Take photo**. The simulator is visibly labeled and does not imply a physical camera is connected.
 
-### 4. Optional ML simulator
+### 4. Object detection
 
-To exercise the analysis pipeline without downloading a model:
+Open an image and click **Analyze image**, or enable **Detect objects** during preview. In **Live camera**, select **Computer camera** to use a webcam or upload a photograph without connecting a Pi. The web build prepares the pinned YOLOv10n model and ONNX Runtime assets automatically. Inference runs in a browser worker with WebGPU or WebAssembly; no Python ML process is needed.
 
-```bash
-cd workers/ml
-python3 -m venv .venv
-source .venv/bin/activate
-pip install 'websockets>=14,<17' pillow python-dotenv httpx
-python main.py --simulate --device YOUR_DEVICE_UUID --gateway ws://localhost:8000
-```
-
-Open an image and click **Analyze image**, or enable **Live ML** during preview. Simulated detections are labeled `simulator (not ML)`.
-
-For real inference install `workers/ml/requirements.txt` and omit `--simulate`. The first run downloads `yolo11n-seg.pt`. Internet and sufficient disk/RAM are required. Use `--model /path/to/model.pt` for another model. The generic model demonstrates computer vision plumbing, not medically or biologically validated measurements. Review the selected model's license before commercial use.
+The optional `workers/ml` integration remains available for custom model clients and durable cloud analyses using the gateway protocol. The default dashboard's analysis buttons use the browser detector. See [browser detection](docs/browser-detection.md) for preprocessing, licensing and model details.
 
 ## Real Raspberry Pi setup
 
@@ -153,6 +143,6 @@ npx playwright install chromium
 .venv/bin/python tests/run_e2e.py
 ```
 
-End-to-end checks start the gateway, production web app, camera simulator and ML simulator. They cover capture, preview, saved/live analysis, deletion, mobile overflow, refresh reset, absence of browser persistence, and browser runtime errors. Ports 3000 and 8000 must be free.
+End-to-end checks start the gateway, production web app and camera simulator. They exercise the real ONNX model on captures and a checksum-verified street photo, computer-camera start/stop, 3D hover and selection, mobile overflow, deletion and refresh reset. The photo fixture is downloaded on the first run. Ports 3000 and 8000 must be free.
 
 Real CSI hardware and a live Supabase project must be verified in the target environment. These checks do not claim to validate either. See [architecture and limits](docs/architecture.md) and [wire protocol](docs/protocol.md).

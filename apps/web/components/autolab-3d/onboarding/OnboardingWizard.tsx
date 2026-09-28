@@ -204,7 +204,7 @@ export default function OnboardingWizard({
         aria-labelledby="onboarding-title"
       >
         <header>
-          <span className="eyebrow">AUTOLAB / DEVICE SETUP</span>
+          <span className="eyebrow">Connect device</span>
           <button
             className="icon-button"
             onClick={onClose}
@@ -513,10 +513,6 @@ export default function OnboardingWizard({
             )}
           </div>
         </div>
-        <footer>
-          Setup changes are confirmed by the device. Animations do not indicate
-          live measurements.
-        </footer>
       </section>
     </div>
   );

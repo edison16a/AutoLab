@@ -8,7 +8,6 @@ import {
   type ReactNode,
 } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Grid } from "@react-three/drei";
 import AutolabModel from "./AutolabModel";
 import SceneCamera from "./SceneCamera";
 import ComponentConnections from "./ComponentConnections";
@@ -83,14 +82,19 @@ export function WebGLScene({
           );
         }}
       >
-        <color attach="background" args={["#0b1119"]} />
-        <ambientLight intensity={0.9} />
-        <hemisphereLight args={["#d9eaff", "#35404b", 1.2]} />
+        <color attach="background" args={["#e5e7e2"]} />
+        <ambientLight intensity={0.65} />
+        <hemisphereLight args={["#ffffff", "#8c9487", 2]} />
+        <directionalLight
+          position={[2, -3, 5]}
+          intensity={0.8}
+          color="#e8efef"
+        />
         <directionalLight
           position={[3, 9, 5]}
-          intensity={2.8}
+          intensity={3.2}
           castShadow
-          shadow-mapSize={[1024, 1024]}
+          shadow-mapSize={[2048, 2048]}
           shadow-camera-left={-8}
           shadow-camera-right={8}
           shadow-camera-top={8}
@@ -100,7 +104,7 @@ export function WebGLScene({
         <directionalLight
           position={[-5, 4, -3]}
           intensity={1.5}
-          color="#8cb6d1"
+          color="#fff4e4"
         />
         <Suspense fallback={null}>
           <ModelResources>{children}</ModelResources>
@@ -116,6 +120,7 @@ export default memo(function AutolabScene({
   connections,
   reset,
   onSelect,
+  isolated,
 }: {
   states: Record<string, AutolabComponentState>;
   selected: string | null;
@@ -123,40 +128,37 @@ export default memo(function AutolabScene({
   connections: boolean;
   reset: number;
   onSelect: (id: string) => void;
+  isolated: boolean;
 }) {
   return (
     <WebGLScene>
-      <SceneCamera selected={selected} exploded={exploded} reset={reset} />
+      <SceneCamera
+        selected={selected}
+        exploded={exploded}
+        reset={reset}
+        isolated={isolated}
+      />
       <AutolabModel
         states={states}
         selected={selected}
         exploded={exploded}
         onSelect={onSelect}
+        isolated={isolated}
       />
-      {connections && (
+      {connections && !isolated && (
         <ComponentConnections
           selected={selected}
           exploded={exploded}
           online={!!states.raspberry_pi.online}
         />
       )}
-      <Grid
-        position={[0, -0.3, 0]}
-        args={[18, 18]}
-        cellSize={0.5}
-        sectionSize={2}
-        cellColor="#1b2835"
-        sectionColor="#273c50"
-        fadeDistance={24}
-        fadeStrength={1.5}
-      />
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -0.31, 0]}
         receiveShadow
       >
         <planeGeometry args={[25, 25]} />
-        <shadowMaterial opacity={0.2} />
+        <shadowMaterial opacity={isolated ? 0 : 0.16} />
       </mesh>
     </WebGLScene>
   );

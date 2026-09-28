@@ -20,6 +20,8 @@ Import `edison16a/AutoLab`. Select **Next.js**, set **Root Directory** to `apps/
 - Output: Next.js default.
 - Node.js: 22 or newer supported by Vercel.
 
+The build downloads a checksum-verified YOLOv10n model from Hugging Face and copies ONNX Runtime assets from npm into `public/inference`. Keep the default build script so these assets are included. A webcam or image-upload demonstration works without a gateway; Pi connections require the separate gateway deployment.
+
 Environment:
 
 ```dotenv
@@ -29,9 +31,9 @@ NEXT_PUBLIC_GATEWAY_URL=wss://YOUR_GATEWAY_HOST
 
 Redeploy after changing any `NEXT_PUBLIC_` value because these values are baked into the web build. Add the final Vercel production domain to the gateway's `ALLOWED_ORIGINS`. For preview deployments, explicitly add each preview origin or use a dedicated stable preview domain; wildcard browser origins are not accepted.
 
-## 3. Raspberry Pi and worker
+## 3. Raspberry Pi
 
-Set `AUTOLAB_GATEWAY=wss://YOUR_GATEWAY_HOST` on both. Run the Pi agent, copy its device UUID into the web app, and confirm a capture. Run the ML worker using that same UUID. The frontend does not open connections directly to the Pi.
+Set `AUTOLAB_GATEWAY=wss://YOUR_GATEWAY_HOST` on the Pi. Run the agent, copy its device UUID into the web app, and confirm a capture. The frontend connects through the gateway. Object detection runs in the browser and needs no Python ML worker.
 
 ## Deployment smoke check
 

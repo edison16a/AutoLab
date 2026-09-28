@@ -4,10 +4,10 @@ The browser renders the machine with Three.js, React Three Fiber and Drei. The P
 
 ## Workspace
 
-Connect a device to see the digital twin prominently on Overview. Open Components for `/autolab/{deviceId}/components`. The persistent workspace layout keeps captured images and the WebSocket alive while moving between these routes. Refresh still clears demo images. A device UUID in a direct components URL selects that device; cloud mode still verifies its ownership at the gateway.
+Components is the default screen, showing the full assembly and searchable component list before a device is connected. Connected devices use `/autolab/{deviceId}/components`. The persistent workspace layout keeps captures and the WebSocket alive while navigating. A device UUID in a direct components URL selects that device; cloud mode still verifies its ownership at the gateway. Selection isolates and frames a part, and Reset view restores the assembly. Invisible, stable hit meshes handle hover independently from visual highlights.
 
 - Orbit with drag, zoom with the wheel or pinch, pan with right-drag or two fingers.
-- Click a modeled part or its searchable list row to select and focus it.
+- Click a modeled part or its searchable list row to isolate and inspect it. The camera fits the selected part, and the HQ camera opens from below so the lens is visible. Toggle Isolate part to see it in the assembly again.
 - Reset view returns to the full machine.
 - Exploded view separates electronic components; connection lines identify physical or planned links.
 - Select the camera to start live view beside the machine or take a photo.
@@ -50,7 +50,9 @@ This is a protocol example only. No such sample readings are injected by the app
 - `DigitalTwin.tsx`: shared scene/list selection and the details panel.
 - `onboarding/`: assembly animations and connection wizard.
 
-The models share basic geometry and materials. Heavy scene code is dynamically imported, rendering is demand-based, device-pixel ratio is capped at 1.5, shadows use a 1024 map, and there is no postprocessing stack or external font/HDR download. Animation invalidates frames only while moving. Tutorial animations respect reduced motion and can be replayed. Unsupported WebGL or a lost context displays text guidance while the searchable component list and device actions remain usable.
+The models share basic geometry, cached board geometry and materials. Boards have rounded outlines and mounting holes. The Pi includes open USB/Ethernet sockets, 40 GPIO pins, chip leads and locally generated silkscreen. The camera has a metal mount, knurled lens barrel and coated front glass. The frame includes slotted extrusions, drive motors, paired rails, a lead screw, connected pipette mount, plate nest and capped reservoirs. These details improve identification, but the models remain conceptual references rather than manufacturing CAD.
+
+Heavy scene code is dynamically imported, rendering is demand-based, device-pixel ratio is capped at 1.5, shadows use a 2048 map, and there is no postprocessing stack or external font/HDR download. Board geometry and generated marking textures are disposed when their owners unmount. Animation invalidates frames only while moving. Tutorial animations respect reduced motion and can be replayed. Unsupported WebGL or a lost context displays text guidance while the searchable component list and device actions remain usable.
 
 ## Onboarding
 

@@ -73,7 +73,7 @@ export const autolabComponents: ComponentDefinition[] = [
     "Imaging",
     "Flexible camera ribbon between the Pi CSI connector and the camera.",
     [1.6, 2.6, 0.35],
-    [0.6, 0.12, 1.0],
+    [2, 2.1, 0.4],
     "CSI",
     "fpc",
     false,

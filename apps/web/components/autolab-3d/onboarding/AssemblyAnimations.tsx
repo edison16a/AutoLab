@@ -7,7 +7,10 @@ import {
   DoubleSide,
   Float32BufferAttribute,
   Group,
+  CatmullRomCurve3,
+  Vector3,
 } from "three";
+import type { Line2 } from "three-stdlib";
 import SceneLabel from "../SceneLabel";
 import { WebGLScene } from "../AutolabScene";
 import { Box, Cylinder } from "../models/Primitives";
@@ -50,9 +53,14 @@ export function CameraConnectionAnimation() {
     const g = new BufferGeometry();
     g.setAttribute(
       "position",
-      new Float32BufferAttribute(new Array(24).fill(0), 3),
+      new Float32BufferAttribute(new Array(33 * 6).fill(0), 3),
     );
-    g.setIndex([0, 1, 2, 1, 3, 2, 2, 3, 4, 3, 5, 4, 4, 5, 6, 5, 7, 6]);
+    const indices: number[] = [];
+    for (let i = 0; i < 32; i++) {
+      const n = i * 2;
+      indices.push(n, n + 1, n + 2, n + 1, n + 3, n + 2);
+    }
+    g.setIndex(indices);
     return g;
   }, []);
   useEffect(() => () => geometry.dispose(), [geometry]);
@@ -66,7 +74,10 @@ export function CameraConnectionAnimation() {
       [2.77, 0.17 + (1 - last) * 1.4, -1.2],
     ];
     const a = geometry.getAttribute("position");
-    points.forEach(([x, y, z], i) => {
+    const smooth = new CatmullRomCurve3(
+      points.map(([x, y, z]) => new Vector3(x, y, z)),
+    ).getPoints(32);
+    smooth.forEach(({ x, y, z }, i) => {
       a.setXYZ(i * 2, x, y, z - 0.14);
       a.setXYZ(i * 2 + 1, x, y, z + 0.14);
     });
@@ -83,7 +94,7 @@ export function CameraConnectionAnimation() {
         <CameraModel />
       </group>
       <mesh geometry={geometry}>
-        <meshStandardMaterial color="#d8dfe3" side={DoubleSide} />
+        <meshStandardMaterial color="#b0b9b0" side={DoubleSide} />
       </mesh>
       <Tag position={[-1.3, 0.65, 0.65]} text="CSI camera connector" />
       <Tag position={[2.5, 0.4, -1.4]} text="RP HQ Camera" />
@@ -93,12 +104,24 @@ export function CameraConnectionAnimation() {
 }
 export function PowerConnectionAnimation() {
   const p = useProgress(4),
+    cable = useRef<Line2>(null),
     plug = useRef<Group>(null),
     led = useRef<Group>(null);
   useFrame(() => {
     if (plug.current)
       plug.current.position.x = -3.4 + Math.min(1, p.current / 0.8) * 2.17;
     if (led.current) led.current.visible = p.current > 0.8;
+    if (cable.current && plug.current) {
+      const curve = new CatmullRomCurve3([
+        new Vector3(-4.2, 0.08, 1.5),
+        new Vector3(-3.5, 0.08, 1.5),
+        new Vector3(-2.8, 0.08, 0.8),
+        new Vector3(plug.current.position.x - 0.52, 0.11, 0.46),
+      ]);
+      cable.current.geometry.setPositions(
+        curve.getPoints(24).flatMap((v) => [v.x, v.y, v.z]),
+      );
+    }
   });
   return (
     <group>
@@ -110,13 +133,14 @@ export function PowerConnectionAnimation() {
         <Box position={[-0.3, 0, 0]} size={[0.45, 0.22, 0.28]} color="rubber" />
       </group>
       <Line
+        ref={cable}
         points={[
           [-4.2, 0.08, 1.5],
           [-3, 0.08, 1.5],
           [-2.1, 0.08, 0.48],
         ]}
-        color="#68717c"
-        lineWidth={4}
+        color="#343934"
+        lineWidth={6}
       />
       <Box position={[-4.2, 0, 1.5]} size={[0.75, 0.55, 1]} color="white" />
       <group ref={led} position={[-0.81, 0.085, -0.48]}>

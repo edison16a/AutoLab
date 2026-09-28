@@ -1,7 +1,18 @@
 import { useEffect, useMemo } from "react";
-import { BufferGeometry, Float32BufferAttribute, DoubleSide } from "three";
+import {
+  BufferGeometry,
+  Float32BufferAttribute,
+  DoubleSide,
+  CatmullRomCurve3,
+  Vector3,
+} from "three";
 import type { Vec3 } from "../registry/componentRegistry";
-const DEFAULT_POINTS:Vec3[]=[[-.73,.78,0],[-.1,.8,.05],[.9,.4,.13],[.95,-.97,.13]];
+const DEFAULT_POINTS: Vec3[] = [
+  [-0.73, 0.78, 0],
+  [-0.1, 0.8, 0.05],
+  [0.9, 0.4, 0.13],
+  [0.95, -0.97, 0.13],
+];
 export default function FPCModel({
   points = DEFAULT_POINTS,
 }: {
@@ -11,9 +22,12 @@ export default function FPCModel({
     const g = new BufferGeometry(),
       v: number[] = [],
       indices: number[] = [];
-    points.forEach(([x, y, z], i) => {
-      v.push(x - 0.09, y, z, x + 0.09, y, z);
-      if (i < points.length - 1) {
+    const smooth = new CatmullRomCurve3(
+      points.map((p) => new Vector3(...p)),
+    ).getPoints(40);
+    smooth.forEach(({ x, y, z }, i) => {
+      v.push(x, y, z - 0.13, x, y, z + 0.13);
+      if (i < smooth.length - 1) {
         const n = i * 2;
         indices.push(n, n + 1, n + 2, n + 1, n + 3, n + 2);
       }
