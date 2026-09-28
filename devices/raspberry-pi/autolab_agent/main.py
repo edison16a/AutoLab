@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from websockets.asyncio.client import connect
 
 from .camera import Camera
+from .telemetry import metadata
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
@@ -56,6 +57,20 @@ async def run(args):
             )
             r.raise_for_status()
             result = r.json()
+            # The local provisioning service reads this protected, short-lived
+            # result instead of registering again and invalidating this claim.
+            info_path = Path(args.credentials).expanduser().with_suffix(".setup.json")
+            info = {
+                **result,
+                "device_id": creds["device_id"],
+                "created_at": time.time(),
+                "gateway": args.gateway,
+            }
+            temp = info_path.with_suffix(".tmp")
+            fd = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "w") as output:
+                json.dump(info, output)
+            os.replace(temp, info_path)
             print(
                 "Already claimed"
                 if result.get("claimed")
@@ -81,6 +96,7 @@ async def run(args):
                                 "secret": creds["secret"],
                                 "camera_online": camera.online,
                                 "simulated": args.simulate,
+                                **metadata(),
                             }
                         )
                     )
@@ -102,7 +118,11 @@ async def run(args):
                     async def heartbeat():
                         while True:
                             await send(
-                                {"type": "heartbeat", "camera_online": camera.online}
+                                {
+                                    "type": "heartbeat",
+                                    "camera_online": camera.online,
+                                    **metadata(),
+                                }
                             )
                             await asyncio.sleep(10)
 

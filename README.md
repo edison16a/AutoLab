@@ -8,6 +8,9 @@ Cloud mode is implemented separately and disabled by default. It adds Supabase e
 
 ## Included
 
+- Interactive Three.js digital twin with 16 selectable component nodes, linked details, exploded view, connection lines and an accessible component list.
+- Animated camera/power onboarding with optional Bluetooth Wi-Fi provisioning and manual fallback. See [digital twin](docs/digital-twin.md) and [Bluetooth setup](docs/bluetooth-provisioning.md).
+
 - Blue/black responsive dashboard, live camera, device status and heartbeat, capture library, detail viewer, download, delete, device naming, setup guide, and connection settings.
 - 640 × 480 binary JPEG preview at about 4 FPS, enabled only while a viewer requests it.
 - Separate high-resolution still capture, camera locking, reconnect/backoff, and bounded queues.
@@ -67,7 +70,7 @@ pip install -r requirements.txt
 python -m autolab_agent.main --simulate --gateway ws://localhost:8000
 ```
 
-Copy the **Device ID** printed in the terminal. Click **Connect device** in the web app and paste it. Click **Start preview**, then **Take photo**. The simulator is visibly labeled and does not imply a physical camera is connected.
+Copy the **Device ID** printed in the terminal. Click **Connect device**, advance through the camera and power guide, choose **Use manual Wi-Fi setup**, and paste it. The guide is illustrative when you are using the simulator. Click **Start preview**, then **Take photo**. The simulator is visibly labeled and does not imply a physical camera is connected.
 
 ### 4. Optional ML simulator
 
@@ -115,7 +118,7 @@ Edit `.env`: set `AUTOLAB_GATEWAY` to the public `wss://` gateway URL, `AUTOLAB_
 python -m autolab_agent.main
 ```
 
-No Bluetooth, USB connection to your computer, inbound Pi port, or router port forwarding is needed. Only the gateway needs a public address. Test detection and a capture with the actual camera before enabling boot startup.
+No Bluetooth, USB connection to your computer, inbound Pi port, or router port forwarding is required for normal operation. Bluetooth is optional for initial Wi-Fi provisioning. Only the gateway needs a public address. Test detection and a capture with the actual camera before enabling boot startup.
 
 ### Start on boot
 
@@ -145,7 +148,7 @@ npm ci
 npm run build
 python3 -m venv .venv
 .venv/bin/pip install -r services/gateway/requirements.txt -r devices/raspberry-pi/requirements.txt
-.venv/bin/pytest tests/test_gateway.py -q
+.venv/bin/pytest tests/test_gateway.py tests/test_provisioning.py -q
 npx playwright install chromium
 .venv/bin/python tests/run_e2e.py
 ```

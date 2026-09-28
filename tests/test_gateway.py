@@ -220,3 +220,27 @@ def test_cloud_device_rejects_wrong_or_revoked_secret():
     with pytest.raises(HTTPException):
         asyncio.run(c.device("device", "wrong-secret"))
     asyncio.run(c.device("device", "correct-secret"))
+
+
+def test_reported_metadata_and_sensor_state_without_synthetic_values(client):
+    device = str(uuid.uuid4())
+    with opened(client, "device", device) as pi:
+        hello(pi, camera_online=True, agent_version="1.1.0", network="ethernet")
+        until(pi, "ready")
+        with opened(client, "client", device) as browser:
+            hello(browser)
+            initial = until(browser, "status")
+            until(browser, "ready")
+            assert initial["agent_version"] == "1.1.0"
+            assert initial["network"] == "ethernet"
+            assert initial["last_seen"]
+            assert initial["components"] == []
+            report = {
+                "id": "sht85", "installed": True, "online": True,
+                "status": "Online", "telemetry": {"temperature_c": 22.5},
+                "lastUpdated": "2026-09-28T00:00:00Z",
+            }
+            pi.send_json({"type": "heartbeat", "camera_online": True, "components": [report]})
+            updated = until(browser, "status")
+            assert updated["components"] == [report]
+            assert updated["last_seen"] >= initial["last_seen"]

@@ -10,3 +10,5 @@ credentials.json
 *.pt
 
 *.tsbuildinfo
+
+*.setup.json

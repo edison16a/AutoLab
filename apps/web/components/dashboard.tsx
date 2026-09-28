@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Activity,
+  Boxes,
   ArrowUpRight,
   Camera,
   Check,
@@ -23,6 +24,14 @@ import {
   X,
 } from "lucide-react";
 import { api, cloudEnabled, supabase, token } from "@/lib/cloud";
+import { usePathname, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import DigitalTwin from "./autolab-3d/DigitalTwin";
+import type { DeviceRealtimeState } from "./autolab-3d/state/useAutolab3DState";
+const OnboardingWizard = dynamic(
+  () => import("./autolab-3d/onboarding/OnboardingWizard"),
+  { ssr: false },
+);
 
 type Detection = {
   label: string;
@@ -118,18 +127,19 @@ function View({
   );
 }
 export default function Dashboard() {
+  const router = useRouter(),
+    pathname = usePathname();
   const [hasMore, setHasMore] = useState(false);
-  const [tab, setTab] = useState("Overview"),
+  const [tab, setTabState] = useState("Overview"),
     [gateway, setGateway] = useState(defaultGateway),
     [gatewayInput, setGatewayInput] = useState(defaultGateway);
   const [devices, setDevices] = useState<Device[]>([]),
     [device, setDevice] = useState<Device | null>(null),
-    [connectOpen, setConnectOpen] = useState(false),
-    [inputId, setInputId] = useState(""),
-    [inputName, setInputName] = useState("Neurotech Autolab"),
-    [code, setCode] = useState("");
+    [connectOpen, setConnectOpen] = useState(false);
   const [connection, setConnection] = useState("Disconnected"),
-    [status, setStatus] = useState({
+    [status, setStatus] = useState<
+      DeviceRealtimeState & { worker_online: boolean }
+    >({
       online: false,
       camera_online: false,
       worker_online: false,
@@ -159,6 +169,22 @@ export default function Dashboard() {
     captureTimer = useRef<ReturnType<typeof setTimeout> | null>(null),
     mlRef = useRef(false),
     previewRef = useRef(false);
+  function setTab(next: string) {
+    setTabState(next);
+    if (next === "Components" && device)
+      router.push(`/autolab/${device.id}/components`, { scroll: false });
+    else if (pathname.endsWith("/components"))
+      router.push("/", { scroll: false });
+  }
+  useEffect(() => {
+    const match = pathname.match(/^\/autolab\/([0-9a-f-]{36})\/components$/i);
+    if (match && validId.test(match[1])) {
+      setTabState("Components");
+      setDevice((old) =>
+        old?.id === match[1] ? old : { id: match[1], name: "Autolab" },
+      );
+    } else setTabState((old) => (old === "Components" ? "Overview" : old));
+  }, [pathname]);
   const addEvent = useCallback((text: string) => {
     setEvents((v) =>
       [{ text, time: new Date().toLocaleTimeString() }, ...v].slice(0, 30),
@@ -417,6 +443,7 @@ export default function Dashboard() {
             online: false,
             camera_online: false,
             worker_online: false,
+            components: [],
           }));
           setFrame(null);
           setAnalyzedFrame((old) => {
@@ -493,29 +520,12 @@ export default function Dashboard() {
         });
     }
   }
-  async function connectDevice(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    try {
-      let id = inputId.trim();
-      if (cloudEnabled) {
-        const r = await api(gateway, "/devices/claim", "POST", {
-          code,
-          name: inputName,
-        });
-        id = r.device_id;
-      } else if (!validId.test(id))
-        throw new Error("Paste the Device ID printed by your Pi agent");
-      const d = { id, name: inputName.trim() || "My Autolab" };
-      setDevices((v) => [...v.filter((x) => x.id !== id), d]);
-      setDevice(d);
-      setConnectOpen(false);
-      setTab("Overview");
-    } catch (e) {
-      error(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
-    }
+  async function connectDevice(id: string, name: string) {
+    setStatus({online:false,camera_online:false,worker_online:false,simulated:false,last_seen:null});
+    const d = { id, name: name.trim() || "My Autolab" };
+    setDevices((v) => [...v.filter((x) => x.id !== id), d]);
+    setDevice(d);
+    setTab("Overview");
   }
   async function analyze(p: Photo) {
     try {
@@ -707,6 +717,7 @@ export default function Dashboard() {
           {[
             { name: "Overview", icon: LayoutDashboard },
             { name: "Live camera", icon: Camera },
+            { name: "Components", icon: Boxes },
             { name: "Image library", icon: FolderOpen },
             { name: "ML analysis", icon: Cpu },
           ].map(({ name, icon: Icon }) => (
@@ -833,6 +844,37 @@ export default function Dashboard() {
                 <ArrowUpRight size={14} />
               </button>
             </div>
+          )}
+          {((tab === "Overview" && device) || tab === "Components") && (
+            <DigitalTwin
+              deviceId={device?.id}
+              status={status}
+              connection={connection}
+              preview={preview}
+              lastCapture={photos[0]?.captured_at}
+              capturing={capturing}
+              onCapture={capture}
+              onLive={() => {
+                if (!preview && status.camera_online) {
+                  send("start_preview");
+                  setPreview(true);
+                  previewRef.current = true;
+                }
+              }}
+              onSettings={() => setTab("Settings")}
+              full={tab === "Components"}
+              livePanel={
+                displayFrame && preview ? (
+                  <View frame={displayFrame} />
+                ) : (
+                  <div className="twin-preview-empty">
+                    {status.camera_online
+                      ? "Waiting for camera frames…"
+                      : "Camera is offline"}
+                  </div>
+                )
+              }
+            />
           )}
           {(tab === "Overview" || tab === "Live camera") && (
             <>
@@ -1291,79 +1333,14 @@ export default function Dashboard() {
         </div>
       )}
       {connectOpen && (
-        <div className="modal-backdrop" onClick={() => setConnectOpen(false)}>
-          <section
-            className="modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="connect-title"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className="modal-close icon-button"
-              aria-label="Close dialog"
-              onClick={() => setConnectOpen(false)}
-            >
-              <X />
-            </button>
-            <div className="modal-icon">
-              <Wifi size={25} />
-            </div>
-            <h2 id="connect-title">Connect your Autolab</h2>
-            <p>
-              {cloudEnabled
-                ? "Enter the pairing code shown on your Raspberry Pi."
-                : "Run the Pi agent, then paste its Device ID below. This public demo does not require an account."}
-            </p>
-            <form onSubmit={connectDevice}>
-              <label>
-                Device name
-                <input
-                  autoFocus
-                  value={inputName}
-                  onChange={(e) => setInputName(e.target.value)}
-                  required
-                  maxLength={80}
-                />
-              </label>
-              {cloudEnabled ? (
-                <label>
-                  Six-digit pairing code
-                  <input
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    pattern="[0-9]{6}"
-                    inputMode="numeric"
-                    maxLength={6}
-                    required
-                  />
-                </label>
-              ) : (
-                <label>
-                  Device ID
-                  <input
-                    value={inputId}
-                    onChange={(e) => setInputId(e.target.value)}
-                    placeholder="Paste the UUID from your agent"
-                    required
-                  />
-                </label>
-              )}
-              <div className="connection-note">
-                <span className="dot blue" />
-                {gateway}
-              </div>
-              <button className="primary full" disabled={busy}>
-                {busy ? (
-                  <LoaderCircle size={16} className="spin" />
-                ) : (
-                  <Plus size={16} />
-                )}
-                Connect device
-              </button>
-            </form>
-          </section>
-        </div>
+        <OnboardingWizard
+          gateway={gateway}
+          onClose={() => setConnectOpen(false)}
+          onConnect={connectDevice}
+          online={status.online}
+          cameraOnline={status.camera_online}
+          deviceId={device?.id}
+        />
       )}
       {selected && (
         <div className="modal-backdrop" onClick={() => setSelected(null)}>

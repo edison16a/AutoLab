@@ -1,0 +1,15 @@
+[Unit]
+Description=Autolab temporary Bluetooth Wi-Fi provisioning
+After=bluetooth.service NetworkManager.service
+Requires=bluetooth.service NetworkManager.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/YOUR_USER/AutoLab/devices/raspberry-pi
+EnvironmentFile=/home/YOUR_USER/AutoLab/devices/raspberry-pi/.env
+ExecStart=/home/YOUR_USER/AutoLab/devices/raspberry-pi/.venv/bin/python -m autolab_agent.provisioning
+Restart=no
+RuntimeMaxSec=610
+UMask=0077
+# Intentionally has no [Install] section. Start only during physical setup.

@@ -24,7 +24,7 @@ from fastapi import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 load_dotenv()
 MODE = os.getenv("AUTOLAB_MODE", "demo")
@@ -58,6 +58,24 @@ def unpack(data):
 def pack(h, jpeg):
     b = json.dumps(h, separators=(",", ":")).encode()
     return struct.pack("!I", len(b)) + b + jpeg
+
+
+class ComponentReport(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+    id: str = Field(pattern=r"^[a-z0-9_]{1,50}$")
+    installed: bool
+    online: bool = False
+    status: str = Field(max_length=80)
+    telemetry: dict[str, str | float | bool] | None = None
+    lastUpdated: str | None = None
+
+
+def device_metadata(data):
+    return {
+        key: str(data[key])[:80]
+        for key in ("agent_version", "network")
+        if data.get(key)
+    }
 
 
 @dataclass(eq=False)
@@ -113,6 +131,9 @@ class Room:
     pending: dict = field(default_factory=dict)
     analysis: dict = field(default_factory=dict)
     last_live: float = 0
+    heartbeat_at: str | None = None
+    metadata: dict = field(default_factory=dict)
+    components: list = field(default_factory=list)
 
     def status(self):
         return {
@@ -121,7 +142,9 @@ class Room:
             "camera_online": self.camera if self.device else False,
             "worker_online": self.worker is not None,
             "simulated": self.simulated,
-            "last_seen": now() if self.device else None,
+            "last_seen": self.heartbeat_at,
+            **self.metadata,
+            "components": self.components if self.device else [],
         }
 
     def broadcast(self, data):
@@ -333,6 +356,8 @@ async def socket(ws: WebSocket, role: str, device_id: str):
             room.device = peer
             room.camera = bool(hello.get("camera_online"))
             room.simulated = bool(hello.get("simulated"))
+            room.heartbeat_at = now()
+            room.metadata = device_metadata(hello)
             room.sync_preview()
             if cloud:
                 await cloud.call(
@@ -493,6 +518,13 @@ async def socket(ws: WebSocket, role: str, device_id: str):
                 elif role == "device":
                     if kind in ("heartbeat", "camera_status"):
                         room.camera = bool(data.get("camera_online"))
+                        room.heartbeat_at = now()
+                        room.metadata.update(device_metadata(data))
+                        if "components" in data:
+                            room.components = [
+                                ComponentReport.model_validate(c).model_dump()
+                                for c in data["components"][:32]
+                            ]
                         room.broadcast(room.status())
                         if cloud:
                             await cloud.call(
