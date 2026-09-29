@@ -19,10 +19,21 @@ interface ConnectionsProps {
 /** Where the gateway line ends: up and to the right of the Pi platform. */
 const GATEWAY: Vec3 = [4.7, 2.4, -0.3];
 const SAMPLES = 16;
+/**
+ * Links are a diagram over the model, so they draw on top of it: otherwise
+ * the real cables and the foam walls swallow them. Transparent puts them in
+ * the pass after every solid part.
+ */
+const OVERLAY = { transparent: true, depthTest: false } as const;
+/** Half a label's height, so the gateway name sits on the line's end instead of above it. */
+const ON_POINT = -12;
 
-/** A gentle arc between two points, lifted in the middle so lines clear the parts between them. */
-function arc(a: Vec3, b: Vec3): Vec3[] {
-  const lift = 0.25 + Math.hypot(b[0] - a[0], b[2] - a[2]) * 0.12;
+/**
+ * A gentle arc between two points, lifted in the middle so lines clear the
+ * parts between them. With no lift it rises and levels off into the higher end.
+ */
+function arc(a: Vec3, b: Vec3, lifted = true): Vec3[] {
+  const lift = lifted ? 0.25 + Math.hypot(b[0] - a[0], b[2] - a[2]) * 0.12 : 0;
   const mid: Vec3 = [(a[0] + b[0]) / 2, Math.max(a[1], b[1]) + lift, (a[2] + b[2]) / 2];
   return Array.from({ length: SAMPLES + 1 }, (_, i) => {
     const t = i / SAMPLES;
@@ -36,15 +47,15 @@ function isLive(link: PartConnection, cameraLive: boolean) {
 }
 
 /**
- * The wiring overlay. Planned links are thin dashed grey lines; links that
- * carry data now are solid accent. Links of the selected part are drawn a
- * little heavier and named.
+ * The wiring overlay. Planned links are dashed grey lines; links that carry
+ * data now are solid accent. Links of the selected part are drawn heavier
+ * and named.
  */
 export function Connections({ selected, exploded, cameraLive, piLive }: ConnectionsProps) {
   const { theme } = useTheme();
   // Colours come from the CSS tokens. `theme` isn't read inside; it's the signal to read them again.
   const colors = useMemo(
-    () => ({ theme, accent: accentColor(), planned: readCssColor("--text-faint", "#a1a1a8"), strong: readCssColor("--text-muted", "#6b6b73") }),
+    () => ({ theme, accent: accentColor(), planned: readCssColor("--text-muted", "#6b6b73"), strong: readCssColor("--text", "#0a0a0b") }),
     [theme],
   );
   const paths = useMemo(
@@ -67,17 +78,27 @@ export function Connections({ selected, exploded, cameraLive, piLive }: Connecti
             <Line
               points={points}
               color={live ? colors.accent : emphasized ? colors.strong : colors.planned}
-              lineWidth={emphasized ? 2 : 1.25}
+              lineWidth={emphasized ? 3 : 2}
               dashed={!live}
-              dashSize={0.1}
-              gapSize={0.07}
+              dashSize={0.12}
+              gapSize={0.08}
+              {...OVERLAY}
             />
             {emphasized ? <SceneLabel text={link.label} position={points[SAMPLES / 2]} tone="quiet" offset={4} /> : null}
           </group>
         );
       })}
-      <Line points={arc(pi, GATEWAY)} color={piLive ? colors.accent : colors.planned} lineWidth={1.25} dashed={!piLive} dashSize={0.1} gapSize={0.07} />
-      <SceneLabel text={piLive ? "Gateway, connected" : "Gateway, not connected"} position={GATEWAY} tone="quiet" offset={4} />
+      <Line
+        // Unlifted, so it meets the label from the side instead of hooking down into it.
+        points={arc(pi, GATEWAY, false)}
+        color={piLive ? colors.accent : colors.planned}
+        lineWidth={2}
+        dashed={!piLive}
+        dashSize={0.12}
+        gapSize={0.08}
+        {...OVERLAY}
+      />
+      <SceneLabel text={piLive ? "Gateway, connected" : "Gateway, not connected"} position={GATEWAY} tone="quiet" offset={ON_POINT} />
     </group>
   );
 }
