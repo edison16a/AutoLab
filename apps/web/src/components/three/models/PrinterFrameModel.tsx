@@ -1,6 +1,6 @@
 "use client";
 import { ChamberFixtures } from "./machine/ChamberFixtures";
-import { ElectronicsBox } from "./machine/ElectronicsBox";
+import { PiPlatform } from "./machine/PiPlatform";
 import { Enclosure } from "./machine/Enclosure";
 import { Gantry } from "./machine/Gantry";
 import { ToolCarriage } from "./machine/ToolCarriage";
@@ -19,7 +19,7 @@ export function PrinterFrameModel() {
       <Gantry />
       <ToolCarriage />
       <ChamberFixtures />
-      <ElectronicsBox />
+      <PiPlatform />
     </group>
   );
 }
