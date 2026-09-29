@@ -30,8 +30,8 @@ export function DataScreen() {
   const selection = useSelection(visibleIds, !actions.pendingDelete);
 
   const pending = actions.pendingDelete?.length ?? 0;
-  const subtitle = !photosReady
-    ? "Loading"
+  const subtitle = !photosReady || !photos.length
+    ? undefined
     : library.filtered
       ? `${library.visible.length} of ${imagesLabel(photos.length)}`
       : imagesLabel(photos.length);
