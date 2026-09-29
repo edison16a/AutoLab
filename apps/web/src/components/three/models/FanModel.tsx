@@ -33,9 +33,10 @@ const SPOKE_SCALE: Vec3 = [0.76, 0.01, 0.01];
 const CORNERS: Vec3[] = [-1, 1].flatMap((x) => [-1, 1].map((y) => [x * CORNER, y * CORNER, DEPTH / 2] as Vec3));
 
 /**
- * The circulation fan, blowing along +Z: a moulded frame with its round
- * throat and corner holes, seven pitched blades round the labelled hub,
- * motor struts behind, and a wire finger guard on the chamber side.
+ * The circulation fan, blowing along +Z: a black moulded frame with its
+ * round throat and corner holes, seven black pitched blades round the hub
+ * with its round white rating sticker, motor struts behind, and a chrome
+ * wire finger guard on the chamber side.
  */
 export function FanModel() {
   return (
@@ -49,7 +50,7 @@ export function FanModel() {
         dispose={null}
       />
       <Cylinder rotation={[Math.PI / 2, 0, 0]} radius={0.13} height={DEPTH * 0.8} material="plasticBlack" />
-      <Cylinder position={[0, 0, DEPTH * 0.4 + 0.001]} rotation={[Math.PI / 2, 0, 0]} radius={0.1} height={0.002} material="plasticGrey" />
+      <Cylinder position={[0, 0, DEPTH * 0.4 + 0.001]} rotation={[Math.PI / 2, 0, 0]} radius={0.1} height={0.002} material="labelWhite" />
       <TextDecal text="12V" position={[0, 0, DEPTH * 0.4 + 0.003]} rotation={[0, 0, 0]} width={0.1} height={0.05} ink="dark" weight={600} />
       <Repeat items={BLADES} material="plasticBlack" scale={BLADE_SCALE} order="ZYX" />
       <Repeat items={STRUTS} material="plasticBlack" scale={STRUT_SCALE} />
