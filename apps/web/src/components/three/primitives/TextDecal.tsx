@@ -16,6 +16,8 @@ export interface TextDecalProps extends Placement {
 }
 
 const INK = { light: "#f2f2f2", dark: "#2b2c30" } as const;
+/** Canvas pixels per scene unit, so small print doesn't cost a full size texture. */
+const PIXELS_PER_UNIT = 1400;
 const FLAT: [number, number, number] = [-Math.PI / 2, 0, 0];
 
 /** Uses the app's own typeface so printed labels match the interface. */
@@ -32,8 +34,8 @@ export function TextDecal({ text, width = 0.4, height = 0.08, ink = "light", wei
   const invalidate = useThree((state) => state.invalidate);
   const { texture, material } = useMemo(() => {
     const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = Math.max(32, Math.round((512 * height) / width));
+    canvas.width = Math.min(512, Math.max(64, Math.round(width * PIXELS_PER_UNIT)));
+    canvas.height = Math.max(24, Math.round((canvas.width * height) / width));
     const texture = new CanvasTexture(canvas);
     texture.colorSpace = SRGBColorSpace;
     texture.anisotropy = 4;
