@@ -1,0 +1,55 @@
+/*
+  Design tokens. The palette is black, white and neutral greys plus one blue
+  accent. Nothing else. Both themes define the same names, so components never
+  need to know which theme is active. The theme lives on <html data-theme>,
+  set before first paint by the script in app/layout.tsx.
+*/
+
+:root {
+  --bg: #ffffff;
+  --bg-elevated: #f7f7f8;
+  --bg-muted: #efeff1;
+  --bg-workspace: #f3f3f4;
+  --text: #0a0a0b;
+  --text-muted: #6b6b73;
+  --text-faint: #a1a1a8;
+  --border: #e6e6e9;
+  --border-strong: #d2d2d7;
+  --accent: #2684ff;
+  --accent-strong: #1a6fe0;
+  --accent-soft: #eaf2ff;
+  --accent-text: #0a5bd1;
+  --on-accent: #ffffff;
+  --overlay: rgba(10, 10, 11, 0.36);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 8px 24px rgba(0, 0, 0, 0.07);
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --topbar-height: 60px;
+  --page-width: 1240px;
+  --font-ui: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0a0a0b;
+  --bg-elevated: #121214;
+  --bg-muted: #1b1b1e;
+  --bg-workspace: #060607;
+  --text: #f5f5f6;
+  --text-muted: #9b9ba3;
+  --text-faint: #5f5f67;
+  --border: #242428;
+  --border-strong: #34343a;
+  --accent: #2684ff;
+  --accent-strong: #4396ff;
+  --accent-soft: rgba(38, 132, 255, 0.16);
+  --accent-text: #7db3ff;
+  --on-accent: #ffffff;
+  --overlay: rgba(0, 0, 0, 0.6);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
