@@ -17,19 +17,9 @@ export function LiveStage({ state, onResume }: LiveStageProps) {
   const frame = state === "live" ? liveFrame : null;
 
   return (
-    <div className={`live-stage ${frame ? "live-stage--live" : ""}`} aria-label="Autolab camera" role="region">
+    <div className="live-stage" role="region" aria-label="Autolab camera">
       {frame ? (
         <>
-          <div className="live-stage__view">
-            <ImageView
-              url={frame.url}
-              width={frame.width}
-              height={frame.height}
-              analysis={frame.analysis}
-              overlays={liveDetect}
-              alt="Live view from the Autolab camera"
-            />
-          </div>
           <StageChips
             start={
               <>
@@ -46,6 +36,16 @@ export function LiveStage({ state, onResume }: LiveStageProps) {
               </>
             }
           />
+          <div className="live-stage__view">
+            <ImageView
+              url={frame.url}
+              width={frame.width}
+              height={frame.height}
+              analysis={frame.analysis}
+              overlays={liveDetect}
+              alt="Live view from the Autolab camera"
+            />
+          </div>
         </>
       ) : (
         <StateMessage state={state} onResume={onResume} />
