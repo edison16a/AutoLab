@@ -5,7 +5,6 @@ import asyncio
 import json
 import logging
 import os
-import time
 
 from dotenv import load_dotenv
 from websockets.asyncio.client import connect
@@ -13,7 +12,8 @@ from websockets.asyncio.client import connect
 from .camera import Camera
 from .credentials import load_or_create
 from .endpoints import allowed_gateway, device_socket_url
-from .protocol import heartbeat_message, hello_message, packet
+from .link import DeviceLink
+from .protocol import hello_message
 from .registration import register
 
 load_dotenv()
@@ -40,105 +40,8 @@ async def run(args):
                     ping_timeout=20,
                 ) as ws:
                     await ws.send(json.dumps(hello_message(creds, camera, args.simulate)))
-                    preview = False
-                    send_lock = asyncio.Lock()
                     delay = 1
-
-                    async def send(value):
-                        async with send_lock:
-                            await asyncio.wait_for(
-                                ws.send(
-                                    value
-                                    if isinstance(value, bytes)
-                                    else json.dumps(value)
-                                ),
-                                10,
-                            )
-
-                    async def heartbeat():
-                        while True:
-                            await send(heartbeat_message(camera))
-                            await asyncio.sleep(10)
-
-                    async def stream():
-                        while True:
-                            if preview and camera.online:
-                                data, w, h = await asyncio.to_thread(camera.capture)
-                                await send(
-                                    packet(
-                                        {
-                                            "type": "frame",
-                                            "frame_id": str(time.time_ns()),
-                                            "width": w,
-                                            "height": h,
-                                        },
-                                        data,
-                                    )
-                                )
-                            await asyncio.sleep(0.25)
-
-                    async def commands():
-                        nonlocal preview
-                        async for raw in ws:
-                            cmd = json.loads(raw)
-                            kind = cmd.get("type")
-                            try:
-                                if kind == "start_preview":
-                                    preview = True
-                                elif kind == "stop_preview":
-                                    preview = False
-                                elif kind == "capture_photo":
-                                    data, w, h = await asyncio.to_thread(
-                                        camera.capture, True
-                                    )
-                                    await send(
-                                        packet(
-                                            {
-                                                "type": "capture",
-                                                "request_id": cmd["request_id"],
-                                                "width": w,
-                                                "height": h,
-                                            },
-                                            data,
-                                        )
-                                    )
-                                elif kind in ("camera_status", "ping"):
-                                    await send(
-                                        {
-                                            "type": "pong"
-                                            if kind == "ping"
-                                            else "camera_status",
-                                            "camera_online": camera.online,
-                                        }
-                                    )
-                                elif kind == "error":
-                                    raise RuntimeError(
-                                        cmd.get(
-                                            "message", "Gateway rejected connection"
-                                        )
-                                    )
-                            except Exception as exc:
-                                await send(
-                                    {
-                                        "type": "error",
-                                        "request_id": cmd.get("request_id"),
-                                        "message": str(exc),
-                                    }
-                                )
-
-                    tasks = [
-                        asyncio.create_task(f()) for f in (heartbeat, stream, commands)
-                    ]
-                    try:
-                        done, _ = await asyncio.wait(
-                            tasks, return_when=asyncio.FIRST_COMPLETED
-                        )
-                        for task in done:
-                            task.result()
-                    finally:
-                        for task in tasks:
-                            task.cancel()
-                        await asyncio.gather(*tasks, return_exceptions=True)
+                    await DeviceLink(ws, camera).serve()
             except Exception as exc:
                 log.warning(
                     "Disconnected (%s). Retrying in %ss", type(exc).__name__, delay
