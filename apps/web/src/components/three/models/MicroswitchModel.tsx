@@ -1,7 +1,8 @@
 "use client";
-import { Block, Cylinder, Repeat, TextDecal, type RepeatItem } from "../primitives";
+import { Block, Cylinder, Repeat, type RepeatItem } from "../primitives";
 import type { Vec3 } from "../types";
 import { mm } from "./details/units";
+import { ChipMarking } from "./pi/ChipMarking";
 
 /** A KW11 lever switch: 20 x 10 x 6.4 mm, broad faces toward ±Z, lever on +Y. */
 export const SWITCH = { length: mm(20), height: mm(10), depth: mm(6.4) } as const;
@@ -13,12 +14,13 @@ const TAB_SCALE: Vec3 = [mm(3.2), mm(4), mm(0.5)];
 /** The two 2.3 mm mounting holes, 9.5 mm apart. */
 const HOLES = [-mm(4.75), mm(4.75)];
 const LEVER_ANGLE = 0.2;
+const MARKING = [{ text: "KW11-3Z", weight: 600 as const }, { text: "5A 250VAC" }];
 
 /**
- * A lever microswitch: black body with its two mounting holes, the grey
- * plunger near one end, a steel lever hinged at the other end lying over
- * it, and three tabs. Used for the pipette home switch and on each endstop
- * board. Origin at the middle of the body.
+ * A lever microswitch: black body with its two mounting holes and moulded
+ * rating, the red plunger near one end, a bright stainless lever hinged at
+ * the other end lying over it, and three tinned tabs. Used for the pipette
+ * home switch and on each endstop board. Origin at the middle of the body.
  */
 export function MicroswitchModel() {
   const hinge: Vec3 = [-L / 2 + mm(1.5), H / 2 + mm(0.6), 0];
@@ -32,14 +34,14 @@ export function MicroswitchModel() {
           ))}
         </group>
       ))}
-      <Block position={[mm(3), H / 2 + mm(0.7), 0]} size={[mm(2.2), mm(1.4), mm(2.8)]} material="plasticGrey" />
-      <Repeat items={TABS} material="steel" scale={TAB_SCALE} />
+      <Block position={[mm(3), H / 2 + mm(0.7), 0]} size={[mm(2.2), mm(1.4), mm(2.8)]} material="printerRed" />
+      <Repeat items={TABS} material="tin" scale={TAB_SCALE} />
       <group position={hinge} rotation={[0, 0, LEVER_ANGLE]}>
-        <Block position={[L * 0.52, 0, 0]} size={[L * 1.05, mm(0.5), mm(4)]} material="steel" />
-        <Block position={[L * 1.03, mm(0.8), 0]} size={[mm(1.2), mm(2), mm(4)]} radius={mm(0.4)} material="steel" />
+        <Block position={[L * 0.52, 0, 0]} size={[L * 1.05, mm(0.5), mm(4)]} material="tin" />
+        <Block position={[L * 1.03, mm(0.8), 0]} size={[mm(1.2), mm(2), mm(4)]} radius={mm(0.4)} material="tin" />
       </group>
-      <Cylinder position={hinge} rotation={[Math.PI / 2, 0, 0]} radius={mm(0.9)} height={mm(4.4)} low material="steel" />
-      <TextDecal text="KW11-3Z" position={[mm(2), mm(1.8), D / 2 + 0.0004]} rotation={[0, 0, 0]} width={mm(9)} height={mm(1.8)} weight={500} />
+      <Cylinder position={hinge} rotation={[Math.PI / 2, 0, 0]} radius={mm(0.9)} height={mm(4.4)} low material="tin" />
+      <ChipMarking lines={MARKING} position={[mm(2), mm(1.6), D / 2 + 0.0004]} rotation={[0, 0, 0]} width={mm(9)} height={mm(3.4)} />
     </group>
   );
 }
