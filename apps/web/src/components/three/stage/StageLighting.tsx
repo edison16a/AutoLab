@@ -36,6 +36,8 @@ export function StageLighting({ theme, shadowRadius: r }: StageLightingProps) {
         <Lightformer form="rect" intensity={look.fill} position={[-9, 3, 5]} scale={[8, 5, 1]} />
         <Lightformer form="rect" intensity={look.fill * 0.6} position={[9, 3, 5]} scale={[8, 5, 1]} />
         <Lightformer form="rect" intensity={look.rim} position={[0, 4, -10]} scale={[16, 4, 1]} />
+        {/* A pale studio floor, so metal facing down picks up light instead of turning dark. */}
+        <Lightformer form="rect" intensity={look.floor} position={[0, -7, 0]} scale={[20, 20, 1]} />
       </Environment>
       <ambientLight intensity={look.ambient} />
       <directionalLight

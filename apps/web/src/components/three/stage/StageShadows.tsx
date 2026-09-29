@@ -23,7 +23,16 @@ const SETTLE_MS = 300;
  * `scale` is the floor area it covers; keep it close to the subject so small
  * parts still get a defined shadow.
  */
-export function StageShadows({ opacity, scale, children }: { opacity: number; scale: number; children: ReactNode }) {
+interface StageShadowsProps {
+  /** Contact shadow strength. */
+  opacity: number;
+  /** Strength of the key light's shadow on the floor. */
+  castOpacity: number;
+  scale: number;
+  children: ReactNode;
+}
+
+export function StageShadows({ opacity, castOpacity, scale, children }: StageShadowsProps) {
   const gl = useThree((state) => state.gl);
   const invalidate = useThree((state) => state.invalidate);
   const [live, setLive] = useState(true);
@@ -56,14 +65,19 @@ export function StageShadows({ opacity, scale, children }: { opacity: number; sc
   return (
     <ShadowRefresh.Provider value={refresh}>
       {children}
+      {/* Catches only the key light's shadow; the floor itself stays the page colour. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.001, 0]} receiveShadow>
+        <planeGeometry args={[scale * 2, scale * 2]} />
+        <shadowMaterial transparent opacity={castOpacity} depthWrite={false} />
+      </mesh>
       {/* frames={1} draws once more on each re-render, which is exactly the settle frame we want. */}
       <ContactShadows
         frames={live ? Infinity : 1}
         position={[0, 0.002, 0]}
         scale={scale}
         resolution={512}
-        blur={2.6}
-        far={4.5}
+        blur={4}
+        far={2.4}
         opacity={opacity}
         color="#000000"
       />

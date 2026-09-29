@@ -16,10 +16,15 @@ export interface StageLook {
   key: number;
   fill: number;
   rim: number;
+  /** Light bounced up from the studio floor. */
+  floor: number;
   /** The one shadow casting light. */
   sun: number;
   ambient: number;
+  /** Soft contact shadow right under the subject. */
   shadowOpacity: number;
+  /** The key light's cast shadow on the floor, which grounds tall subjects. */
+  castShadowOpacity: number;
 }
 
 export const STAGE_LOOKS: Record<Theme, StageLook> = {
@@ -30,9 +35,11 @@ export const STAGE_LOOKS: Record<Theme, StageLook> = {
     key: 2.4,
     fill: 1.1,
     rim: 1.2,
+    floor: 0.9,
     sun: 1.5,
     ambient: 0.25,
-    shadowOpacity: 0.42,
+    shadowOpacity: 0.5,
+    castShadowOpacity: 0.1,
   },
   dark: {
     exposure: 0.92,
@@ -41,8 +48,10 @@ export const STAGE_LOOKS: Record<Theme, StageLook> = {
     key: 2.2,
     fill: 0.8,
     rim: 2.2,
+    floor: 0.35,
     sun: 1.2,
     ambient: 0.12,
     shadowOpacity: 0.75,
+    castShadowOpacity: 0.28,
   },
 };

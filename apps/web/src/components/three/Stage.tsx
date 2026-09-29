@@ -87,7 +87,7 @@ export function Stage({ children, label, className = "", cameraPosition = [8, 6,
           fallback={<StageFallback />}
         >
           <StageLighting theme={theme} shadowRadius={shadowRadius} />
-          <StageShadows opacity={STAGE_LOOKS[theme].shadowOpacity} scale={shadowRadius * 3.6}>
+          <StageShadows opacity={STAGE_LOOKS[theme].shadowOpacity} castOpacity={STAGE_LOOKS[theme].castShadowOpacity} scale={shadowRadius * 3.6}>
             <Suspense fallback={null}>{children}</Suspense>
           </StageShadows>
         </Canvas>
