@@ -1,9 +1,9 @@
 /**
- * The kit's material library. Every part draws from this short list of
- * physical neutrals, so the whole machine reads as one product render:
- * white, grey and black plastics, graphite boards, brushed metal and clear
- * panels. The accent is reserved for lit LEDs, emphasised connectors and
- * selection, which the interaction layer draws on top.
+ * The kit's material library: physical neutrals (white, grey and black
+ * plastics, brushed metal, clear panels) plus the real world colours in
+ * material-colors.ts, so each part looks like the hardware it stands for.
+ * The accent stays reserved for selection, which the interaction layer
+ * draws on top, and for emphasised connectors.
  *
  * Materials are created on first use and shared by every mesh and every
  * view, so the renderer compiles each shader once. They are disposed with
@@ -12,8 +12,10 @@
 import { DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, type Material } from "three";
 import { registerDisposer } from "./resources";
 import { accentColor } from "./tokens";
+import { COLOR_RECIPES, type ColorKey } from "./material-colors";
 
 export type MaterialKey =
+  | ColorKey
   | "plasticWhite"
   | "plasticGrey"
   | "plasticBlack"
@@ -56,6 +58,7 @@ function clear(color: string, opacity: number, roughness: number) {
 }
 
 const RECIPES: Record<MaterialKey, () => Material> = {
+  ...COLOR_RECIPES,
   plasticWhite: () => standard("#f0f0ef", 0.42),
   plasticGrey: () => standard("#a9abb0", 0.48),
   plasticBlack: () => standard("#1c1c1f", 0.5),

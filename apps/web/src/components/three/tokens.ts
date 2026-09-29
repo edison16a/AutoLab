@@ -1,7 +1,7 @@
 /**
  * Reads colours from the CSS design tokens so the 3D scene never drifts from
- * the rest of the app. Only the accent crosses over: product materials are
- * physical neutrals and stay the same in both themes.
+ * the rest of the app. Only the accent crosses over: product materials use
+ * real world colours (material-colors.ts) and look the same in both themes.
  */
 const ACCENT_FALLBACK = "#2684ff";
 
