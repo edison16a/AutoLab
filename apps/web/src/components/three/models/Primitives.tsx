@@ -12,7 +12,7 @@ import {
   CanvasTexture,
   SRGBColorSpace,
 } from "three";
-import type { Vec3 } from "../registry/componentRegistry";
+import type { Vec3 } from "../types";
 const palette = {
   frame: "#343937",
   metal: "#bfc5c1",

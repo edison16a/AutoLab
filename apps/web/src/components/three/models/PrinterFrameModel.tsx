@@ -1,5 +1,5 @@
 import { Box, Cylinder, Ring, Bolt, Marking } from "./Primitives";
-import type { Vec3 } from "../registry/componentRegistry";
+import type { Vec3 } from "../types";
 
 function Extrusion({
   position,

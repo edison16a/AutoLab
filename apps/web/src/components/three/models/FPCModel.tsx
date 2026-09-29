@@ -6,7 +6,7 @@ import {
   CatmullRomCurve3,
   Vector3,
 } from "three";
-import type { Vec3 } from "../registry/componentRegistry";
+import type { Vec3 } from "../types";
 const DEFAULT_POINTS: Vec3[] = [
   [-0.73, 0.78, 0],
   [-0.1, 0.8, 0.05],
