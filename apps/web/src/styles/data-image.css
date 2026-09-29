@@ -83,6 +83,13 @@
   border-radius: var(--radius-lg);
 }
 
+/* Between phone and desktop the viewer needs the room more than the panel. */
+@media (max-width: 1100px) {
+  .image-screen__body {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+}
+
 @media (max-width: 860px) {
   .image-screen__body {
     display: flex;
