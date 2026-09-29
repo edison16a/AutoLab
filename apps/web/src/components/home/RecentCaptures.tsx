@@ -29,7 +29,7 @@ export function RecentCaptures() {
       <div className="home-captures__empty">
         <EmptyState
           icon={Images}
-          title="No captures yet"
+          title="No photos yet"
           action={
             <Link href="/live" className="btn">
               Open live view

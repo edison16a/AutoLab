@@ -57,7 +57,7 @@ export function DataScreen() {
     body = (
       <EmptyState
         icon={Images}
-        title="No images yet"
+        title="No photos yet"
         text="Captures and uploads show up here."
         action={
           <Link href="/live" className="btn btn--primary">
