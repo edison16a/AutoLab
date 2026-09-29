@@ -1,6 +1,11 @@
 "use client";
+import { useRef, type ReactNode } from "react";
+import type { Group } from "three";
 import { Block, Cylinder, TextDecal } from "../primitives";
-import { PIPETTE_TIP } from "./deck/labware-layout";
+import { PLUNGER_STROKE } from "../motion/Rig";
+import { usePoseFrame } from "../motion/use-pose-frame";
+import { CarriedTip } from "./deck/CarriedTip";
+import { PIPETTE_TIP, TIP_SHAPE } from "./deck/labware-layout";
 
 /** Heights along the pipette's axis, from the tip up to the plunger button. */
 const Y = {
@@ -14,6 +19,20 @@ const Y = {
   button: 0.93,
 } as const;
 const HANDLE = { bottom: 0.1, top: 0.098 } as const;
+
+/** The plunger rod and button, pressed down by the load cell's pusher as the Home demo works the plunger. */
+function Plunger({ children }: { children: ReactNode }) {
+  const group = useRef<Group>(null);
+  usePoseFrame(
+    (pose) => {
+      if (group.current) group.current.position.y = -pose.plunger * PLUNGER_STROKE;
+    },
+    () => {
+      if (group.current) group.current.position.y = 0;
+    },
+  );
+  return <group ref={group}>{children}</group>;
+}
 
 /**
  * The team's P1000 air displacement pipette, coloured like the one in
@@ -29,8 +48,10 @@ export function PipetteModel() {
   return (
     <group>
       {/* Plunger and its button, then the volume knob. */}
-      <Cylinder position={[0, Y.button - 0.018, 0]} radius={0.058} height={0.036} material="pipetteBlue" />
-      <Cylinder position={[0, (Y.knob + Y.button) / 2 - 0.02, 0]} radius={0.024} height={Y.button - Y.knob} low material="plasticWhite" />
+      <Plunger>
+        <Cylinder position={[0, Y.button - 0.018, 0]} radius={0.058} height={0.036} material="pipetteBlue" />
+        <Cylinder position={[0, (Y.knob + Y.button) / 2 - 0.02, 0]} radius={0.024} height={Y.button - Y.knob} low material="plasticWhite" />
+      </Plunger>
       <Cylinder position={[0, (Y.handleTop + Y.knob) / 2, 0]} radius={0.074} height={Y.knob - Y.handleTop} material="pipetteNavy" />
       {/* Tip ejector button beside the plunger. */}
       <Cylinder position={[0.072, Y.handleTop + 0.05, 0]} radius={0.016} height={0.1} low material="plasticWhite" />
@@ -47,8 +68,9 @@ export function PipetteModel() {
       <Cylinder position={[0, (Y.nose + Y.sleeve) / 2, 0]} radius={0.05} height={Y.sleeve - Y.nose} material="plasticGrey" />
       <Cylinder position={[0, (Y.tipTop + Y.nose) / 2, 0]} radius={0.022} height={Y.nose - Y.tipTop} taper={1.45} material="plasticWhite" />
       {/* The filtered tip: see through blue, with its white filter plug near the top. */}
-      <Cylinder position={[0, (Y.tipEnd + Y.tipTop) / 2 - 0.01, 0]} radius={0.006} height={Y.tipTop - Y.tipEnd + 0.02} taper={6.4} material="tipBlue" />
-      <Cylinder position={[0, Y.tipTop - 0.04, 0]} radius={0.03} height={0.03} material="plasticWhite" />
+      <group position={[0, PIPETTE_TIP.top - TIP_SHAPE.length, 0]}>
+        <CarriedTip />
+      </group>
     </group>
   );
 }

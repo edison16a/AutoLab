@@ -5,16 +5,11 @@
  * loop in use is built once and kept, so evaluating a frame allocates
  * nothing. No React here: the scene reads the pose it fills.
  */
-import { TIP_RACK, USED_TIPS, PIPETTE_TIP } from "../models/deck/labware-layout";
+import { FULL_RACK, PIPETTE_TIP } from "../models/deck/labware-layout";
 import { LOOP_SECONDS, LOOPS_PER_RACK, RESERVOIR_PER_LOOP, buildCycle } from "./cycle";
 import { PIPETTE_AXIS, RESERVOIR, TIP_ORDER } from "./deck";
 import type { MachinePose } from "./pose";
 import type { Ease, Step } from "./script";
-
-/** A full rack with the used first column taken out. */
-const FULL_RACK = Array.from({ length: TIP_RACK.cols * TIP_RACK.rows }, (_, i) => i)
-  .filter((i) => !USED_TIPS.includes(i))
-  .reduce((mask, i) => mask | (1 << i), 0);
 
 /** Fan speed once spun up, and how quickly it gets there. */
 const FAN_RATE = Math.PI * 2 * 1.3;

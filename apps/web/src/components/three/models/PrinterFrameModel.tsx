@@ -1,4 +1,5 @@
 "use client";
+import { FallingTip } from "./deck/FallingTip";
 import { ChamberFixtures } from "./machine/ChamberFixtures";
 import { PiPlatform } from "./machine/PiPlatform";
 import { Enclosure } from "./machine/Enclosure";
@@ -23,6 +24,7 @@ export function PrinterFrameModel() {
       <ChamberFixtures />
       <PiPlatform />
       <Wiring />
+      <FallingTip />
     </group>
   );
 }

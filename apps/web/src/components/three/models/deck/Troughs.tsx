@@ -1,6 +1,7 @@
 "use client";
 import { Block } from "../../primitives";
 import type { MaterialKey } from "../../materials";
+import { ChuteTips } from "./ChuteTips";
 import { RESERVOIR_DEPTH, TROUGHS } from "./labware-layout";
 
 /** An open topped box: a floor and four walls, all one material. */
@@ -45,6 +46,7 @@ export function Troughs() {
       <Tray z={reservoir.z} length={reservoir.length} material="polystyrene" />
       <ReservoirMedia />
       <Tray z={chute.z} length={chute.length} material="stainless" />
+      <ChuteTips />
     </group>
   );
 }

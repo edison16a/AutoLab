@@ -24,6 +24,11 @@ export function tipSocket(index: number): [number, number] {
 /** The first column, at the back left, is already used, so its two back sockets stand empty. */
 export const USED_TIPS = [0, 4];
 
+/** A bit for every socket but the used first column: the rack as it arrives. */
+export const FULL_RACK = Array.from({ length: TIP_RACK.cols * TIP_RACK.rows }, (_, i) => i)
+  .filter((i) => !USED_TIPS.includes(i))
+  .reduce((mask, i) => mask | (1 << i), 0);
+
 /** Height of a waiting tip's top edge above the rack's base, where the pipette's nose seats in it. */
 export const TIP_TOP = TIP_RACK.deckY + 0.055;
 
@@ -56,6 +61,12 @@ export const WELL_LEVELS = {
 
 /** The P1000 tip on the pipette's axis: its point, and the top edge that sits on the nose. */
 export const PIPETTE_TIP = { end: -0.42, top: -0.09 } as const;
+
+/**
+ * A P1000 tip measured from its point: a see through cone that widens to its
+ * open top, with a white filter plug near the top.
+ */
+export const TIP_SHAPE = { length: 0.34, point: 0.006, taper: 6.4, filter: { at: 0.3, radius: 0.03, height: 0.03 } } as const;
 
 /**
  * The two troughs on the heated plate's left margin, beside the plate nest

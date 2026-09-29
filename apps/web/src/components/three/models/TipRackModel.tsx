@@ -1,32 +1,24 @@
 "use client";
 import { castsShadow, getMaterial } from "../materials";
-import { Block, Repeat, type RepeatItem } from "../primitives";
-import type { Vec3 } from "../types";
-import { TIP_RACK, USED_TIPS, tipSocket } from "./deck/labware-layout";
+import { Block } from "../primitives";
+import { TIP_RACK, tipSocket } from "./deck/labware-layout";
+import { RackTips } from "./deck/RackTips";
 import { perforatedPlate, type PlateHole } from "./geometry/shapes";
 
 const BOX = TIP_RACK.box;
 const DECK_Y = TIP_RACK.deckY;
 const SOCKET_RADIUS = 0.041;
-const USED = new Set(USED_TIPS);
 
 const SOCKETS: PlateHole[] = Array.from({ length: TIP_RACK.cols * TIP_RACK.rows }, (_, i) => {
   const [x, z] = tipSocket(i);
   return { x, z, radius: SOCKET_RADIUS };
 });
-const TIPS = SOCKETS.filter((_, i) => !USED.has(i));
-/** Each tip hangs in the box from its collar; only the collar shows above the deck. */
-const COLLARS: RepeatItem[] = TIPS.map(({ x, z }) => ({ position: [x, DECK_Y + 0.03, z] as Vec3 }));
-const COLLAR_SCALE: Vec3 = [0.04, 0.05, 0.04];
-/** The white filter plug inside each tip, which shows through its open top. */
-const FILTERS: RepeatItem[] = TIPS.map(({ x, z }) => ({ position: [x, DECK_Y + 0.045, z] as Vec3 }));
-const FILTER_SCALE: Vec3 = [0.03, 0.012, 0.03];
 
 /**
  * A rack of sterile filtered P1000 tips: the blue box that marks a 1000 µL
  * rack, its white tip plate, and the see through blue collars of the tips
- * hanging in the sockets, each with its white filter showing. Two sockets
- * are already empty. Origin at the base.
+ * hanging in the sockets, each with its white filter showing. The first
+ * column's two back sockets are already empty. Origin at the base.
  */
 export function TipRackModel() {
   const { width: w, depth: d, height: h, wall } = BOX;
@@ -47,8 +39,7 @@ export function TipRackModel() {
         receiveShadow
         dispose={null}
       />
-      <Repeat items={FILTERS} shape="cylinderLow" material="plasticWhite" scale={FILTER_SCALE} />
-      <Repeat items={COLLARS} shape="cylinder" material="tipBlue" scale={COLLAR_SCALE} />
+      <RackTips />
     </group>
   );
 }
