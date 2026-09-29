@@ -5,40 +5,21 @@ import io
 import json
 import logging
 import time
-import uuid
 from contextlib import asynccontextmanager, suppress
 
-from autolab_gateway import state
-from autolab_gateway.cloud import digest
+from autolab_gateway import http_routes, state
 from autolab_gateway.config import MODE, ORIGINS
 from autolab_gateway.limits import rate
 from autolab_gateway.peers import Peer
+from autolab_gateway.models import ComponentReport
 from autolab_gateway.protocol import now, pack, uid, unpack
 from autolab_gateway.rooms import Room
 from autolab_gateway.sweeper import sweep
-from fastapi import (
-    FastAPI,
-    HTTPException,
-    Query,
-    Request,
-    WebSocket,
-    WebSocketDisconnect,
-)
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
-from pydantic import BaseModel, Field, ConfigDict
 
 log = logging.getLogger("autolab")
-
-
-class ComponentReport(BaseModel):
-    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
-    id: str = Field(pattern=r"^[a-z0-9_]{1,50}$")
-    installed: bool
-    online: bool = False
-    status: str = Field(max_length=80)
-    telemetry: dict[str, str | float | bool] | None = None
-    lastUpdated: str | None = None
 
 
 def device_metadata(data):
@@ -65,85 +46,7 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
-
-
-async def user(request):
-    if not state.cloud:
-        raise HTTPException(404, "Cloud mode is disabled")
-    token = request.headers.get("authorization", "").removeprefix("Bearer ")
-    return await state.cloud.user(token)
-
-
-@app.get("/health")
-async def health():
-    return {"ok": True, "mode": MODE}
-
-
-class Registration(BaseModel):
-    device_id: uuid.UUID
-    secret: str = Field(min_length=32, max_length=256)
-
-
-@app.post("/devices/register")
-async def register(body: Registration, request: Request):
-    if not state.cloud:
-        raise HTTPException(404, "Cloud mode is disabled")
-    rate(("register", request.client.host), 10)
-    return await state.cloud.register(str(body.device_id), body.secret)
-
-
-class Claim(BaseModel):
-    code: str = Field(pattern=r"^\d{6}$")
-    name: str = Field(min_length=1, max_length=80)
-
-
-@app.post("/devices/claim")
-async def claim(body: Claim, request: Request):
-    owner = await user(request)
-    rate(("claim", owner), 5)
-    result = await state.cloud.call(
-        "POST",
-        "/rest/v1/rpc/claim_device",
-        {"code_hash": digest(body.code), "new_owner": owner, "device_name": body.name},
-    )
-    if not result:
-        raise HTTPException(400, "Code expired or already used")
-    return {"device_id": result}
-
-
-@app.get("/devices")
-async def devices(request: Request):
-    owner = await user(request)
-    return await state.cloud.call(
-        "GET", f"/rest/v1/devices?owner_id=eq.{owner}&order=created_at.desc"
-    )
-
-
-class Rename(BaseModel):
-    name: str = Field(min_length=1, max_length=80)
-
-
-@app.patch("/devices/{device}")
-async def rename(device: str, body: Rename, request: Request):
-    device = uid(device)
-    owner = await user(request)
-    await state.cloud.owner(device, owner)
-    return await state.cloud.call(
-        "PATCH", f"/rest/v1/devices?id=eq.{device}", {"name": body.name}
-    )
-
-
-@app.get("/devices/{device}/images")
-async def images(device: str, request: Request, offset: int = Query(0, ge=0)):
-    return await state.cloud.images(uid(device), await user(request), offset)
-
-
-@app.delete("/images/{image}")
-async def delete(image: str, request: Request):
-    image = uid(image)
-    owner = await user(request)
-    await state.cloud.delete_image(image, owner)
-    return {"deleted": True}
+app.include_router(http_routes.router)
 
 
 @app.websocket("/ws/{role}/{device_id}")
