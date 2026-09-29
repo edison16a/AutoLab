@@ -1,0 +1,114 @@
+/*
+  Hardware screen layout: the parts list on the left and the 3D stage filling
+  the rest. The details panel shares the stage's grid cell so it floats over
+  the canvas edge on desktop and drops below it on phones, without absolute
+  positioning. The floating view toolbar lives here too.
+*/
+
+.hardware {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 272px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "list stage";
+  gap: 16px;
+  min-height: 0;
+}
+
+.hardware__stage {
+  position: relative;
+  grid-area: stage;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+}
+
+.hardware-toolbar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.hardware-toolbar__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.hardware-toolbar__btn:hover {
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+.hardware-toolbar__btn[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.hardware-toolbar__divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--border);
+}
+
+@media (max-width: 860px) {
+  .hardware {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    grid-template-areas:
+      "stage"
+      "details"
+      "list";
+    gap: 12px;
+  }
+
+  .hardware__stage {
+    height: 58vh;
+    min-height: 320px;
+  }
+
+  .hardware-toolbar {
+    top: 8px;
+    left: 8px;
+  }
+
+  /* Icons only on phones. The words stay for screen readers and as tooltips. */
+  .hardware-toolbar__btn {
+    width: 32px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .hardware-toolbar__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
