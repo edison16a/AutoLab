@@ -6,11 +6,11 @@ import { GANTRY, PROFILE, TOOL } from "./layout";
 const { x: X, z: Z, driveZ: DRIVE_Z } = TOOL;
 /** Front face of the X carriage plate, which the tool's backplate is bolted to. */
 const MOUNT_Z = GANTRY.beamZ + PROFILE / 2 + 0.045;
-const PLATE = { thickness: 0.03, bottom: 1.86, top: 3.535, half: 0.26 } as const;
+const PLATE = { thickness: 0.03, bottom: 1.86, top: 3.485, half: 0.26 } as const;
 const PLATE_Z = MOUNT_Z + PLATE.thickness / 2;
 const PLATE_FRONT = MOUNT_Z + PLATE.thickness;
 /** Underside of the pipette motor, which sits shaft down on the shelf. */
-const MOTOR_FACE = 3.575;
+const MOTOR_FACE = 3.525;
 /** The plunger drive at rest: where the nut block rides on the screw and guide. */
 const NUT_Y = 3.2;
 const GUIDE_X = X + 0.17;
@@ -37,7 +37,7 @@ function PipetteMount() {
 function PlungerDrive() {
   return (
     <group>
-      <Block position={[X, MOTOR_FACE - 0.02, DRIVE_Z]} size={[0.58, 0.04, 0.56]} radius={0.015} material="plasticGrey" />
+      <Block position={[X, MOTOR_FACE - 0.02, DRIVE_Z]} size={[0.58, 0.04, 0.56]} material="plasticGrey" />
       <Cylinder position={[X, MOTOR_FACE - 0.19, DRIVE_Z]} radius={0.055} height={0.17} material="aluminium" />
       {[-0.04, 0.04].map((dy) => (
         <Ring key={dy} position={[X, MOTOR_FACE - 0.19 + dy, DRIVE_Z]} radius={0.056} thin material="plasticBlack" />
@@ -47,7 +47,7 @@ function PlungerDrive() {
       <Block position={[GUIDE_X, NUT_Y, PLATE_FRONT + 0.06]} size={[0.11, 0.15, 0.06]} radius={0.012} material="aluminium" />
       {/* Nut block: bridges the screw and the guide, and reaches forward over the load cell. */}
       <Block position={[X + 0.05, NUT_Y, (PLATE_FRONT + Z + 0.07) / 2 + 0.005]} size={[0.38, 0.1, Z + 0.07 - PLATE_FRONT]} radius={0.02} material="plasticGrey" />
-      <Cylinder position={[X, NUT_Y + 0.08, DRIVE_Z]} radius={0.045} height={0.07} material="steel" />
+      <Cylinder position={[X, NUT_Y - 0.085, DRIVE_Z]} radius={0.045} height={0.07} material="steel" />
       {/* Flag that trips the home switch at the top of travel. */}
       <Block position={[X + 0.3, NUT_Y + 0.06, DRIVE_Z + 0.02]} size={[0.2, 0.02, 0.06]} material="aluminium" />
       {/* Pusher under the load cell, resting on the pipette's plunger button. */}
@@ -67,7 +67,7 @@ export function ToolCarriage() {
   const { bottom, top, half, thickness } = PLATE;
   return (
     <group>
-      <Block position={[X, (bottom + top) / 2, PLATE_Z]} size={[half * 2, top - bottom, thickness]} radius={0.02} material="plasticGrey" />
+      <Block position={[X, (bottom + top) / 2, PLATE_Z]} size={[half * 2, top - bottom, thickness]} material="plasticGrey" />
       {/* Tab the home switch is screwed to. */}
       <Block position={[X + half + 0.1, 3.44, PLATE_Z]} size={[0.24, 0.2, thickness]} radius={0.015} material="plasticGrey" />
       <PlungerDrive />

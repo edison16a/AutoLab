@@ -37,7 +37,7 @@ function Side({ side }: { side: 1 | -1 }) {
       {[-0.19, 0.19].map((dz) => (
         <Block key={dz} position={[x, (Y_RAIL_Y - 0.08 + footTop - FOOT.thickness) / 2, Z + dz]} size={[0.24, footTop - FOOT.thickness - Y_RAIL_Y + 0.08, 0.2]} radius={0.015} material="aluminium" />
       ))}
-      <Block position={[footX, footTop - FOOT.thickness / 2, Z]} size={[X + 0.1 - FOOT_INNER, FOOT.thickness, FOOT.depth]} radius={0.012} material="aluminium" />
+      <Block position={[footX, footTop - FOOT.thickness / 2, Z]} size={[X + 0.1 - FOOT_INNER, FOOT.thickness, FOOT.depth]} material="aluminium" />
     </group>
   );
 }

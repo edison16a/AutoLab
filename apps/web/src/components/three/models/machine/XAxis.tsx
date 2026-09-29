@@ -40,7 +40,7 @@ export function XAxis() {
         <StepperMotorModel />
       </group>
       {/* Motor plate bolted to the back of the beam. */}
-      <Block position={[DRIVE[0], (BEAM_Y + DRIVE[1] + 0.3) / 2, BEAM_BACK - 0.01]} size={[0.6, DRIVE[1] + 0.3 - BEAM_Y, 0.02]} radius={0.012} material="aluminium" />
+      <Block position={[DRIVE[0], (BEAM_Y + DRIVE[1] + 0.3) / 2, BEAM_BACK - 0.01]} size={[0.6, DRIVE[1] + 0.3 - BEAM_Y, 0.02]} material="aluminium" />
       <Pulley position={DRIVE} rotation={[Math.PI / 2, 0, 0]} />
       <Pulley position={IDLER} rotation={[Math.PI / 2, 0, 0]} />
       {/* Tensioner: a block on the beam with two cheeks either side of the idler. */}
@@ -49,7 +49,7 @@ export function XAxis() {
         <Block key={side} position={[IDLER[0], (BEAM_TOP + IDLER[1]) / 2 + 0.05, BEAM_Z + side * 0.07]} size={[0.2, IDLER[1] - BEAM_TOP + 0.1, 0.02]} radius={0.008} material="aluminium" />
       ))}
       <Belt from={DRIVE} to={IDLER} axle="z" />
-      <Block position={[TOOL.x, BEAM_Y, CARRIAGE.z]} size={[CARRIAGE.width, CARRIAGE.height, 0.03]} radius={0.015} material="aluminium" />
+      <Block position={[TOOL.x, BEAM_Y, CARRIAGE.z]} size={[CARRIAGE.width, CARRIAGE.height, 0.03]} material="aluminium" />
       <VWheels items={WHEELS} />
       {CARRIAGE_BOLTS.map((position) => (
         <group key={position.join()} position={position} rotation={[Math.PI / 2, 0, 0]}>
