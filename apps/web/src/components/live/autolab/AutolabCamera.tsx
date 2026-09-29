@@ -14,7 +14,7 @@ const RECENT_LIMIT = 8;
 
 /** The Autolab camera source: live stage, controls and the side panel. */
 export function AutolabCamera() {
-  const { device, connection, status, preview, liveFrame, photos, capture, notify } = useAutolab();
+  const { device, connection, status, preview, liveFrame, photos, capture, capturing, notify } = useAutolab();
   const { ready, pause, resume } = useAutoPreview();
   const state = stageState({ device, connection, status, preview, frame: liveFrame });
 
@@ -28,7 +28,8 @@ export function AutolabCamera() {
     if (photo) notify("Photo saved", "success");
   }, [capture, notify]);
 
-  useSpaceShortcut(takePhoto, ready);
+  // Off while a capture is on its way, like the button, so Space can't queue a burst.
+  useSpaceShortcut(takePhoto, ready && !capturing);
 
   return (
     <div className="live__body" role="tabpanel" aria-label="Autolab camera">
