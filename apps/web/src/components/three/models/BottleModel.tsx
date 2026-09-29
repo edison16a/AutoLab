@@ -8,6 +8,12 @@ import { wrapBand } from "./geometry/shapes";
 const R = 0.27;
 const Y = { shoulder: 0.62, neck: 0.74, cap: 0.8, top: 0.92 } as const;
 const CAP_R = 0.145;
+/**
+ * The see through bodies stand a hair off the floor. Clear materials don't
+ * write depth, so a base flush with the floor flickers against it in a
+ * star of wedges.
+ */
+const LIFT = 0.002;
 // Grip ribs round the cap, one instanced batch.
 const RIBS: RepeatItem[] = Array.from({ length: 28 }, (_, i) => {
   const a = (i * Math.PI * 2) / 28;
@@ -62,7 +68,7 @@ function Label({ text }: { text: string }) {
 export function MediaBottleModel() {
   return (
     <group>
-      <Cylinder position={[0, Y.shoulder / 2, 0]} radius={R} height={Y.shoulder} material="glass" />
+      <Cylinder position={[0, (Y.shoulder + LIFT) / 2, 0]} radius={R} height={Y.shoulder - LIFT} material="glass" />
       <Cylinder position={[0, 0.22, 0]} radius={R - 0.015} height={0.42} material="mediaPink" />
       <Repeat items={MARKS} material="plasticWhite" />
       <Label text="Media" />
@@ -87,7 +93,7 @@ export function MediaBottleModel() {
 export function WasteContainerModel() {
   return (
     <group>
-      <Cylinder position={[0, Y.shoulder / 2, 0]} radius={R} height={Y.shoulder} material="hdpeThin" />
+      <Cylinder position={[0, (Y.shoulder + LIFT) / 2, 0]} radius={R} height={Y.shoulder - LIFT} material="hdpeThin" />
       <Cylinder position={[0, 0.13, 0]} radius={R - 0.015} height={0.24} material="wasteAmber" />
       {[0.06, Y.shoulder - 0.06].map((y) => (
         <Ring key={y} position={[0, y, 0]} radius={R} thin material="hdpeThin" />

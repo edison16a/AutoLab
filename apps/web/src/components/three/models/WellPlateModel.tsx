@@ -65,7 +65,8 @@ export function WellPlateModel() {
   const top = PLATE.height / 2;
   return (
     <group>
-      <Block position={[0, BOTTOM + SKIRT / 2, 0]} size={[PLATE.width, SKIRT, PLATE.depth]} radius={mm(1.5)} material="polystyrene" />
+      {/* A hair shorter than the skirt, so the clear base doesn't flicker against the bed it rests on. */}
+      <Block position={[0, BOTTOM + SKIRT / 2 + mm(0.05), 0]} size={[PLATE.width, SKIRT - mm(0.1), PLATE.depth]} radius={mm(1.5)} material="polystyrene" />
       <mesh
         geometry={perforatedPlate("wells24", deckWidth, deckDepth, DECK.height, mm(3), WELLS)}
         material={getMaterial("polystyrene")}
