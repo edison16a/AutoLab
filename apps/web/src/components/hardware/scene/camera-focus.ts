@@ -28,7 +28,7 @@ export const MACHINE_BOUNDS = { min: [-3, 0, -2.6] as Vec3, max: [4.4, 4.9, 2.6]
  */
 export function overviewFocus(exploded: boolean): CameraFocus {
   if (exploded) return { target: [0.45, 2.4, 0.05], radius: 4.25, direction: OVERVIEW_DIRECTION, fill: 0.84 };
-  return { target: [0.7, 2.05, 0.1], radius: 3.55, direction: OVERVIEW_DIRECTION, fill: 0.84 };
+  return { target: [0.55, 2.05, 0.1], radius: 3.55, direction: OVERVIEW_DIRECTION, fill: 0.84 };
 }
 
 /** One part, in place on the machine, with everything else still visible. */
