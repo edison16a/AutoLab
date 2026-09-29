@@ -68,6 +68,11 @@
   color: var(--accent-text);
 }
 
+/* Nothing to reset or explode when the browser can't draw the model. */
+.hardware__stage:has(.stage3d__fallback) .hardware-toolbar {
+  display: none;
+}
+
 .hardware-toolbar__divider {
   width: 1px;
   height: 18px;
