@@ -78,3 +78,26 @@ export function perforatedPlate(key: string, width: number, depth: number, thick
     return extrudeFlat(shape, thickness, 20);
   });
 }
+
+/**
+ * A bar with a load cell's binocular cut through it: two round holes
+ * joined by a narrow slot. The profile is drawn in the XY plane (X across,
+ * Y along the bar) and extruded along Z, so the cut shows on the front.
+ */
+export function binocularBar(width: number, length: number, depth: number, holeRadius: number, holeOffset: number, slotHalf: number) {
+  return cachedGeometry(`binocular:${width}:${length}:${depth}:${holeRadius}:${holeOffset}:${slotHalf}`, () => {
+    const w = width / 2;
+    const l = length / 2;
+    const shape = new Shape([new Vector2(-w, -l), new Vector2(w, -l), new Vector2(w, l), new Vector2(-w, l)]);
+    // Where the slot's edges meet each circle, as an angle from the circle's centre.
+    const beta = Math.atan2(Math.sqrt(holeRadius ** 2 - slotHalf ** 2), slotHalf);
+    const cut = new Path();
+    cut.absarc(0, holeOffset, holeRadius, -beta, Math.PI + beta, false);
+    cut.absarc(0, -holeOffset, holeRadius, Math.PI - beta, Math.PI * 2 + beta, false);
+    cut.closePath();
+    shape.holes.push(cut);
+    const geometry = new ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 20 });
+    geometry.translate(0, 0, -depth / 2);
+    return geometry;
+  });
+}
