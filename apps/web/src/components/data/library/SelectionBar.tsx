@@ -13,7 +13,8 @@ interface SelectionBarProps {
 
 /**
  * Bulk actions while select mode is on. It sticks to the bottom of the
- * screen so the actions stay in reach while scrolling through days.
+ * screen so the actions stay in reach while scrolling through days. On
+ * phones the action words are hidden visually but still name the buttons.
  */
 export function SelectionBar({ count, total, busy, onSelectAll, onDownload, onDelete, onDone }: SelectionBarProps) {
   const none = count === 0;
@@ -31,13 +32,13 @@ export function SelectionBar({ count, total, busy, onSelectAll, onDownload, onDe
         </button>
       ) : null}
       <span className="grow" />
-      <button type="button" className="btn btn--sm" disabled={none || busy} onClick={onDownload}>
+      <button type="button" className="btn btn--sm data-selection__action" disabled={none || busy} onClick={onDownload}>
         <Download size={16} strokeWidth={1.8} aria-hidden="true" />
-        Download
+        <span className="data-selection__text">Download</span>
       </button>
-      <button type="button" className="btn btn--sm" disabled={none || busy} onClick={onDelete}>
+      <button type="button" className="btn btn--sm data-selection__action" disabled={none || busy} onClick={onDelete}>
         <Trash2 size={16} strokeWidth={1.8} aria-hidden="true" />
-        Delete
+        <span className="data-selection__text">Delete</span>
       </button>
     </div>
   );

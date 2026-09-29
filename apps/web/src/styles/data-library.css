@@ -165,4 +165,18 @@
   .data-days {
     gap: 24px;
   }
+
+  .data-selection__action {
+    width: 30px;
+    padding: 0;
+  }
+
+  .data-selection__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
 }
