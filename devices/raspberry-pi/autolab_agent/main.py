@@ -7,14 +7,14 @@ import logging
 import os
 import time
 
-import httpx
 from dotenv import load_dotenv
 from websockets.asyncio.client import connect
 
 from .camera import Camera
-from .credentials import load_or_create, write_setup_info
-from .endpoints import allowed_gateway, device_socket_url, http_base
+from .credentials import load_or_create
+from .endpoints import allowed_gateway, device_socket_url
 from .protocol import heartbeat_message, hello_message, packet
+from .registration import register
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
@@ -26,30 +26,7 @@ async def run(args):
     camera = Camera(args.simulate)
     print(f"Device ID: {creds['device_id']}", flush=True)
     if args.mode == "cloud":
-        async with httpx.AsyncClient(timeout=30) as client:
-            r = await client.post(
-                http_base(args.gateway) + "/devices/register",
-                json={"device_id": creds["device_id"], "secret": creds["secret"]},
-            )
-            r.raise_for_status()
-            result = r.json()
-            # The local provisioning service reads this protected, short-lived
-            # result instead of registering again and invalidating this claim.
-            write_setup_info(
-                args.credentials,
-                {
-                    **result,
-                    "device_id": creds["device_id"],
-                    "created_at": time.time(),
-                    "gateway": args.gateway,
-                },
-            )
-            print(
-                "Already claimed"
-                if result.get("claimed")
-                else f"Pairing code: {result['code']} (valid for 10 minutes)",
-                flush=True,
-            )
+        await register(args.gateway, creds, args.credentials)
     delay = 1
     try:
         while True:
