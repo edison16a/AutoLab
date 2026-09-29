@@ -15,6 +15,11 @@ function solderMask(color: string) {
   return new MeshPhysicalMaterial({ color, roughness: 0.55, metalness: 0.05, clearcoat: 0.35, clearcoatRoughness: 0.4 });
 }
 
+/** Powder coat: a satin colour coat with a soft gloss on top. */
+function powderCoat(color: string) {
+  return new MeshPhysicalMaterial({ color, roughness: 0.5, metalness: 0.1, clearcoat: 0.3, clearcoatRoughness: 0.35 });
+}
+
 /** A lit LED. Tone mapping is off so it stays saturated under bright studio light. */
 function lit(color: string) {
   return new MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1.1, roughness: 0.3, toneMapped: false });
@@ -95,6 +100,8 @@ export const COLOR_RECIPES = {
   // Enclosure
   // Pink XPS insulation board: a matte, slightly waxy skin, the same colour right through.
   foamPink: () => standard("#f39bb0", 0.84),
+  // The base in the Autolab blue, a shade deeper than the UI accent as powder coat reads lighter under light.
+  powderBlue: () => powderCoat("#1b62d0"),
 } satisfies Record<string, () => Material>;
 
 export type ColorKey = keyof typeof COLOR_RECIPES;
