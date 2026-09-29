@@ -4,7 +4,7 @@ import io
 import threading
 import time
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 
 class Camera:
@@ -71,10 +71,14 @@ class Camera:
                         outline=(80, 170, 240),
                         width=max(1, int(scale)),
                     )
+                # The built in font at its default 10 px loses its spaces once
+                # the frame is scaled up in the browser, so size it to the frame.
+                font = ImageFont.load_default(size=int(15 * scale))
                 draw.text(
-                    (20, 20),
+                    (int(20 * scale), int(18 * scale)),
                     "SIMULATED CAMERA | " + time.strftime("%H:%M:%S"),
                     fill="white",
+                    font=font,
                 )
                 im.save(buf, format="JPEG", quality=92 if still else 75)
             elif still:
