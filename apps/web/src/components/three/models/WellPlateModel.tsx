@@ -1,8 +1,12 @@
 "use client";
+import { useRef } from "react";
+import type { Group } from "three";
 import { castsShadow, getMaterial } from "../materials";
+import { usePoseFrame } from "../motion/use-pose-frame";
 import { Block, Repeat, TextDecal, type RepeatItem } from "../primitives";
 import type { Vec3 } from "../types";
 import { WELL_PLATE, wellCentre } from "./deck/labware-layout";
+import { WellMedia } from "./deck/WellMedia";
 import { mm } from "./details/units";
 import { perforatedPlate, type PlateHole } from "./geometry/shapes";
 
@@ -20,9 +24,6 @@ const WELLS: PlateHole[] = Array.from({ length: ROWS.length * COLUMNS.length }, 
 /** Outer edges of the well grid, so the labels sit centred in the margins. */
 const GRID = { x: 2.5 * PITCH + WELL_RADIUS, z: 1.5 * PITCH + WELL_RADIUS } as const;
 const BOTTOM = -PLATE.height / 2;
-const MEDIA_DEPTH = WELL_PLATE.mediaDepth;
-const MEDIA: RepeatItem[] = WELLS.map(({ x, z }) => ({ position: [x, BOTTOM + SKIRT + MEDIA_DEPTH / 2, z] as Vec3 }));
-const MEDIA_SCALE: Vec3 = [WELL_RADIUS - mm(0.2), MEDIA_DEPTH, WELL_RADIUS - mm(0.2)];
 const LABEL = { size: mm(3.4), weight: 500 } as const;
 /**
  * The lid sits on the well rims and hangs its skirt round the plate's
@@ -32,14 +33,27 @@ const LID = { gap: mm(1.2), top: mm(1.2), skirt: mm(8), wall: mm(1) } as const;
 const RINGS: RepeatItem[] = WELLS.map(({ x, z }) => ({ position: [x, PLATE.height / 2 + LID.top + mm(0.2), z] as Vec3, rotation: [-Math.PI / 2, 0, 0] as Vec3 }));
 const RING_SCALE: Vec3 = [WELL_RADIUS + mm(0.6), WELL_RADIUS + mm(0.6), mm(4)];
 
-/** The clear lid, drawn as its top sheet and four skirt walls. */
+/**
+ * The clear lid, drawn as its top sheet and four skirt walls. The pipette
+ * can't reach the wells through it, so it is off for the whole Home demo,
+ * as if taken off before the run; the still machine shows it on.
+ */
 function Lid() {
   const width = PLATE.width + LID.gap * 2;
   const depth = PLATE.depth + LID.gap * 2;
   const top = PLATE.height / 2 + LID.top;
   const wallY = top - LID.skirt / 2;
+  const lid = useRef<Group>(null);
+  usePoseFrame(
+    () => {
+      if (lid.current) lid.current.visible = false;
+    },
+    () => {
+      if (lid.current) lid.current.visible = true;
+    },
+  );
   return (
-    <group>
+    <group ref={lid}>
       <Block position={[0, top - LID.top / 2, 0]} size={[width, LID.top, depth]} radius={mm(0.5)} material="polystyrene" />
       {[-1, 1].map((side) => (
         <group key={side}>
@@ -74,7 +88,7 @@ export function WellPlateModel() {
         receiveShadow
         dispose={null}
       />
-      <Repeat items={MEDIA} shape="cylinder" material="mediaPink" scale={MEDIA_SCALE} />
+      <WellMedia />
       {COLUMNS.map((label, i) => (
         <TextDecal key={label} text={label} position={[(i - 2.5) * PITCH, top + 0.0006, -(GRID.z + deckDepth / 2) / 2]} width={LABEL.size} height={LABEL.size} ink="dark" weight={LABEL.weight} />
       ))}

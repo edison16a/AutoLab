@@ -1,4 +1,9 @@
 "use client";
+import { useRef } from "react";
+import type { Mesh } from "three";
+import { unitGeometry } from "../../geometries";
+import { getMaterial } from "../../materials";
+import { usePoseFrame } from "../../motion/use-pose-frame";
 import { Block } from "../../primitives";
 import type { MaterialKey } from "../../materials";
 import { ChuteTips } from "./ChuteTips";
@@ -21,14 +26,34 @@ function Tray({ z, length, material }: { z: number; length: number; material: Ma
   );
 }
 
-/** The media in the reservoir, a hair inside its walls so the clear sides don't flicker against it. */
+/**
+ * The media in the reservoir, a hair inside its walls so the clear sides
+ * don't flicker against it. It stands full on the still machine and goes
+ * down as the Home demo draws from it, until it is topped up again.
+ */
 function ReservoirMedia() {
   const { x, top, width, wall, reservoir } = TROUGHS;
+  const media = useRef<Mesh>(null);
+  const floor = top + wall;
+  const fill = (level: number) => {
+    if (!media.current) return;
+    const depth = RESERVOIR_DEPTH * Math.max(level, 0.02);
+    media.current.scale.y = depth;
+    media.current.position.y = floor + depth / 2;
+  };
+  usePoseFrame(
+    (pose) => fill(pose.reservoir),
+    () => fill(1),
+  );
   return (
-    <Block
-      position={[x, top + wall + RESERVOIR_DEPTH / 2, reservoir.z]}
-      size={[width - wall * 2 - 0.004, RESERVOIR_DEPTH, reservoir.length - wall * 2 - 0.004]}
-      material="mediaPink"
+    <mesh
+      ref={media}
+      geometry={unitGeometry("box")}
+      material={getMaterial("mediaPink")}
+      position={[x, floor + RESERVOIR_DEPTH / 2, reservoir.z]}
+      scale={[width - wall * 2 - 0.004, RESERVOIR_DEPTH, reservoir.length - wall * 2 - 0.004]}
+      receiveShadow
+      dispose={null}
     />
   );
 }

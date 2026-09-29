@@ -32,8 +32,10 @@ function TipLiquid() {
   );
   return (
     <group ref={scaler} visible={false}>
+      {/* Drawn after the tip: the tip writes no depth, so its tinted wall would otherwise wash the colour out. */}
       <mesh
         ref={liquid}
+        renderOrder={2}
         geometry={taperGeometry(taper)}
         material={getMaterial("mediaPink")}
         position={[0, (length * 0.88) / 2 + 0.004, 0]}
