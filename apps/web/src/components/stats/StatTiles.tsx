@@ -21,7 +21,7 @@ function tiles(s: Summary): Tile[] {
     {
       label: "Objects per image",
       value: s.perImage === null ? null : formatDecimal(s.perImage),
-      sub: s.analyzed ? `Across ${plural(s.analyzed, "analyzed image")}` : "Nothing analyzed",
+      sub: s.analyzed ? `${plural(s.analyzed, "image")} analyzed` : "Nothing analyzed",
     },
     {
       label: "Median inference",
