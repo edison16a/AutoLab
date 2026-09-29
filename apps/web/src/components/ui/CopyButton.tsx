@@ -5,14 +5,16 @@ import { useAutolab } from "@/providers/autolab-context";
 
 interface CopyButtonProps {
   text: string;
+  /** Accessible name and tooltip, like "Copy device ID". */
   label: string;
+  className?: string;
 }
 
 /**
  * Copies text and swaps to a check for a moment. The clipboard API can be
  * refused (no permission, insecure page), which gets a toast instead.
  */
-export function CopyButton({ text, label }: CopyButtonProps) {
+export function CopyButton({ text, label, className = "" }: CopyButtonProps) {
   const { notify } = useAutolab();
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -34,7 +36,7 @@ export function CopyButton({ text, label }: CopyButtonProps) {
   return (
     <button
       type="button"
-      className={`icon-btn icon-btn--sm ${copied ? "icon-btn--active" : ""}`}
+      className={`icon-btn icon-btn--sm ${className} ${copied ? "icon-btn--active" : ""}`}
       aria-label={label}
       title={copied ? "Copied" : label}
       onClick={() => void copy()}

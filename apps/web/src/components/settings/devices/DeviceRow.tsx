@@ -6,7 +6,7 @@ import { shortId } from "@/lib/format";
 import type { Device } from "@/model/types";
 import { useAutolab } from "@/providers/autolab-context";
 import { StatusDot } from "../../ui/StatusDot";
-import { CopyIdButton } from "./CopyIdButton";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { RenameForm } from "./RenameForm";
 
 interface DeviceRowProps {
@@ -63,7 +63,7 @@ export function DeviceRow({ device, selected, onForget }: DeviceRowProps) {
               <span className="mono" title={device.id}>
                 {shortId(device.id)}
               </span>
-              <CopyIdButton id={device.id} />
+              <CopyButton text={device.id} label="Copy device ID" className="settings-device__copy" />
             </span>
           </div>
           <div className="settings-row__control">

@@ -2,7 +2,7 @@
 import { formatBytes, shortId, SOURCE_LABEL } from "@/lib/format";
 import { useAutolab } from "@/providers/autolab-context";
 import type { Photo } from "@/model/types";
-import { CopyButton } from "./CopyButton";
+import { CopyButton } from "@/components/ui/CopyButton";
 
 /**
  * Where the image came from and what it is. Rows without a value are left
