@@ -108,7 +108,7 @@ try:
         )
         env = {**os.environ, "TEST_DEVICE_ID": device}
         result = subprocess.run(
-            ["node", "tests/browser.cjs"], cwd=ROOT, env=env, check=False
+            ["node", "tests/e2e/run.cjs"], cwd=ROOT, env=env, check=False
         )
         if result.returncode:
             raise RuntimeError("Browser checks failed")
