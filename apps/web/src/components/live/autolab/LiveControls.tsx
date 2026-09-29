@@ -48,7 +48,7 @@ export function LiveControls({ ready, onTakePhoto, onPause, onResume }: LiveCont
           ) : (
             <Play size={18} strokeWidth={1.8} aria-hidden="true" />
           )}
-          {preview ? "Stop preview" : "Start preview"}
+          {preview ? "Pause preview" : "Resume preview"}
         </button>
       </div>
       <div className="live-controls__summary">{analysis ? <DetectionSummary analysis={analysis} showTiming={false} /> : null}</div>
