@@ -1,0 +1,80 @@
+/*
+  The 3D stage used by the Hardware screen and the Home machine view: a
+  transparent canvas over a token coloured backdrop, the fallback message,
+  and the small labels that float over parts.
+*/
+
+.stage3d {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.stage3d canvas {
+  display: block;
+  outline: none;
+  touch-action: none;
+}
+
+.stage3d__fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/*
+  Placed by SceneLabel with a transform each frame. The anchor is the top
+  of the part, so the pill sits just above it.
+*/
+.stage3d-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+}
+
+.stage3d-label--accent {
+  border-color: var(--accent);
+}
+
+.stage3d-label--accent::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Connection names sit on the line itself, so they stay quieter than part labels. */
+.stage3d-label--quiet {
+  height: 22px;
+  padding: 0 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+  box-shadow: none;
+}
