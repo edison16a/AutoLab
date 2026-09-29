@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { FocusControls } from "@/components/three/camera/FocusControls";
+import { MachineMotion } from "@/components/three/motion/MachineMotion";
+import { useReducedMotion } from "@/components/three/motion/use-reduced-motion";
 import { Stage } from "@/components/three/Stage";
 import { useShadowRefresh } from "@/components/three/stage/StageShadows";
 import { partById } from "@/data/hardware-parts";
@@ -33,6 +35,7 @@ export default function MachineCanvas({
   flight = 0,
   insetRight = 0,
   overviewFill,
+  demo = false,
   className,
 }: MachineViewProps) {
   const states = usePartStates();
@@ -41,6 +44,7 @@ export default function MachineCanvas({
   const hoverId = hovered === undefined ? ownHover : hovered;
   const setHover = onHover ?? setOwnHover;
   const onMeasured = useCallback((next: InspectMeasure) => setMeasure(next), []);
+  const reducedMotion = useReducedMotion();
 
   const part = selected ? partById[selected] ?? null : null;
   const inspectPart = inspecting ? part : null;
@@ -59,6 +63,18 @@ export default function MachineCanvas({
     focusKey = `part:${part.id}:${exploded}:${inspecting ? "waiting" : flight}`;
   }
 
+  const scene = (
+    <MachineScene
+      states={states}
+      selected={selected}
+      hovered={hoverId}
+      exploded={exploded}
+      connections={connections}
+      onHover={setHover}
+      onSelect={onSelect}
+    />
+  );
+
   return (
     <Stage label="3D model of the Autolab" className={className} shadowRadius={inspectPart ? 2.2 : 5.5}>
       <FocusControls
@@ -70,19 +86,9 @@ export default function MachineCanvas({
         bounds={measured ? undefined : MACHINE_BOUNDS}
         insetRight={insetRight}
       />
-      {inspectPart ? (
-        <InspectScene part={inspectPart} live={states[inspectPart.id]?.live ?? false} onMeasured={onMeasured} />
-      ) : (
-        <MachineScene
-          states={states}
-          selected={selected}
-          hovered={hoverId}
-          exploded={exploded}
-          connections={connections}
-          onHover={setHover}
-          onSelect={onSelect}
-        />
-      )}
+      <MachineMotion active={demo && !reducedMotion && !inspectPart}>
+        {inspectPart ? <InspectScene part={inspectPart} live={states[inspectPart.id]?.live ?? false} onMeasured={onMeasured} /> : scene}
+      </MachineMotion>
       <ShadowSync signature={`${inspectPart?.id ?? ""}:${exploded}`} />
     </Stage>
   );

@@ -23,5 +23,11 @@ export interface MachineViewProps {
    * sets it higher than the Hardware default, since nothing floats over it.
    */
   overviewFill?: number;
+  /**
+   * Runs the looping pipetting demo and spins the fan. Home turns it on; the
+   * Hardware screen leaves it off so every part stays still to inspect.
+   * Ignored when the person prefers reduced motion.
+   */
+  demo?: boolean;
   className?: string;
 }

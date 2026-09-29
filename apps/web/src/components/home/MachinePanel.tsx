@@ -5,9 +5,10 @@ import { MachineView } from "@/components/hardware/MachineView";
 import { useAutolab } from "@/providers/autolab-context";
 
 /**
- * The whole Autolab in 3D, the centrepiece of Home. The wheel zooms toward
- * the pointer, hovering names a part, and clicking one opens it on the
- * Hardware screen, which reads ?part= and flies straight to it.
+ * The whole Autolab in 3D, the centrepiece of Home, running a looping
+ * pipetting demo. The wheel zooms toward the pointer, hovering names a
+ * part, and clicking one opens it on the Hardware screen, which reads
+ * ?part= and flies straight to it.
  */
 export function MachinePanel() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export function MachinePanel() {
 
   return (
     <section className="home-machine" aria-label="Machine">
-      {connectOpen ? null : <MachineView onSelect={openPart} overviewFill={0.96} />}
+      {connectOpen ? null : <MachineView onSelect={openPart} overviewFill={0.96} demo />}
     </section>
   );
 }
