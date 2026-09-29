@@ -1,6 +1,7 @@
 "use client";
 import "@/styles/hardware.css";
-import "@/styles/hardware-panels.css";
+import "@/styles/hardware-list.css";
+import "@/styles/hardware-details.css";
 import { Suspense, useCallback, useRef } from "react";
 import { partById } from "@/data/hardware-parts";
 import { MachineView } from "./MachineView";
@@ -11,7 +12,7 @@ import { usePartStates } from "./use-part-states";
 import { useWideLayout } from "./use-wide-layout";
 import { ViewToolbar } from "./ViewToolbar";
 
-/** Width of the floating details panel plus its margins (see hardware-panels.css). */
+/** Width of the floating details panel plus its margins (see hardware-details.css). */
 const DETAILS_INSET = 344;
 
 /**

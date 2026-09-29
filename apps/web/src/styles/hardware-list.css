@@ -1,6 +1,6 @@
 /*
-  The two Hardware panels: the searchable parts list and the details card
-  for the selected part.
+  The Hardware parts list: a search box over rows grouped by area. Rows share
+  hover and selection with the 3D view.
 */
 
 .hardware-list {
@@ -101,94 +101,6 @@
   white-space: nowrap;
 }
 
-.hardware-details {
-  position: relative;
-  z-index: 4;
-  display: flex;
-  grid-area: stage;
-  flex-direction: column;
-  gap: 16px;
-  align-self: start;
-  justify-self: end;
-  width: 320px;
-  max-height: calc(100% - 24px);
-  margin: 12px;
-  padding: 16px;
-  overflow-y: auto;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--bg);
-  box-shadow: var(--shadow);
-}
-
-.hardware-details__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.hardware-details__title {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.hardware-details__title h2 {
-  line-height: 1.3;
-}
-
-.hardware-details__status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-}
-
-.hardware-facts {
-  margin: 0;
-  border-top: 1px solid var(--border);
-}
-
-.hardware-facts__row {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-}
-
-.hardware-facts__row dt {
-  flex-shrink: 0;
-  color: var(--text-muted);
-}
-
-.hardware-facts__row dd {
-  min-width: 0;
-  margin: 0;
-  text-align: right;
-  overflow-wrap: anywhere;
-}
-
-.hardware-facts__mono {
-  font-size: 11.5px;
-  line-height: 1.6;
-}
-
-.hardware-details__actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.hardware-details__pair {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
 @media (max-width: 860px) {
   .hardware-list {
     overflow: visible;
@@ -196,14 +108,5 @@
 
   .hardware-list__scroll {
     overflow: visible;
-  }
-
-  .hardware-details {
-    grid-area: details;
-    justify-self: stretch;
-    width: auto;
-    max-height: none;
-    margin: 0;
-    box-shadow: none;
   }
 }
