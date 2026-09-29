@@ -15,6 +15,7 @@ import { PhotoGrid } from "./library/PhotoGrid";
 import { SelectionBar } from "./library/SelectionBar";
 import { useLibraryActions } from "./library/use-library-actions";
 import { useLibraryFilters } from "./library/use-library-filters";
+import { useScrollReturn } from "./library/use-scroll-return";
 import { useSelection } from "./library/use-selection";
 
 function imagesLabel(count: number) {
@@ -28,6 +29,7 @@ export function DataScreen() {
   const visibleIds = useMemo(() => library.visible.map((p) => p.id), [library.visible]);
   const actions = useLibraryActions();
   const selection = useSelection(visibleIds, !actions.pendingDelete);
+  useScrollReturn(photosReady);
 
   const pending = actions.pendingDelete?.length ?? 0;
   const subtitle = !photosReady || !photos.length

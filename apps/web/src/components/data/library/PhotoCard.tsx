@@ -4,6 +4,7 @@ import { Check, Trash2 } from "lucide-react";
 import { formatDateTime, formatTime } from "@/lib/format";
 import type { Photo } from "@/model/types";
 import { ImageView } from "../../ui/ImageView";
+import { rememberScroll } from "./use-scroll-return";
 
 interface PhotoCardProps {
   photo: Photo;
@@ -67,7 +68,12 @@ export function PhotoCard({ photo, selecting, selected, onToggle, onDelete }: Ph
 
   return (
     <div className="photo-card">
-      <Link href={`/data/${photo.id}`} className="photo-card__link" aria-label={`Open image from ${formatDateTime(photo.captured_at)}`}>
+      <Link
+        href={`/data/${photo.id}`}
+        className="photo-card__link"
+        aria-label={`Open image from ${formatDateTime(photo.captured_at)}`}
+        onClick={rememberScroll}
+      >
         {thumb}
         <CardMeta photo={photo} />
       </Link>
