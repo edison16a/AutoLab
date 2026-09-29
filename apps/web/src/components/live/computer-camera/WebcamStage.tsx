@@ -21,7 +21,7 @@ export function WebcamStage({ camera }: { camera: ComputerCameraModel }) {
   const ratio = size ? `${size.width} / ${size.height}` : "4 / 3";
 
   return (
-    <div className="live-stage webcam-stage" role="region" aria-label="Computer camera">
+    <div className="live-stage webcam-stage" role="region" aria-label="Computer camera view">
       {shown ? (
         <StageChips
           start={running ? <Chip live>Live</Chip> : <Chip>{uploading ? "Analyzing" : "Upload"}</Chip>}

@@ -27,7 +27,7 @@ export function ComputerCamera() {
   useSpaceShortcut(camera.takePhoto, camera.state === "running");
 
   return (
-    <div className="live__body">
+    <div className="live__body" role="tabpanel" aria-label="Computer camera">
       <div className="live__main">
         <WebcamStage camera={camera} />
         <WebcamControls camera={camera} />

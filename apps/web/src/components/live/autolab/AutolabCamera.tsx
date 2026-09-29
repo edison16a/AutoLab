@@ -31,7 +31,7 @@ export function AutolabCamera() {
   useSpaceShortcut(takePhoto, ready);
 
   return (
-    <div className="live__body">
+    <div className="live__body" role="tabpanel" aria-label="Autolab camera">
       <div className="live__main">
         <LiveStage state={state} onResume={resume} />
         <LiveControls ready={ready} onTakePhoto={takePhoto} onPause={pause} onResume={resume} />

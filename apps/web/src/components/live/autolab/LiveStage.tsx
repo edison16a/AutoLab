@@ -18,7 +18,7 @@ export function LiveStage({ state, onResume }: LiveStageProps) {
   const frame = state === "live" ? liveFrame : null;
 
   return (
-    <div className="live-stage" role="region" aria-label="Autolab camera">
+    <div className="live-stage" role="region" aria-label="Autolab camera view">
       {frame ? (
         <>
           <StageChips
