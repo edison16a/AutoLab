@@ -8,11 +8,12 @@ import time
 import uuid
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager, suppress
-from dataclasses import dataclass, field
 
 from autolab_gateway.cloud import Cloud, digest
 from autolab_gateway.config import MODE, ORIGINS
+from autolab_gateway.peers import Peer
 from autolab_gateway.protocol import now, pack, uid, unpack
+from autolab_gateway.rooms import Room
 from fastapi import (
     FastAPI,
     HTTPException,
@@ -45,90 +46,6 @@ def device_metadata(data):
         for key in ("agent_version", "network")
         if data.get(key)
     }
-
-
-@dataclass(eq=False)
-class Peer:
-    ws: WebSocket
-    role: str
-    owner: str | None = None
-    queue: asyncio.Queue = field(default_factory=lambda: asyncio.Queue(8))
-    preview: bool = False
-    ml: bool = False
-    live_busy: bool = False
-    last_seen: float = field(default_factory=time.monotonic)
-    auth_token: str = ""
-    checked_at: float = field(default_factory=time.monotonic)
-
-    def emit(self, data):
-        if isinstance(data, bytes) and unpack(data)[0].get("type") == "frame":
-            # Keep only the latest unsent preview while preserving control messages.
-            reliable = []
-            while not self.queue.empty():
-                queued = self.queue.get_nowait()
-                if not (
-                    isinstance(queued, bytes)
-                    and unpack(queued)[0].get("type") == "frame"
-                ):
-                    reliable.append(queued)
-            for queued in reliable:
-                self.queue.put_nowait(queued)
-        if self.queue.full():
-            # Live frames are disposable. Reliable messages close overloaded peers.
-            if isinstance(data, bytes) and unpack(data)[0].get("type") == "frame":
-                return
-            asyncio.create_task(self.ws.close(code=1013))
-            return
-        self.queue.put_nowait(data)
-
-    async def send(self):
-        while True:
-            data = await self.queue.get()
-            if isinstance(data, bytes):
-                await asyncio.wait_for(self.ws.send_bytes(data), 5)
-            else:
-                await asyncio.wait_for(self.ws.send_json(data), 5)
-
-
-@dataclass
-class Room:
-    device: Peer | None = None
-    worker: Peer | None = None
-    clients: set = field(default_factory=set)
-    camera: bool = False
-    simulated: bool = False
-    pending: dict = field(default_factory=dict)
-    analysis: dict = field(default_factory=dict)
-    last_live: float = 0
-    heartbeat_at: str | None = None
-    metadata: dict = field(default_factory=dict)
-    components: list = field(default_factory=list)
-
-    def status(self):
-        return {
-            "type": "status",
-            "online": self.device is not None,
-            "camera_online": self.camera if self.device else False,
-            "worker_online": self.worker is not None,
-            "simulated": self.simulated,
-            "last_seen": self.heartbeat_at,
-            **self.metadata,
-            "components": self.components if self.device else [],
-        }
-
-    def broadcast(self, data):
-        for p in self.clients:
-            p.emit(data)
-
-    def sync_preview(self):
-        if self.device:
-            self.device.emit(
-                {
-                    "type": "start_preview"
-                    if any(p.preview for p in self.clients)
-                    else "stop_preview"
-                }
-            )
 
 
 rooms = {}
