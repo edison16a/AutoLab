@@ -2,7 +2,7 @@
 
 ## 1. Gateway
 
-Use a persistent Docker host with HTTPS/WebSocket upgrade support, such as a container service or VPS. Build context: `services/gateway`, Dockerfile: `services/gateway/Dockerfile`. The container listens on `$PORT` (default 8000). Configure:
+Use an always-on Docker host that supports HTTPS and WebSocket upgrades, such as a container service or a VPS. Build context: `services/gateway`, Dockerfile: `services/gateway/Dockerfile`. The container listens on `$PORT` (default 8000). Configure:
 
 ```dotenv
 AUTOLAB_MODE=demo
@@ -33,7 +33,7 @@ Redeploy after changing any `NEXT_PUBLIC_` value because these values are baked 
 
 ## 3. Raspberry Pi
 
-Set `AUTOLAB_GATEWAY=wss://YOUR_GATEWAY_HOST` on the Pi. Run the agent, copy its device UUID into the web app, and confirm a capture. The frontend connects through the gateway. Object detection runs in the browser and needs no Python ML worker.
+Set `AUTOLAB_GATEWAY=wss://YOUR_GATEWAY_HOST` on the Pi and run the agent. In the app, sign in (demo login `ntabuser` / `ntabuser123`), click **Connect device** and either use Bluetooth setup or paste the Device ID the agent prints. Take a photo to confirm. Object detection runs in the browser and needs no Python ML worker.
 
 ## Deployment smoke check
 
@@ -42,6 +42,6 @@ Set `AUTOLAB_GATEWAY=wss://YOUR_GATEWAY_HOST` on the Pi. Run the agent, copy its
 3. Device shows online and a heartbeat.
 4. Preview starts and stops, and a still photo appears.
 5. Disconnecting the Pi changes its status to offline.
-6. Reloading clears the demo library and selected device.
+6. Reloading keeps you signed in, keeps the selected device and keeps the demo images, which live in the browser.
 
 This repository includes configuration, not provisioned hosting accounts. No live gateway, Vercel project, or Supabase project is created by the code itself.
