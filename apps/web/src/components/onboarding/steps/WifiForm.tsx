@@ -44,7 +44,7 @@ export function WifiForm({ busy, waiting, message, state, onSubmit, onManual, on
         actions={
           <>
             <button type="submit" className="btn btn--primary btn--lg btn--block" disabled={locked}>
-              {locked ? (
+              {busy ? (
                 <LoaderCircle size={18} strokeWidth={1.8} className="spin" aria-hidden="true" />
               ) : (
                 <Wifi size={18} strokeWidth={1.8} aria-hidden="true" />

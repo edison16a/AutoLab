@@ -43,7 +43,8 @@ export function ManualForm({ mode, gateway, busy, waiting, message, onSubmit, on
         message={message}
         actions={
           <button type="submit" className="btn btn--primary btn--lg btn--block" disabled={locked}>
-            {locked ? <LoaderCircle size={18} strokeWidth={1.8} className="spin" aria-hidden="true" /> : null}
+            {/* While waiting, the waiting row carries the spinner. */}
+            {busy ? <LoaderCircle size={18} strokeWidth={1.8} className="spin" aria-hidden="true" /> : null}
             Connect device
           </button>
         }
