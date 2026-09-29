@@ -1,0 +1,48 @@
+/*
+  The wizard's 3D stage: the canvas fills the left side over a token
+  coloured backdrop, with the Replay button in the corner.
+*/
+
+.onboarding-stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+
+.onboarding-stage__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.onboarding-stage__replay {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  /* Above the floating part labels, which sit at z-index 2. */
+  z-index: 3;
+  border-color: var(--border);
+  background: var(--bg);
+}
+
+.onboarding-stage__replay:hover:not(:disabled) {
+  background: var(--bg-muted);
+}
+
+/* Nothing to replay when the stage fell back to its one line of text. */
+.onboarding-stage:has(.stage3d--unavailable) .onboarding-stage__replay {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .onboarding-stage {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .onboarding-stage__replay {
+    left: 12px;
+    bottom: 12px;
+  }
+}
