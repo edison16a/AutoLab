@@ -128,7 +128,8 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     connection: "",
     model: "media_bottle",
     liveNow: false,
-    position: [-1.55, 0.46, 1.1],
+    // In the front left corner, ahead of the tip rack.
+    position: [-1.55, 0.46, 1.45],
     size: [0.64, 1.06, 0.62],
     center: [0.01, 0.53, 0],
     exploded: [-0.7, 0, 0.8],
@@ -158,9 +159,10 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     connection: "",
     model: "tip_rack",
     liveNow: false,
-    position: [-1.42, 0.46, 0.05],
-    size: [0.6, 0.6, 0.82],
-    center: [0, 0.3, 0],
+    // Front left, just ahead of where the gantry's left foot plate can reach, so the pipette can pick from its back rows.
+    position: [-1.4, 0.46, 0.78],
+    size: [0.6, 0.7, 0.82],
+    center: [0, 0.35, 0],
     exploded: [-0.6, 0.35, 0.3],
     view: [0.4, 0.85, 1],
   },
