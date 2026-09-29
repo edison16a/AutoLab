@@ -1,4 +1,5 @@
 "use client";
+import { HideWhenExploded } from "../../../explode/ExplodeContext";
 import { Rig } from "../../../motion/Rig";
 import { Harness } from "./Harness";
 import { Plugs } from "./Plugs";
@@ -16,16 +17,17 @@ const JUMPERS = [...TOOL_JUMPERS, ...SENSOR_JUMPERS];
  * The machine's wiring: stepper leads to the mainboard, the pipette tool's
  * cables through the X chain and out to the Pico, the sensor cables out to
  * the Pi, and the Pi's own power and USB leads. The grommets they pass
- * through belong to the side panel (Panels).
+ * through belong to the side panel (Panels). It all stays fastened to the
+ * frame, so it hides while the exploded view is open.
  */
 export function Wiring() {
   return (
-    <group>
+    <HideWhenExploded>
       <Harness runs={RUNS} />
       <Plugs parts={PLUGS} jumpers={JUMPERS} />
       <Rig rig="carriage">
         <Plugs parts={[]} jumpers={CARRIAGE_JUMPERS} />
       </Rig>
-    </group>
+    </HideWhenExploded>
   );
 }

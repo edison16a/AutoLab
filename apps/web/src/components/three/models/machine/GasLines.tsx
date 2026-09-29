@@ -1,4 +1,5 @@
 "use client";
+import { HideWhenExploded } from "../../explode/ExplodeContext";
 import { Block, Cylinder, Tube } from "../../primitives";
 import type { Vec3 } from "../../types";
 
@@ -24,8 +25,9 @@ const DIFFUSER = at(-0.1, -3.8, 0.18);
  * sketch.
  */
 export function GasLines() {
+  // Like the wiring, the lines stay on the frame while the valve lifts away, so they hide in the exploded view.
   return (
-    <group>
+    <HideWhenExploded>
       <Tube points={SUPPLY} radius={0.026} material="tubing" segments={64} />
       <Tube points={DOSING} radius={0.026} material="tubing" segments={64} />
       {CLIPS.map((position) => (
@@ -33,6 +35,6 @@ export function GasLines() {
       ))}
       <Cylinder position={DIFFUSER} radius={0.045} height={0.12} material="aluminium" />
       <Cylinder position={[DIFFUSER[0], DIFFUSER[1] - 0.07, DIFFUSER[2]]} radius={0.05} height={0.03} low material="plasticGrey" />
-    </group>
+    </HideWhenExploded>
   );
 }
