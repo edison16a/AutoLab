@@ -11,6 +11,7 @@ import type { RepeatItem } from "../../../primitives";
 import type { Vec3 } from "../../../types";
 import { fanOut } from "./fan-out";
 import type { WireRun } from "./harness-geometry";
+import { ridesOn } from "./harness-rig";
 import { X_CHAIN } from "./XChain";
 
 const TOOL: MaterialKey[] = ["wireRed", "wireBlack", "wireBlue", "wireGreen", "wireYellow", "wireWhite"];
@@ -30,6 +31,7 @@ export const TOOL_GROMMET: Vec3 = [2.2, 0.8, LANE];
 const INTO_CHAIN: WireRun = {
   wires: TOOL,
   ties: TIES,
+  ride: ridesOn("carriage"),
   points: [
     [0.11, 4.27, -0.1],
     [0.11, 4.315, -0.16],
@@ -45,6 +47,14 @@ const INTO_CHAIN: WireRun = {
 const TO_PICO: WireRun = {
   wires: TOOL,
   ties: TIES,
+  // The chain's fixed end rides the beam; the run hangs slack over the X
+  // motor to the upright, rides the gantry over the top and down the right
+  // upright, and swings off it to the grommet in the fixed side panel.
+  ride: [
+    { from: 0, carrier: "beam" },
+    { from: 7, carrier: "gantry", span: 5 },
+    { from: 20, carrier: "fixed", span: 4 },
+  ],
   points: [
     [X_CHAIN.fixed - 0.06, X_CHAIN.y, X_CHAIN.z],
     [X_CHAIN.fixed - 0.16, X_CHAIN.y, X_CHAIN.z],
@@ -90,6 +100,7 @@ const HX711_HOUSINGS: RepeatItem[] = HX711_PINS.map((z) => ({ position: [0.008, 
 const HX711_JUMPERS: WireRun[] = HX711.map((material, i) => ({
   wires: [material],
   twist: 0,
+  ride: ridesOn("carriage"),
   points: [
     [0.08, 2.015, HX711_PINS[i]],
     [0.13, 2.02, HX711_PINS[i]],
@@ -100,6 +111,7 @@ const HX711_JUMPERS: WireRun[] = HX711.map((material, i) => ({
 const HX711_UP: WireRun = {
   wires: HX711,
   ties: TIES,
+  ride: ridesOn("carriage"),
   points: [
     [0.2, 2.2, 0.05],
     [0.2, 2.4, 0.04],
@@ -111,4 +123,6 @@ const HX711_UP: WireRun = {
 };
 
 export const TOOL_RUNS: WireRun[] = [INTO_CHAIN, TO_PICO, ...TO_BREADBOARD.runs, ...HX711_JUMPERS, HX711_UP];
-export const TOOL_JUMPERS: RepeatItem[] = [...TO_BREADBOARD.housings, ...HX711_HOUSINGS];
+export const TOOL_JUMPERS: RepeatItem[] = TO_BREADBOARD.housings;
+/** The jumper housings on the HX711's pins ride the carriage with the board. */
+export const CARRIAGE_JUMPERS: RepeatItem[] = HX711_HOUSINGS;

@@ -2,12 +2,15 @@
  * Geometry for the machine's wiring. Every run is a few wires laid round a
  * smooth centre line with a gentle twist, the way a real stepper or sensor
  * lead looks. All wires of one colour, across every run, are merged into
- * one buffer, so the whole harness costs one draw per colour.
+ * one buffer, so the whole harness costs one draw per colour. Each vertex
+ * also carries the two rigs it moves with (see harness-rig.ts), so one
+ * skinned buffer can flex wherever a run crosses a moving joint.
  */
-import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, Quaternion, Euler, Vector3 } from "three";
+import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, Quaternion, Euler, Uint16BufferAttribute, Vector3 } from "three";
 import type { MaterialKey } from "../../../materials";
 import type { RepeatItem } from "../../../primitives";
 import type { Vec3 } from "../../../types";
+import { blendAt, CARRIERS, type Blend, type Carrier, type Ride } from "./harness-rig";
 
 export interface WireRun {
   /** The bundle's centre line in world space. Ends should run straight into their plugs. */
@@ -20,6 +23,8 @@ export interface WireRun {
   twist?: number;
   /** Distance between cable ties. Leave out for a run with none. */
   ties?: number;
+  /** What each stretch is fastened to. Leave out for a run fixed to the frame all the way. */
+  ride?: Ride[];
 }
 
 const WIRE_RADIUS = 0.009;
@@ -46,7 +51,11 @@ interface Arrays {
   positions: number[];
   normals: number[];
   indices: number[];
+  bones: number[];
+  weights: number[];
 }
+
+const blend: Blend = { a: 0, b: 0, weight: 0 };
 
 /** Appends one wire's tube, following the bundle's frames with its own offset and twist. */
 function addWire(out: Arrays, run: WireRun, index: number) {
@@ -61,9 +70,11 @@ function addWire(out: Arrays, run: WireRun, index: number) {
   const base = out.positions.length / 3;
   const centre = new Vector3();
   const normal = new Vector3();
+  const last = run.points.length - 1;
   for (let j = 0; j <= segments; j++) {
     const u = j / segments;
     curve.getPointAt(u, centre);
+    blendAt(run.ride, curve.getUtoTmapping(u, u * length) * last, blend);
     const n = frames.normals[j];
     const b = frames.binormals[j];
     const turn = (index / run.wires.length) * Math.PI * 2 + (run.twist ?? 1.4) * Math.PI * 2 * u * length;
@@ -75,6 +86,8 @@ function addWire(out: Arrays, run: WireRun, index: number) {
       normal.set(0, 0, 0).addScaledVector(n, Math.cos(a)).addScaledVector(b, Math.sin(a));
       out.positions.push(cx + radius * normal.x, cy + radius * normal.y, cz + radius * normal.z);
       out.normals.push(normal.x, normal.y, normal.z);
+      out.bones.push(blend.a, blend.b, 0, 0);
+      out.weights.push(1 - blend.weight, blend.weight, 0, 0);
     }
   }
   for (let j = 0; j < segments; j++)
@@ -94,33 +107,41 @@ export function harnessGeometries(runs: WireRun[]): { material: MaterialKey; geo
     run.wires.forEach((material, index) => {
       let arrays = byMaterial.get(material);
       if (!arrays) {
-        arrays = { positions: [], normals: [], indices: [] };
+        arrays = { positions: [], normals: [], indices: [], bones: [], weights: [] };
         byMaterial.set(material, arrays);
       }
       addWire(arrays, run, index);
     });
-  return [...byMaterial.entries()].map(([material, { positions, normals, indices }]) => {
+  return [...byMaterial.entries()].map(([material, { positions, normals, indices, bones, weights }]) => {
     const geometry = new BufferGeometry();
     geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
     geometry.setAttribute("normal", new Float32BufferAttribute(normals, 3));
+    geometry.setAttribute("skinIndex", new Uint16BufferAttribute(bones, 4));
+    geometry.setAttribute("skinWeight", new Float32BufferAttribute(weights, 4));
     geometry.setIndex(indices);
     geometry.computeBoundingSphere();
     return { material, geometry };
   });
 }
 
+export interface Ties {
+  bands: RepeatItem[];
+  heads: RepeatItem[];
+}
+
 /**
  * Nylon cable ties along every run that asks for them: a thin band round
  * the bundle and the little square head on one side. Bands stand on Y, so
- * each is turned from Y onto the run's direction.
+ * each is turned from Y onto the run's direction. Ties are grouped by what
+ * carries them; none are put where a run flexes between two rigs.
  */
 export function tiePlacements(runs: WireRun[]) {
-  const bands: RepeatItem[] = [];
-  const heads: RepeatItem[] = [];
+  const byCarrier = new Map<Carrier, Ties>();
   const turn = new Quaternion();
   const euler = new Euler();
   const point = new Vector3();
   const tangent = new Vector3();
+  const at: Blend = { a: 0, b: 0, weight: 0 };
   for (const run of runs) {
     if (!run.ties) continue;
     const curve = curveOf(run.points);
@@ -131,15 +152,23 @@ export function tiePlacements(runs: WireRun[]) {
     const frames = curve.computeFrenetFrames(Math.max(1, count * 2), false);
     for (let i = 0; i < count; i++) {
       const u = (i + 0.5) / count;
+      blendAt(run.ride, curve.getUtoTmapping(u, u * length) * (run.points.length - 1), at);
+      if (at.weight > 0.02 && at.weight < 0.98) continue;
+      const carrier = CARRIERS[at.weight >= 0.98 ? at.b : at.a];
+      let ties = byCarrier.get(carrier);
+      if (!ties) {
+        ties = { bands: [], heads: [] };
+        byCarrier.set(carrier, ties);
+      }
       curve.getPointAt(u, point);
       curve.getTangentAt(u, tangent);
       turn.setFromUnitVectors(up, tangent);
       euler.setFromQuaternion(turn, "XYZ");
       const rotation: Vec3 = [euler.x, euler.y, euler.z];
-      bands.push({ position: [point.x, point.y, point.z], rotation, scale: [girth, 0.016, girth] });
+      ties.bands.push({ position: [point.x, point.y, point.z], rotation, scale: [girth, 0.016, girth] });
       const side = frames.normals[i * 2 + 1];
-      heads.push({ position: [point.x + side.x * girth, point.y + side.y * girth, point.z + side.z * girth], rotation, scale: [0.022, 0.024, 0.022] });
+      ties.heads.push({ position: [point.x + side.x * girth, point.y + side.y * girth, point.z + side.z * girth], rotation, scale: [0.022, 0.024, 0.022] });
     }
   }
-  return { bands, heads };
+  return [...byCarrier.entries()].map(([carrier, ties]) => ({ carrier, ...ties }));
 }

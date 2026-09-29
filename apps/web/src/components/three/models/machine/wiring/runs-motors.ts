@@ -7,6 +7,7 @@
 import type { MaterialKey } from "../../../materials";
 import type { Vec3 } from "../../../types";
 import type { WireRun } from "./harness-geometry";
+import { ridesOn } from "./harness-rig";
 import { MOTION } from "../layout";
 import { LEAD_REACH } from "../ZAxis";
 import { FLOOR_Y, PLUG_BACK, PLUG_Y, SOCKET_X } from "./mainboard-ports";
@@ -36,6 +37,13 @@ function intoSocket(x: number, lane: number): Vec3[] {
 const X_RUN: WireRun = {
   wires: STEPPER,
   ties: TIES,
+  // Off the motor it rides the beam, hangs slack behind the upright to its
+  // face, and trails off the foot plate onto the floor.
+  ride: [
+    { from: 0, carrier: "beam" },
+    { from: 7, carrier: "gantry", span: 5 },
+    { from: 17, carrier: "fixed", span: 4 },
+  ],
   points: [
     [-0.59, 3.42, -1.15],
     [-0.595, 3.43, -1.23],
@@ -122,15 +130,18 @@ function offMotor(x: number): Vec3[] {
   ];
 }
 
+/** Each Z lead's sleeve rolls with the gantry, and the lead drags along the floor behind it back to the lane. */
 const Z_LEFT: WireRun = {
   wires: STEPPER,
   ties: TIES,
+  ride: [...ridesOn("gantry"), { from: 3, carrier: "fixed", span: 3 }],
   points: [...offMotor(-SLEEVE_X), [-0.6, FLOOR_Y, Z_LANE], [SPLITTER[0] - SPLIT, FLOOR_Y, Z_LANE]],
 };
 
 const Z_RIGHT: WireRun = {
   wires: STEPPER,
   ties: TIES,
+  ride: [...ridesOn("gantry"), { from: 4, carrier: "fixed", span: 4 }],
   points: [...offMotor(SLEEVE_X), [0.9, FLOOR_Y, Z_LANE], [SPLITTER[0] + SPLIT, FLOOR_Y, Z_LANE]],
 };
 

@@ -1,11 +1,12 @@
 "use client";
+import { Rig } from "../../../motion/Rig";
 import { Grommet } from "../Grommet";
 import { Harness } from "./Harness";
 import { Plugs } from "./Plugs";
 import { MOTOR_PLUGS, MOTOR_RUNS } from "./runs-motors";
 import { POWER_PLUGS, POWER_RUNS } from "./runs-power";
 import { SENSOR_GROMMET, SENSOR_JUMPERS, SENSOR_PLUGS, SENSOR_RUNS } from "./runs-sensors";
-import { TOOL_GROMMET, TOOL_JUMPERS, TOOL_RUNS } from "./runs-tool";
+import { CARRIAGE_JUMPERS, TOOL_GROMMET, TOOL_JUMPERS, TOOL_RUNS } from "./runs-tool";
 
 /** Every wire run in the machine, in one harness so each colour is a single draw. */
 const RUNS = [...MOTOR_RUNS, ...TOOL_RUNS, ...SENSOR_RUNS, ...POWER_RUNS];
@@ -24,6 +25,9 @@ export function Wiring() {
     <group>
       <Harness runs={RUNS} />
       <Plugs parts={PLUGS} jumpers={JUMPERS} />
+      <Rig rig="carriage">
+        <Plugs parts={[]} jumpers={CARRIAGE_JUMPERS} />
+      </Rig>
       <Grommet position={TOOL_GROMMET} axis="x" wall={PANEL} radius={0.042} />
       <Grommet position={SENSOR_GROMMET} axis="x" wall={PANEL} radius={0.06} />
     </group>
