@@ -98,6 +98,52 @@ const Y_RUN: WireRun = {
   ],
 };
 
-export const MOTOR_RUNS: WireRun[] = [X_RUN, Y_RUN];
+/**
+ * The two Z motors share one driver, as on the Ender. Each lead drops off
+ * its motor to the floor inboard of the foot plate and runs along the
+ * lane behind the heated platform to a Y splitter in front of the board;
+ * one short lead then lifts over the Y cable into the Z socket.
+ */
+const Z_LANE = -0.625;
+const SPLITTER: Vec3 = [SOCKET_X.z, FLOOR_Y, Z_LANE];
+const SPLIT = 0.04;
 
-export const MOTOR_PLUGS: PlugPart[] = [jstPlug(SOCKET_X.x, PLUG_Y, PLUG_BACK), jstPlug(SOCKET_X.y, PLUG_Y, PLUG_BACK)];
+/** Out of a Z motor's lead sleeve, which ends at the floor beside the foot plate. */
+function offMotor(x: number): Vec3[] {
+  return [
+    [x, 0.52, -0.55],
+    [x, FLOOR_Y + 0.006, -0.578],
+    [x + Math.sign(-x) * 0.03, FLOOR_Y, Z_LANE],
+  ];
+}
+
+const Z_LEFT: WireRun = {
+  wires: STEPPER,
+  ties: TIES,
+  points: [...offMotor(-1.04), [-0.6, FLOOR_Y, Z_LANE], [SPLITTER[0] - SPLIT, FLOOR_Y, Z_LANE]],
+};
+
+const Z_RIGHT: WireRun = {
+  wires: STEPPER,
+  ties: TIES,
+  points: [...offMotor(1.04), [0.9, FLOOR_Y, Z_LANE], [SPLITTER[0] + SPLIT, FLOOR_Y, Z_LANE]],
+};
+
+const Z_MAIN: WireRun = {
+  wires: STEPPER,
+  points: [
+    [SOCKET_X.z, FLOOR_Y, Z_LANE - SPLIT],
+    [SOCKET_X.z, FLOOR_Y + 0.006, Z_LANE - 0.045],
+    [SOCKET_X.z, FLOOR_Y + 0.056, -0.7],
+    ...intoSocket(SOCKET_X.z, -0.76).slice(1),
+  ],
+};
+
+export const MOTOR_RUNS: WireRun[] = [X_RUN, Y_RUN, Z_LEFT, Z_RIGHT, Z_MAIN];
+
+export const MOTOR_PLUGS: PlugPart[] = [
+  jstPlug(SOCKET_X.x, PLUG_Y, PLUG_BACK),
+  jstPlug(SOCKET_X.y, PLUG_Y, PLUG_BACK),
+  jstPlug(SOCKET_X.z, PLUG_Y, PLUG_BACK),
+  { position: SPLITTER, size: [SPLIT * 2, 0.05, SPLIT * 2], material: "plasticBlack", radius: 0.01 },
+];
