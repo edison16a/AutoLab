@@ -59,6 +59,11 @@
   font-size: 13px;
 }
 
+/* Where focus lands when an action disables the control that had it. It isn't a control, so it gets no ring. */
+.settings-row__focus:focus {
+  outline: none;
+}
+
 .settings-row__control {
   display: flex;
   flex-wrap: wrap;
