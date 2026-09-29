@@ -12,7 +12,7 @@ import type { Vec3 } from "../../../types";
 export interface WireRun {
   /** The bundle's centre line in world space. Ends should run straight into their plugs. */
   points: Vec3[];
-  /** One material per wire. A single entry draws a round cable, like a USB lead. */
+  /** One material per wire. A single thick entry draws a round cable, like a USB lead. */
   wires: MaterialKey[];
   /** Radius of each wire. */
   radius?: number;
@@ -56,7 +56,8 @@ function addWire(out: Arrays, run: WireRun, index: number) {
   const frames = curve.computeFrenetFrames(segments, false);
   const radius = run.radius ?? WIRE_RADIUS;
   const offset = spread(run.wires.length, radius);
-  const sides = run.wires.length === 1 ? CABLE_SIDES : SIDES;
+  // Thick single cables (USB leads) need a rounder section than a hookup wire.
+  const sides = radius > 0.012 ? CABLE_SIDES : SIDES;
   const base = out.positions.length / 3;
   const centre = new Vector3();
   const normal = new Vector3();
