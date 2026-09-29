@@ -8,8 +8,8 @@ function objectsLabel(count: number) {
 }
 
 /**
- * One recent capture: the thumbnail, when it was taken, and what was found
- * if it was analyzed. The aria-label replaces the visible text for screen
+ * One recent capture: the thumbnail, when it was taken, and what was found,
+ * with the same badges as the Data cards. The aria-label replaces the visible text for screen
  * readers, so it repeats the object count.
  */
 export function CaptureThumb({ photo }: { photo: Photo }) {
@@ -25,7 +25,7 @@ export function CaptureThumb({ photo }: { photo: Photo }) {
         <span className="home-capture__time num">
           {dayLabel(photo.captured_at)}, {formatTime(photo.captured_at)}
         </span>
-        {found ? <span className="badge badge--accent">{found}</span> : null}
+        {found ? <span className="badge badge--accent">{found}</span> : <span className="badge">Not analyzed</span>}
       </span>
     </Link>
   );
