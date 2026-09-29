@@ -13,6 +13,18 @@ module.exports = async function hardware(page) {
   await page.waitForTimeout(1500);
   await shot(page, "hardware");
 
+  // Live view and Exploded view switch each other off. Stop it again right away:
+  // software rendering in CI would otherwise draw the demo for the rest of the run.
+  const toolbar = page.getByRole("toolbar", { name: "View" });
+  const exploded = toolbar.getByRole("button", { name: "Exploded view", exact: true });
+  const live = toolbar.getByRole("button", { name: "Live view", exact: true });
+  await exploded.click();
+  await live.click();
+  assert.equal(await live.getAttribute("aria-pressed"), "true", "Live view turns on");
+  assert.equal(await exploded.getAttribute("aria-pressed"), "false", "Live view closes the exploded view");
+  await live.click();
+  assert.equal(await live.getAttribute("aria-pressed"), "false", "Live view turns off");
+
   const rows = page.locator("[data-component-id]");
   const all = await rows.count();
   await page.getByLabel("Search components", { exact: true }).fill("pico");
