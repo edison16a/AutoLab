@@ -16,3 +16,7 @@ apps/web/public/inference/*.onnx
 apps/web/public/inference/ort*.mjs
 apps/web/public/inference/*.wasm
 .test-assets/
+
+# Written by next dev on every start
+apps/web/AGENTS.md
+apps/web/CLAUDE.md
