@@ -62,7 +62,8 @@ export default function MachineCanvas({
       <FocusControls
         focus={focus}
         focusKey={focusKey}
-        minDistance={measured ? measured.radius * 1.2 : 0.8}
+        // Close enough to read a chip marking, in context or on its own.
+        minDistance={measured ? measured.radius * 1.05 : 0.3}
         maxDistance={measured ? measured.radius * 12 : 24}
         bounds={measured ? undefined : MACHINE_BOUNDS}
         insetRight={insetRight}

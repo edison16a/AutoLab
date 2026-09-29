@@ -32,6 +32,8 @@ export interface FocusControlsProps {
 const SMOOTH_TIME = 0.25;
 /** Stops the camera sliding below the floor. */
 const MAX_POLAR = Math.PI / 2 - 0.04;
+/** A touch faster than the library default, so a few wheel notches reach a part. */
+const DOLLY_SPEED = 1.4;
 
 /** Film offset (three.js skew, in mm) that moves the image centre left by `fraction` of the canvas width. */
 function skewFor(camera: PerspectiveCamera, fraction: number) {
@@ -101,6 +103,9 @@ export function FocusControls({ focus, focusKey, minDistance = 0.4, maxDistance 
       minDistance={minDistance}
       maxDistance={maxDistance}
       maxPolarAngle={MAX_POLAR}
+      // Zoom toward whatever is under the pointer, so scrolling into a part just works.
+      dollyToCursor
+      dollySpeed={DOLLY_SPEED}
       onControlStart={() => controls.current?.stop()}
     />
   );
