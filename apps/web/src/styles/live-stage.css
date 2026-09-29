@@ -79,6 +79,7 @@
   background: var(--bg-muted);
 }
 
+.live-stage__view--hidden,
 .live-stage__video--hidden {
   display: none;
 }
