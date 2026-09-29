@@ -1,0 +1,106 @@
+/*
+  The camera stage: a rounded panel that fills the space it's given. It
+  shows the picture at its own aspect ratio under a thin row of chips, or a
+  status message when there's no picture.
+*/
+
+.live-stage {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 280px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+}
+
+.live-stage__bar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.live-stage__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.live-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.live-chip--live {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+/*
+  Fits the picture inside the stage without cropping. Container units give
+  the area's own width and height, so the picture takes the smaller of
+  "full width" and "full height times the ratio". The overlay canvas sits in
+  the same box, which keeps detection boxes on their pixels.
+*/
+.live-stage__view {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+  container-type: size;
+}
+
+.live-stage__view .image-view,
+.live-stage__video {
+  width: min(100cqw, 100cqh * var(--ratio));
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.live-stage__video {
+  display: block;
+  height: auto;
+  aspect-ratio: var(--ratio);
+  background: var(--bg-muted);
+}
+
+.live-stage__video--hidden {
+  display: none;
+}
+
+.live-stage__message {
+  flex: 1;
+}
+
+@media (max-width: 860px) {
+  .live-stage {
+    flex: none;
+    min-height: 0;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .live-stage__view {
+    flex: none;
+    aspect-ratio: 4 / 3;
+  }
+
+  .live-stage__message {
+    min-height: 280px;
+  }
+}
