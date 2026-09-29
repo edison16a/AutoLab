@@ -5,7 +5,6 @@ import asyncio
 import json
 import logging
 import os
-import struct
 import time
 
 import httpx
@@ -15,16 +14,11 @@ from websockets.asyncio.client import connect
 from .camera import Camera
 from .credentials import load_or_create, write_setup_info
 from .endpoints import allowed_gateway, device_socket_url, http_base
-from .telemetry import metadata
+from .protocol import heartbeat_message, hello_message, packet
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 log = logging.getLogger("agent")
-
-
-def packet(header, data):
-    b = json.dumps(header).encode()
-    return struct.pack("!I", len(b)) + b + data
 
 
 async def run(args):
@@ -68,17 +62,7 @@ async def run(args):
                     ping_interval=10,
                     ping_timeout=20,
                 ) as ws:
-                    await ws.send(
-                        json.dumps(
-                            {
-                                "type": "hello",
-                                "secret": creds["secret"],
-                                "camera_online": camera.online,
-                                "simulated": args.simulate,
-                                **metadata(),
-                            }
-                        )
-                    )
+                    await ws.send(json.dumps(hello_message(creds, camera, args.simulate)))
                     preview = False
                     send_lock = asyncio.Lock()
                     delay = 1
@@ -96,13 +80,7 @@ async def run(args):
 
                     async def heartbeat():
                         while True:
-                            await send(
-                                {
-                                    "type": "heartbeat",
-                                    "camera_online": camera.online,
-                                    **metadata(),
-                                }
-                            )
+                            await send(heartbeat_message(camera))
                             await asyncio.sleep(10)
 
                     async def stream():
