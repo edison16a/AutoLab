@@ -140,7 +140,9 @@
     padding: 14px 16px;
   }
 
+  /* Sized by its text, so a control that doesn't fit beside the label moves under it instead of squeezing it onto two lines. */
   .settings-row__text {
+    flex: 1 1 auto;
     min-width: 0;
   }
 }
