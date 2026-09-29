@@ -12,13 +12,16 @@ function safeDestination(next: string | null) {
   return next?.startsWith("/") && !next.startsWith("//") ? next : "/";
 }
 
-/** Sign in, and in cloud mode create an account. Demo mode takes any credentials. */
+/**
+ * Sign in, and in cloud mode create an account. Demo mode asks for the fixed
+ * demo username instead of an email.
+ */
 export function LoginScreen() {
   const { ready, user, mode, signIn, signUp } = useAuth();
   const router = useRouter();
   const destination = safeDestination(useSearchParams().get("next"));
   const [creating, setCreating] = useState(false);
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
@@ -32,8 +35,8 @@ export function LoginScreen() {
     setBusy(true);
     setMessage(null);
     try {
-      if (!creating) await signIn(email, password);
-      else if (await signUp(email, password)) {
+      if (!creating) await signIn(login, password);
+      else if (await signUp(login, password)) {
         setMessage({ text: "Check your email to confirm your account, then sign in.", error: false });
         setCreating(false);
       }
@@ -53,11 +56,21 @@ export function LoginScreen() {
         <LogoMark size={36} />
         <div className="auth__heading">
           <h1>{creating ? "Create your account" : "Sign in to Autolab"}</h1>
-          {mode === "demo" ? <p className="muted">Demo mode. Any email and password works.</p> : null}
+          {mode === "demo" ? <p className="muted">Demo mode</p> : null}
         </div>
         <label className="field">
-          <span className="field__label">Email</span>
-          <input className="input" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+          <span className="field__label">{mode === "demo" ? "Username" : "Email"}</span>
+          <input
+            className="input"
+            type={mode === "demo" ? "text" : "email"}
+            autoComplete={mode === "demo" ? "username" : "email"}
+            autoCapitalize="none"
+            spellCheck={false}
+            value={login}
+            onChange={(e) => setLogin(e.target.value)}
+            required
+            autoFocus
+          />
         </label>
         <label className="field">
           <span className="field__label">Password</span>

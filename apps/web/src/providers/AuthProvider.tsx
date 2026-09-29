@@ -1,12 +1,14 @@
 "use client";
 /**
- * Who is signed in. Demo mode accepts any email and password and keeps a
- * fake session in localStorage, so the app feels the same as cloud mode
- * without an account system. Cloud mode uses Supabase Auth.
+ * Who is signed in. Demo mode checks the fixed demo login (see
+ * data/demo-account.ts) and keeps the session in localStorage, so the app
+ * feels the same as cloud mode without an account system. Cloud mode uses
+ * Supabase Auth.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { cloudEnabled, supabase } from "@/lib/cloud";
 import { readSetting, STORAGE_KEYS, writeSetting } from "@/lib/storage/local-settings";
+import { DEMO_ACCOUNT, DEMO_USER } from "@/data/demo-account";
 
 export interface User {
   id: string;
@@ -19,7 +21,8 @@ interface AuthValue {
   /** False until the saved session has been read, so screens don't flash the sign in page. */
   ready: boolean;
   user: User | null;
-  signIn: (email: string, password: string) => Promise<void>;
+  /** Takes the demo username in demo mode and an email in cloud mode. */
+  signIn: (login: string, password: string) => Promise<void>;
   /** Resolves true when the new account has to confirm its email first. */
   signUp: (email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -47,7 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!cloudEnabled) {
-      setUser(readSetting<User | null>(STORAGE_KEYS.session, null));
+      // Only the demo account's session counts, so a stale or edited entry can't sign anyone in.
+      const saved = readSetting<User | null>(STORAGE_KEYS.session, null);
+      setUser(saved?.id === DEMO_USER.id ? DEMO_USER : null);
       setReady(true);
       return;
     }
@@ -62,31 +67,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  const signIn = useCallback(async (email: string, password: string) => {
+  const signIn = useCallback(async (login: string, password: string) => {
     if (!cloudEnabled) {
-      // Demo users are keyed by email so each one gets their own library.
-      const clean = email.trim().toLowerCase() || "guest";
-      const next = toUser(`demo-${clean}`, clean);
-      writeSetting(STORAGE_KEYS.session, next);
-      setUser(next);
+      if (login.trim() !== DEMO_ACCOUNT.username || password !== DEMO_ACCOUNT.password)
+        throw new Error("Wrong username or password.");
+      writeSetting(STORAGE_KEYS.session, DEMO_USER);
+      setUser(DEMO_USER);
       return;
     }
-    const { error } = await supabase().auth.signInWithPassword({ email, password });
+    const { error } = await supabase().auth.signInWithPassword({ email: login, password });
     if (error) throw error;
   }, []);
 
-  const signUp = useCallback(
-    async (email: string, password: string) => {
-      if (!cloudEnabled) {
-        await signIn(email, password);
-        return false;
-      }
-      const { data, error } = await supabase().auth.signUp({ email, password });
-      if (error) throw error;
-      return !data.session;
-    },
-    [signIn],
-  );
+  const signUp = useCallback(async (email: string, password: string) => {
+    if (!cloudEnabled) throw new Error("Demo mode uses a fixed account.");
+    const { data, error } = await supabase().auth.signUp({ email, password });
+    if (error) throw error;
+    return !data.session;
+  }, []);
 
   const signOut = useCallback(async () => {
     if (cloudEnabled) {
