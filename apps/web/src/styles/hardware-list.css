@@ -67,7 +67,9 @@
   list-style: none;
 }
 
+/* Positioned so the visually hidden status inside stays in the list instead of stretching the page. */
 .hardware-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
