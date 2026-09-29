@@ -4,7 +4,7 @@
  * round holes (well plate and tip rack decks). Built once per exact size
  * and freed with the rest of the kit's geometry when the last Stage goes.
  */
-import { ExtrudeGeometry, Path, Shape, Vector2 } from "three";
+import { CylinderGeometry, ExtrudeGeometry, Path, Shape, Vector2 } from "three";
 import { cachedGeometry } from "../../geometries";
 
 /** A hole through a plate, in plate space: x across, z toward the front. */
@@ -100,4 +100,12 @@ export function binocularBar(width: number, length: number, depth: number, holeR
     geometry.translate(0, 0, -depth / 2);
     return geometry;
   });
+}
+
+/**
+ * An open band of a cylinder standing on Y and centred on +Z: a label
+ * wrapped round a bottle. `arc` is the angle it covers, in radians.
+ */
+export function wrapBand(radius: number, height: number, arc: number) {
+  return cachedGeometry(`wrap:${radius}:${height}:${arc}`, () => new CylinderGeometry(radius, radius, height, 24, 1, true, -arc / 2, arc));
 }
