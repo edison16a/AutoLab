@@ -99,7 +99,7 @@ export const COLOR_RECIPES = {
   siliconeHeater: () => standard("#c4492c", 0.72),
   // Enclosure
   // Pink XPS insulation board: a matte, slightly waxy skin, the same colour right through.
-  foamPink: () => standard("#f39bb0", 0.84),
+  foamPink: () => standard("#f8a8bb", 0.74),
   // High temperature silicone sponge, the usual orange red door seal on ovens and incubators.
   siliconeGasket: () => standard("#d4532f", 0.78),
   // The Ender's black anodised extrusions: a metal under a thin glossy oxide, so edges and faces catch a
