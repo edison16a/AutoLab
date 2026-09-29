@@ -38,17 +38,11 @@ export function PartDetails({ part, state, inspecting, onInspect, onBack, onClos
       </p>
       <PartFacts connection={part.connection} facts={state.facts} />
       <div className="hardware-details__actions">
-        {inspecting ? (
-          <button type="button" className="btn btn--primary btn--block" onClick={onBack}>
-            <ArrowLeft size={16} strokeWidth={1.8} aria-hidden="true" />
-            Back to machine
-          </button>
-        ) : (
-          <button type="button" className="btn btn--primary btn--block" onClick={onInspect}>
-            <Box size={16} strokeWidth={1.8} aria-hidden="true" />
-            Inspect item
-          </button>
-        )}
+        {/* One button that changes its job, so keyboard focus stays put when the view switches. */}
+        <button type="button" className="btn btn--primary btn--block" onClick={inspecting ? onBack : onInspect}>
+          {inspecting ? <ArrowLeft size={16} strokeWidth={1.8} aria-hidden="true" /> : <Box size={16} strokeWidth={1.8} aria-hidden="true" />}
+          {inspecting ? "Back to machine" : "Inspect item"}
+        </button>
         {part.id === "camera" ? <CameraActions /> : null}
       </div>
     </aside>
