@@ -78,6 +78,7 @@ Materials live in `materials.ts` and their colours in `material-colors.ts`. The 
 - Shadows are frozen until geometry moves. The demo redraws them five times a second instead of every frame.
 - Repeated pieces (pins, screws, chain links, cable ties) are instanced, and each wire colour is one mesh.
 - Only one full machine renders at a time. Home drops its canvas while the Connect device wizard draws its own.
+- On a software renderer (no usable GPU, a virtual machine, headless CI) the view drops shadows and antialiasing and keeps the Home demo still, so the page stays responsive. Set `localStorage["autolab:render"] = "full"` to keep the full look, for example when taking screenshots.
 - When WebGL is missing or lost, the view says so, and the parts list and device actions keep working.
 
 ## Checks
