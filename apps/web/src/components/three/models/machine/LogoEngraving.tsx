@@ -15,7 +15,8 @@ import type { Placement } from "../../types";
 function logoGeometry() {
   return cachedGeometry("logo-engraving", () => {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${LOGO_VIEWBOX}"><path transform="scale(1,-1)" fill="#000" fill-rule="evenodd" d="${LOGO_PATH}"/></svg>`;
-    const shapes = new SVGLoader().parse(svg).paths.flatMap((path) => SVGLoader.createShapes(path));
+    // toShapes applies the even odd rule itself, so the bear's cut outs stay holes.
+    const shapes = new SVGLoader().parse(svg).paths.flatMap((path) => path.toShapes());
     // Six points per curve keeps the outline smooth at nameplate size with a light mesh.
     const geometry = new ShapeGeometry(shapes, 6);
     geometry.computeBoundingBox();
