@@ -21,8 +21,8 @@ function pinGrid(centre: readonly [number, number], columns: number): [number, n
 }
 
 /**
- * A two row male header: one black moulded strip, the posts in one
- * instanced draw and their solder tails under the board in another.
+ * A two row male header: one black moulded strip, the gold plated posts in
+ * one instanced draw and their solder tails under the board in another.
  */
 function Header({ centre, columns }: { centre: readonly [number, number]; columns: number }) {
   const { pins, tails } = useMemo(() => {
@@ -36,8 +36,8 @@ function Header({ centre, columns }: { centre: readonly [number, number]; column
   return (
     <group>
       <Block position={[x, TOP + BASE_HEIGHT / 2, z]} size={[mmX(columns * PITCH), BASE_HEIGHT, mmZ(PITCH * 2)]} material="plasticBlack" />
-      <Repeat items={pins} material="steel" scale={PIN_SCALE} />
-      <Repeat items={tails} material="steel" scale={TAIL_SCALE} />
+      <Repeat items={pins} material="gold" scale={PIN_SCALE} />
+      <Repeat items={tails} material="gold" scale={TAIL_SCALE} />
     </group>
   );
 }
