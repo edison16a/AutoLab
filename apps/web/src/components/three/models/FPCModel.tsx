@@ -20,8 +20,8 @@ const ROUTE: Vec3[] = [
   [0.6, -0.86, 0.08],
   [0.75, -0.93, 0.1],
 ];
-/** 16 mm wide ribbon. */
-const HALF_WIDTH = 0.1;
+/** 16 mm wide ribbon, about 0.2 units; drawn a touch narrower so it doesn't dominate. */
+const HALF_WIDTH = 0.08;
 
 /** A flat strip following the route, one quad per step. Owned here, so disposed here. */
 function ribbonGeometry(points: Vec3[]) {
