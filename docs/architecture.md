@@ -47,7 +47,7 @@ Every image and live frame in the browser is a blob URL owned by one hook, which
 
 ## Scope
 
-Today the live hardware is the Pi and its camera. The 3D model shows the whole machine from the design (gantry, pipette tool, sensors, environment control), and every part that has no driver yet says "Not installed" instead of showing made up readings. Motion, pipetting and environment control need their own protocol and safety design before they're wired in. The real camera uses whichever sensor Picamera2 finds; check sensor support and memory use on the 1 GB Pi.
+Today the live hardware is the Pi and its camera. The 3D model shows the whole machine from the design (gantry, pipette tool, sensors, environment control), and every part that has no driver yet says "Not installed" instead of showing made up readings. Motion, pipetting and environment control need their own protocol and safety design before they're wired in. The pipetting animation on Home is a demo drawn in the browser; it sends nothing to the machine. The real camera uses whichever sensor Picamera2 finds; check sensor support and memory use on the 1 GB Pi.
 
 The object detector is a general COCO model. It proves the capture, analyze and review loop, and it does not measure cells.
 
