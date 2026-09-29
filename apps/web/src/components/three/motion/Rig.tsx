@@ -27,8 +27,9 @@ export function rigOffset(pose: MachinePose, rig: RigName, out: Vector3) {
 /**
  * A group that carries its children with `rig` while the Home demo runs,
  * and sits at rest everywhere else. Children are placed in machine space,
- * as if the machine were at rest. The group is the same element either
- * way, so the demo starting or stopping never remounts what it carries.
+ * as if the machine were at rest. Rigs don't nest: each offset already
+ * includes everything its rig rides on. The group is the same element
+ * either way, so the demo starting or stopping never remounts it.
  */
 export function Rig({ rig, children }: { rig: RigName; children: ReactNode }) {
   const pose = useMachinePose();
