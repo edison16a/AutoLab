@@ -38,7 +38,6 @@
   font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
 .onboarding-progress__item--done .onboarding-progress__mark {
