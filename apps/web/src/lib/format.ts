@@ -70,7 +70,10 @@ export const SOURCE_LABEL: Record<PhotoSource, string> = {
   upload: "Upload",
 };
 
-/** First block of a UUID, uppercased. Enough to tell devices apart at a glance. */
+/**
+ * First block of a UUID. Enough to tell devices apart at a glance, and kept
+ * in the ID's own lowercase so it reads as the start of the full ID shown elsewhere.
+ */
 export function shortId(id: string) {
-  return id.slice(0, 8).toUpperCase();
+  return id.slice(0, 8);
 }

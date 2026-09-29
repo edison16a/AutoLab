@@ -1,6 +1,7 @@
 "use client";
 import { useNow } from "@/hooks/use-now";
 import { formatDateTime, relativeTime } from "@/lib/format";
+import { CopyButton } from "../ui/CopyButton";
 import type { PartFact } from "./use-part-states";
 
 /** The wiring line plus the facts the device reports, as a two column list. */
@@ -22,8 +23,16 @@ export function PartFacts({ connection, facts }: { connection: string; facts: Pa
             <dd className="num" title={fact.time ? formatDateTime(fact.time) : undefined}>
               {relativeTime(fact.time, now)}
             </dd>
+          ) : fact.mono && fact.value ? (
+            // IDs stay on one line and copy in full, the same as the Image ID on Data.
+            <dd className="hardware-facts__id">
+              <span className="mono" title={fact.value}>
+                {fact.value}
+              </span>
+              <CopyButton text={fact.value} label={`Copy ${fact.label.toLowerCase()}`} />
+            </dd>
           ) : (
-            <dd className={fact.mono ? "mono hardware-facts__mono" : undefined}>{fact.value}</dd>
+            <dd>{fact.value}</dd>
           )}
         </div>
       ))}
