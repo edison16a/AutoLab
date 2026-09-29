@@ -4,6 +4,11 @@
   the width the side column leaves.
 */
 
+/* Home runs wider than the reading pages, so the machine gets more room. */
+.page.home {
+  max-width: 1600px;
+}
+
 .home-state {
   display: inline-flex;
   align-items: center;
@@ -12,7 +17,7 @@
 
 .home-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: 16px;
   align-items: stretch;
 }
@@ -25,9 +30,10 @@
   min-width: 0;
 }
 
+/* As tall as the window allows, so the whole machine is big without scrolling. */
 .home-machine {
   position: relative;
-  min-height: 500px;
+  min-height: clamp(560px, calc(100vh - 220px), 860px);
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -54,6 +60,6 @@
 
   .home-machine {
     min-height: 0;
-    height: 340px;
+    height: 420px;
   }
 }
