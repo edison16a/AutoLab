@@ -30,8 +30,11 @@
   background: var(--bg-muted);
 }
 
-/* Nothing to replay when the stage fell back to its one line of text. */
-.onboarding-stage:has(.stage3d--unavailable) .onboarding-stage__replay {
+/*
+  Nothing to replay when the stage fell back to its one line of text. Keyed
+  on the fallback itself, which also covers a canvas that failed to start.
+*/
+.onboarding-stage:has(.stage3d__fallback) .onboarding-stage__replay {
   display: none;
 }
 
