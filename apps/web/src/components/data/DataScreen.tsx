@@ -13,6 +13,7 @@ import { LibrarySkeleton } from "./library/LibrarySkeleton";
 import { LibraryToolbar } from "./library/LibraryToolbar";
 import { PhotoGrid } from "./library/PhotoGrid";
 import { SelectionBar } from "./library/SelectionBar";
+import { useDeleteFocus } from "./library/use-delete-focus";
 import { useLibraryActions } from "./library/use-library-actions";
 import { useLibraryFilters } from "./library/use-library-filters";
 import { useScrollReturn } from "./library/use-scroll-return";
@@ -29,6 +30,7 @@ export function DataScreen() {
   const visibleIds = useMemo(() => library.visible.map((p) => p.id), [library.visible]);
   const actions = useLibraryActions();
   const selection = useSelection(visibleIds, !actions.pendingDelete);
+  const focusAfterDelete = useDeleteFocus(photos, visibleIds);
   useScrollReturn(photosReady);
 
   const pending = actions.pendingDelete?.length ?? 0;
@@ -116,7 +118,10 @@ export function DataScreen() {
         title={pending === 1 ? "Delete image?" : `Delete ${pending} images?`}
         message="This can't be undone."
         confirmLabel="Delete"
-        onConfirm={() => void actions.confirmDelete()}
+        onConfirm={() => {
+          focusAfterDelete(actions.pendingDelete ?? []);
+          void actions.confirmDelete();
+        }}
         onCancel={actions.cancelDelete}
       />
     </div>

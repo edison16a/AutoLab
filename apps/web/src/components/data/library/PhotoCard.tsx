@@ -47,7 +47,7 @@ export function PhotoCard({ photo, selecting, selected, onToggle, onDelete }: Ph
 
   if (selecting) {
     return (
-      <div className={`photo-card photo-card--selecting ${selected ? "is-selected" : ""}`}>
+      <div className={`photo-card photo-card--selecting ${selected ? "is-selected" : ""}`} data-photo-id={photo.id}>
         <label className="photo-card__link">
           <input
             type="checkbox"
@@ -67,7 +67,7 @@ export function PhotoCard({ photo, selecting, selected, onToggle, onDelete }: Ph
   }
 
   return (
-    <div className="photo-card">
+    <div className="photo-card" data-photo-id={photo.id}>
       <Link
         href={`/data/${photo.id}`}
         className="photo-card__link"

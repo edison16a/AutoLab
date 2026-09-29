@@ -26,10 +26,12 @@ export function useLibraryActions() {
     setBusy(true);
     try {
       await removePhotos(ids);
+    } catch (error) {
+      notify(errorText(error), "error");
     } finally {
       setBusy(false);
     }
-  }, [pendingDelete, removePhotos]);
+  }, [pendingDelete, removePhotos, notify]);
 
   /** One at a time, so the browser sees separate downloads rather than a burst it may block. */
   const downloadMany = useCallback(
