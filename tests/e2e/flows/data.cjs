@@ -3,7 +3,8 @@ const { SKIP_DETECTION, openSection, assert, shot } = require("../support.cjs");
 
 module.exports = async function data(page) {
   await openSection(page, "Data", "/data");
-  const cards = page.locator(".photo-card");
+  // Real cards only: the loading skeleton reuses the card class but has no photo id.
+  const cards = page.locator(".photo-card[data-photo-id]");
   await cards.first().waitFor();
   assert.equal(await cards.count(), 2, "The Pi capture and the upload are both in the library");
 
@@ -21,7 +22,7 @@ module.exports = async function data(page) {
   await cards.first().hover();
   await cards.first().getByRole("button", { name: "Delete photo" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Delete", exact: true }).click();
-  await page.waitForFunction(() => document.querySelectorAll(".photo-card").length === 1);
+  await page.waitForFunction(() => document.querySelectorAll(".photo-card[data-photo-id]").length === 1);
 
   // Demo images live in IndexedDB, so a reload keeps them and the session.
   await page.reload();
