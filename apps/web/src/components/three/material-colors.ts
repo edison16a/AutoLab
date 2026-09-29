@@ -77,6 +77,8 @@ export const COLOR_RECIPES = {
   wasteAmber: () => tinted("#d9a55a", 0.6, 0.2),
   // Natural HDPE is milky, so the liquid level still shows through it.
   hdpeNatural: () => tinted("#f2f1ea", 0.72, 0.5),
+  // P1000 tips are moulded in a see through blue, so a loaded tip reads at a glance.
+  tipBlue: () => tinted("#4f8fe6", 0.6, 0.25),
   // Printer parts
   bedTextured: () => standard("#26272a", 0.85, 0.1),
   printerRed: () => standard("#c8322b", 0.45),
