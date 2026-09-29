@@ -6,6 +6,7 @@ import { HitBox } from "@/components/three/interaction/HitBox";
 import { Highlight } from "@/components/three/interaction/Highlight";
 import { SceneLabel } from "@/components/three/interaction/SceneLabel";
 import { PART_MODELS } from "@/components/three/models";
+import { useEaseClock } from "@/components/three/explode/ease-clock";
 import { Rig } from "@/components/three/motion/Rig";
 import { useShadowRefresh } from "@/components/three/stage/StageShadows";
 import type { Vec3 } from "@/components/three/types";
@@ -22,8 +23,6 @@ export interface PartNodeProps {
   onSelect?: (id: string) => void;
 }
 
-/** A long pause between frames (the loop sleeps when idle) must not turn into a jump. */
-const MAX_STEP = 1 / 30;
 const EASE_RATE = 7;
 
 /**
@@ -37,13 +36,16 @@ export const PartNode = memo(function PartNode({ part, live, exploded, selected,
   const invalidate = useThree((state) => state.invalidate);
   const refreshShadows = useShadowRefresh();
   const target = useMemo(() => new Vector3(...partPosition(part, exploded)), [part, exploded]);
+  const step = useEaseClock();
 
   useEffect(() => invalidate(), [target, invalidate]);
 
-  useFrame((_, delta) => {
+  useFrame(() => {
     const node = group.current;
-    if (!node || node.position.distanceToSquared(target) < 1e-7) return;
-    node.position.lerp(target, 1 - Math.exp(-Math.min(delta, MAX_STEP) * EASE_RATE));
+    const moving = !!node && node.position.distanceToSquared(target) >= 1e-7;
+    const dt = step(moving);
+    if (!node || !moving) return;
+    node.position.lerp(target, 1 - Math.exp(-dt * EASE_RATE));
     if (node.position.distanceToSquared(target) < 1e-6) node.position.copy(target);
     refreshShadows();
     invalidate();

@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode }
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Group } from "three";
 import { useShadowRefresh } from "../stage/StageShadows";
+import { useEaseClock } from "./ease-clock";
 import type { Vec3 } from "../types";
 
 /** How far the exploded view has opened: 0 assembled, 1 fully apart. Read it in useFrame. */
@@ -15,7 +16,6 @@ const ExplodeContext = createContext<ExplodeState | null>(null);
 
 /** The same easing the parts use (see PartNode), so the enclosure opens in step with them. */
 const EASE_RATE = 7;
-const MAX_STEP = 1 / 30;
 
 /**
  * Eases one shared progress value toward the exploded view and back, for
@@ -27,16 +27,18 @@ export function ExplodeProvider({ exploded, children }: { exploded: boolean; chi
   const state = useMemo<ExplodeState>(() => ({ progress: exploded ? 1 : 0, target: exploded ? 1 : 0 }), []);
   const invalidate = useThree((three) => three.invalidate);
   const refreshShadows = useShadowRefresh();
+  const step = useEaseClock();
 
   useEffect(() => {
     state.target = exploded ? 1 : 0;
     invalidate();
   }, [exploded, state, invalidate]);
 
-  useFrame((_, delta) => {
+  useFrame(() => {
     const gap = state.target - state.progress;
+    const dt = step(gap !== 0);
     if (gap === 0) return;
-    state.progress = Math.abs(gap) < 1e-3 ? state.target : state.progress + gap * (1 - Math.exp(-Math.min(delta, MAX_STEP) * EASE_RATE));
+    state.progress = Math.abs(gap) < 1e-3 ? state.target : state.progress + gap * (1 - Math.exp(-dt * EASE_RATE));
     refreshShadows();
     invalidate();
   }, -1);
