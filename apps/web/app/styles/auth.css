@@ -1,0 +1,61 @@
+/* Sign-in page. */
+.auth-page {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 24px 16px;
+  background: var(--bg);
+}
+.auth-card {
+  display: grid;
+  gap: 18px;
+  width: min(380px, 100%);
+  padding: 32px 28px 28px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+.auth-heading {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.auth-heading h1 {
+  font-size: 22px;
+}
+.auth-heading p {
+  font-size: 13px;
+}
+.auth-error,
+.auth-notice {
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+}
+.auth-error {
+  color: var(--error);
+  background: var(--error-soft);
+}
+.auth-notice {
+  color: var(--text-2);
+  background: var(--blue-soft);
+}
+.auth-switch {
+  text-align: center;
+  font-size: 13px;
+}
+.link-button {
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--blue);
+  font-weight: 500;
+}
+.link-button:hover {
+  background: none;
+  color: var(--blue-hover);
+  text-decoration: underline;
+}

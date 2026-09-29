@@ -15,6 +15,7 @@ import {
   type ProvisionStatus,
 } from "@/lib/provisioning/bluetooth";
 import { api, cloudEnabled } from "@/lib/cloud";
+import { useAutolab } from "@/components/providers/autolab-provider";
 const Assembly = dynamic(() => import("./AssemblyAnimations"), {
   ssr: false,
   loading: () => <div className="scene-loading">Loading assembly guide…</div>,
@@ -26,21 +27,15 @@ const titles = [
   "Connect to your network",
   "Your Autolab is ready",
 ];
-export default function OnboardingWizard({
-  gateway,
-  onClose,
-  onConnect,
-  online,
-  cameraOnline,
-  deviceId,
-}: {
-  gateway: string;
-  onClose: () => void;
-  onConnect: (id: string, name: string) => Promise<void>;
-  online: boolean;
-  cameraOnline: boolean;
-  deviceId?: string;
-}) {
+export default function OnboardingWizard({ onClose }: { onClose: () => void }) {
+  const autolab = useAutolab(),
+    gateway = autolab.gateway,
+    online = autolab.status.online,
+    cameraOnline = autolab.status.camera_online,
+    deviceId = autolab.device?.id;
+  async function onConnect(id: string, name: string) {
+    autolab.addDevice(id, name);
+  }
   const [step, setStep] = useState(0),
     [replay, setReplay] = useState(0),
     [manual, setManual] = useState(false),

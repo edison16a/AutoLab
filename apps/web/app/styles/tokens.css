@@ -1,0 +1,45 @@
+/* Autolab design tokens. Blue on black, flat surfaces, thin borders, no gradients. */
+:root {
+  color-scheme: dark;
+
+  --bg: #05070a;
+  --panel: #0a0e14;
+  --panel-2: #101722;
+  --panel-3: #151e2b;
+  --border: #1b2737;
+  --border-strong: #273649;
+
+  --blue: #2684ff;
+  --blue-hover: #4396ff;
+  --blue-press: #1a6fe0;
+  --blue-soft: rgba(38, 132, 255, 0.12);
+  --blue-line: rgba(38, 132, 255, 0.4);
+
+  --text: #f7f9fc;
+  --text-2: #c7d0dc;
+  --muted: #8b98a9;
+  --faint: #5a6778;
+
+  --success: #31c48d;
+  --success-soft: rgba(49, 196, 141, 0.12);
+  --warning: #f5a524;
+  --warning-soft: rgba(245, 165, 36, 0.12);
+  --error: #f05252;
+  --error-soft: rgba(240, 82, 82, 0.12);
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+    monospace;
+
+  --sidebar-width: 232px;
+  --topbar-height: 60px;
+  --content-max: 1320px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
