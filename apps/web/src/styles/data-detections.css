@@ -1,0 +1,63 @@
+/*
+  Detections on the image detail screen, grouped by label: a count, a thin
+  accent bar for mean confidence and the percentage.
+*/
+
+.detections,
+.detections__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detections__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px 64px 36px;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.detections__head {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.detections__confidence {
+  grid-column: span 2;
+  text-align: right;
+}
+
+.detections__label {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detections__count {
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.detections__bar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--bg-muted);
+}
+
+.detections__fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.detections__percent {
+  color: var(--text-muted);
+  text-align: right;
+}
