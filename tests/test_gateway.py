@@ -13,6 +13,7 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services/gateway"))
 import main
 from autolab_gateway import state
+from autolab_gateway.protocol import pack, unpack
 
 
 @pytest.fixture
@@ -60,16 +61,16 @@ def test_capture_preview_worker_and_no_replay(client):
             until(pi, "start_preview")
             until(browser, "preview")
             pi.send_bytes(
-                main.pack(
+                pack(
                     {"type": "frame", "frame_id": "1", "width": 64, "height": 48},
                     jpeg(),
                 )
             )
-            assert main.unpack(browser.receive_bytes())[0]["frame_id"] == "1"
+            assert unpack(browser.receive_bytes())[0]["frame_id"] == "1"
             browser.send_json({"type": "capture_photo", "request_id": image})
             assert until(pi, "capture_photo")["request_id"] == image
-            pi.send_bytes(main.pack({"type": "capture", "request_id": image}, jpeg()))
-            h, _ = main.unpack(browser.receive_bytes())
+            pi.send_bytes(pack({"type": "capture", "request_id": image}, jpeg()))
+            h, _ = unpack(browser.receive_bytes())
             assert h["image_id"] == image
             assert h["width"] == 64
             with opened(client, "worker", device) as worker:
@@ -77,9 +78,9 @@ def test_capture_preview_worker_and_no_replay(client):
                 until(worker, "ready")
                 assert until(browser, "status")["worker_online"]
                 browser.send_bytes(
-                    main.pack({"type": "analyze", "image_id": image}, jpeg())
+                    pack({"type": "analyze", "image_id": image}, jpeg())
                 )
-                assert main.unpack(worker.receive_bytes())[0]["image_id"] == image
+                assert unpack(worker.receive_bytes())[0]["image_id"] == image
                 worker.send_json(
                     {
                         "type": "analysis",
@@ -91,12 +92,12 @@ def test_capture_preview_worker_and_no_replay(client):
                 assert until(browser, "analysis")["image_id"] == image
                 browser.send_json({"type": "live_ml", "enabled": True})
                 pi.send_bytes(
-                    main.pack(
+                    pack(
                         {"type": "frame", "frame_id": "2", "width": 64, "height": 48},
                         jpeg(),
                     )
                 )
-                assert main.unpack(worker.receive_bytes())[0]["frame_id"] == "2"
+                assert unpack(worker.receive_bytes())[0]["frame_id"] == "2"
         # A new browser has no server-side photo history.
         with opened(client, "client", device) as refreshed:
             hello(refreshed)
@@ -152,7 +153,7 @@ def test_cloud_ownership_checked(client, monkeypatch):
 
 def test_invalid_packets_and_cloud_disabled(client):
     with pytest.raises(ValueError):
-        main.unpack(b"abcd")
+        unpack(b"abcd")
     assert client.get("/devices").status_code == 404
     assert client.get("/health").json()["mode"] == "demo"
 
