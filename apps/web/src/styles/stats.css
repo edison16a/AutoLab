@@ -56,6 +56,14 @@
   margin-bottom: 16px;
 }
 
+.stats-tiles + .stats__empty {
+  margin-top: 16px;
+}
+
+.stats__empty .empty--compact {
+  padding: 48px 16px;
+}
+
 /* Device filter: the name sits inside the box so the row stays one line. */
 .stats-select {
   display: inline-flex;
