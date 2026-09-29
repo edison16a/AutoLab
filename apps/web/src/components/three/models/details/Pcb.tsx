@@ -13,6 +13,8 @@ export interface PcbProps {
   holes?: PlateHole[];
   corner?: number;
   material?: MaterialKey;
+  /** Pad finish: gold (ENIG) on the better boards, bright tin (HASL) on cheap ones. */
+  finish?: "gold" | "tin";
   /** Names this outline in the geometry cache, since boards with the same size can differ in holes. */
   name: string;
 }
@@ -25,7 +27,7 @@ const PLATING = mm(0.7);
  * plating on the top face. Small breakouts need small holes, and the kit
  * Board's fixed hole size would swamp them.
  */
-export function Pcb({ size: [w, t, d], holes = [], corner = mm(1), material = "pcbGraphite", name }: PcbProps) {
+export function Pcb({ size: [w, t, d], holes = [], corner = mm(1), material = "pcbGraphite", finish = "gold", name }: PcbProps) {
   const rings = useMemo<RepeatItem[]>(
     () =>
       holes.map((hole) => {
@@ -43,7 +45,7 @@ export function Pcb({ size: [w, t, d], holes = [], corner = mm(1), material = "p
         receiveShadow
         dispose={null}
       />
-      {rings.length ? <Repeat items={rings} shape="torus" material="steel" /> : null}
+      {rings.length ? <Repeat items={rings} shape="torus" material={finish} /> : null}
     </>
   );
 }
