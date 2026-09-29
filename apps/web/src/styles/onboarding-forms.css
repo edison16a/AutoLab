@@ -4,11 +4,11 @@
   the waiting row. Errors stay neutral, marked by an icon and words.
 */
 
+/* Grows to pin the actions to the bottom, but never shrinks: the panel scrolls instead, so Back stays below them. */
 .onboarding-form {
   display: flex;
-  flex: 1;
+  flex: 1 0 auto;
   flex-direction: column;
-  min-height: 0;
 }
 
 .onboarding-fields {

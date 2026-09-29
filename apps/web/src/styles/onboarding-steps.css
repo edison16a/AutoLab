@@ -58,12 +58,12 @@
   font-weight: 600;
 }
 
+/* Same as the form around it: fill the panel, never shrink under the content. */
 .onboarding-step {
   display: flex;
-  flex: 1;
+  flex: 1 0 auto;
   flex-direction: column;
   gap: 28px;
-  min-height: 0;
 }
 
 .onboarding-step__body {
