@@ -1,6 +1,6 @@
 "use client";
 import type { MaterialKey } from "../../materials";
-import { Block, Repeat, type RepeatItem } from "../../primitives";
+import { Repeat, type RepeatItem } from "../../primitives";
 import type { Vec3 } from "../../types";
 import { at, mmX, mmY, mmZ, PI_BOARD, PI_PARTS, TOP } from "./layout";
 import { Port } from "./Port";
@@ -30,6 +30,8 @@ function usbContacts(superSpeed: boolean): RepeatItem[] {
 
 const USB2_CONTACTS = usbContacts(false);
 const USB3_CONTACTS = usbContacts(true);
+/** One tongue in the upper half of each opening. */
+const TONGUES: RepeatItem[] = USB_HOLES.map((hole) => ({ position: [TONGUE_X, hole.y + TONGUE_Y, 0], scale: [TONGUE_LENGTH, 0.02, 0.112] }));
 /** Grounding dimples pressed into the top of the shell. */
 const DIMPLES: RepeatItem[] = [-0.04, 0.04].map((z) => ({ position: [USB_SIZE[0] / 2 - 0.045, USB_SIZE[1] / 2, z] }));
 const DIMPLE_SCALE: Vec3 = [0.014, 0.004, 0.014];
@@ -43,9 +45,7 @@ function UsbStack({ drawing, superSpeed }: { drawing: readonly [number, number];
   const tongue: MaterialKey = superSpeed ? "plasticGrey" : "plasticBlack";
   return (
     <Port position={[FACE_X - USB_SIZE[0] / 2, TOP + USB_SIZE[1] / 2, z]} size={USB_SIZE} holes={USB_HOLES} recess={USB_RECESS} rim={0.004}>
-      {USB_HOLES.map((hole) => (
-        <Block key={hole.y} position={[TONGUE_X, hole.y + TONGUE_Y, 0]} size={[TONGUE_LENGTH, 0.02, 0.112]} material={tongue} />
-      ))}
+      <Repeat items={TONGUES} material={tongue} />
       <Repeat items={superSpeed ? USB3_CONTACTS : USB2_CONTACTS} material="steel" />
       <Repeat items={DIMPLES} shape="sphere" material="steel" scale={DIMPLE_SCALE} />
     </Port>
@@ -66,17 +66,16 @@ const RJ45_CONTACTS: RepeatItem[] = Array.from({ length: 8 }, (_, i) => ({
   scale: [0.07, 0.004, 0.006],
 }));
 
+/** Link and speed light pipes in the bottom corners. They stay dark; the Pi's own LEDs carry the state. */
+const RJ45_LIGHTS: RepeatItem[] = [-0.075, 0.075].map((z) => ({ position: [RJ45_SIZE[0] / 2 + 0.001, -0.062, z], scale: [0.004, 0.02, 0.03] }));
+
 /** The gigabit Ethernet jack, next to the GPIO header on the Pi 4. */
 function EthernetJack() {
   const [, z] = at(PI_PARTS.ethernet[0], PI_PARTS.ethernet[1]);
-  const face = RJ45_SIZE[0] / 2 + 0.001;
   return (
     <Port position={[FACE_X - RJ45_SIZE[0] / 2, TOP + RJ45_SIZE[1] / 2, z]} size={RJ45_SIZE} holes={RJ45_HOLES} recess={RJ45_RECESS} rim={0.003}>
       <Repeat items={RJ45_CONTACTS} material="steel" />
-      {/* Link and speed light pipes. They stay dark; the Pi's own LEDs carry the state. */}
-      {[-0.075, 0.075].map((lz) => (
-        <Block key={lz} position={[face, -0.062, lz]} size={[0.004, 0.02, 0.03]} material="ledOff" />
-      ))}
+      <Repeat items={RJ45_LIGHTS} material="ledOff" />
     </Port>
   );
 }
