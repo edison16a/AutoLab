@@ -8,6 +8,7 @@ import { SceneLabel } from "@/components/three/interaction/SceneLabel";
 import { PART_MODELS } from "@/components/three/models";
 import { useEaseClock } from "@/components/three/explode/ease-clock";
 import { Rig } from "@/components/three/motion/Rig";
+import { useReducedMotion } from "@/components/three/motion/use-reduced-motion";
 import { useShadowRefresh } from "@/components/three/stage/StageShadows";
 import type { Vec3 } from "@/components/three/types";
 import { partHitBoxes, partPosition, type PartDefinition } from "@/data/hardware-parts";
@@ -36,6 +37,7 @@ export const PartNode = memo(function PartNode({ part, live, exploded, selected,
   const invalidate = useThree((state) => state.invalidate);
   const refreshShadows = useShadowRefresh();
   const target = useMemo(() => new Vector3(...partPosition(part, exploded)), [part, exploded]);
+  const reducedMotion = useReducedMotion();
   const step = useEaseClock();
 
   useEffect(() => invalidate(), [target, invalidate]);
@@ -45,7 +47,9 @@ export const PartNode = memo(function PartNode({ part, live, exploded, selected,
     const moving = !!node && node.position.distanceToSquared(target) >= 1e-7;
     const dt = step(moving);
     if (!node || !moving) return;
-    node.position.lerp(target, 1 - Math.exp(-dt * EASE_RATE));
+    // With reduced motion a part goes straight to its place.
+    if (reducedMotion) node.position.copy(target);
+    else node.position.lerp(target, 1 - Math.exp(-dt * EASE_RATE));
     if (node.position.distanceToSquared(target) < 1e-6) node.position.copy(target);
     refreshShadows();
     invalidate();

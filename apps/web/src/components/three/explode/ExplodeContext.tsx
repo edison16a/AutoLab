@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Group } from "three";
+import { useReducedMotion } from "../motion/use-reduced-motion";
 import { useShadowRefresh } from "../stage/StageShadows";
 import { useEaseClock } from "./ease-clock";
 import type { Vec3 } from "../types";
@@ -27,12 +28,15 @@ export function ExplodeProvider({ exploded, children }: { exploded: boolean; chi
   const state = useMemo<ExplodeState>(() => ({ progress: exploded ? 1 : 0, target: exploded ? 1 : 0 }), []);
   const invalidate = useThree((three) => three.invalidate);
   const refreshShadows = useShadowRefresh();
+  const reducedMotion = useReducedMotion();
   const step = useEaseClock();
 
   useEffect(() => {
     state.target = exploded ? 1 : 0;
+    // With reduced motion the view opens and closes at once.
+    if (reducedMotion) state.progress = state.target;
     invalidate();
-  }, [exploded, state, invalidate]);
+  }, [exploded, reducedMotion, state, invalidate]);
 
   useFrame(() => {
     const gap = state.target - state.progress;
