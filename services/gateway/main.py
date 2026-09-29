@@ -11,10 +11,11 @@ from contextlib import asynccontextmanager, suppress
 from autolab_gateway import state
 from autolab_gateway.cloud import digest
 from autolab_gateway.config import MODE, ORIGINS
-from autolab_gateway.limits import prune, rate
+from autolab_gateway.limits import rate
 from autolab_gateway.peers import Peer
 from autolab_gateway.protocol import now, pack, uid, unpack
 from autolab_gateway.rooms import Room
+from autolab_gateway.sweeper import sweep
 from fastapi import (
     FastAPI,
     HTTPException,
@@ -46,40 +47,6 @@ def device_metadata(data):
         for key in ("agent_version", "network")
         if data.get(key)
     }
-
-
-async def sweep():
-    while True:
-        await asyncio.sleep(5)
-        t = time.monotonic()
-        prune(t)
-        for room in list(state.rooms.values()):
-            if room.device and t - room.device.last_seen > 35:
-                with suppress(Exception):
-                    await room.device.ws.close(code=1001)
-            if room.worker and room.worker.live_busy and t - room.last_live > 120:
-                with suppress(Exception):
-                    await room.worker.ws.close(code=1013)
-            if state.cloud:
-                for peer in list(room.clients) + ([room.worker] if room.worker else []):
-                    if t - peer.checked_at > 300:
-                        peer.checked_at = t
-                        try:
-                            await state.cloud.user(peer.auth_token)
-                        except HTTPException:
-                            with suppress(Exception):
-                                await peer.ws.close(code=1008)
-            for pending in (room.pending, room.analysis):
-                for rid, (peer, deadline) in list(pending.items()):
-                    if t > deadline:
-                        peer.emit(
-                            {
-                                "type": "error",
-                                "request_id": rid,
-                                "message": "Request timed out",
-                            }
-                        )
-                        pending.pop(rid, None)
 
 
 @asynccontextmanager
