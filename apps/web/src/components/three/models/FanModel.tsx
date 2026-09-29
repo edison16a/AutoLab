@@ -1,6 +1,8 @@
 "use client";
 import { castsShadow, getMaterial } from "../materials";
 import { Block, Bolt, Cylinder, Repeat, Ring, TextDecal, type RepeatItem } from "../primitives";
+import { Spin } from "../motion/Spin";
+import { fanAngle } from "../motion/turns";
 import type { Vec3 } from "../types";
 import { perforatedPlate, type PlateHole } from "./geometry/shapes";
 
@@ -52,7 +54,10 @@ export function FanModel() {
       <Cylinder rotation={[Math.PI / 2, 0, 0]} radius={0.13} height={DEPTH * 0.8} material="plasticBlack" />
       <Cylinder position={[0, 0, DEPTH * 0.4 + 0.001]} rotation={[Math.PI / 2, 0, 0]} radius={0.1} height={0.002} material="labelWhite" />
       <TextDecal text="12V" position={[0, 0, DEPTH * 0.4 + 0.003]} rotation={[0, 0, 0]} width={0.1} height={0.05} ink="dark" weight={600} />
-      <Repeat items={BLADES} material="plasticBlack" scale={BLADE_SCALE} order="ZYX" />
+      {/* The blades turn about the fan's axis in the Home demo; the hub and its sticker stay put. */}
+      <Spin axis="z" angle={fanAngle}>
+        <Repeat items={BLADES} material="plasticBlack" scale={BLADE_SCALE} order="ZYX" />
+      </Spin>
       <Repeat items={STRUTS} material="plasticBlack" scale={STRUT_SCALE} />
       {GUARD_RINGS.map((r) => (
         <Ring key={r} position={[0, 0, GUARD_Z]} rotation={[0, 0, 0]} radius={r} thin material="steel" />
