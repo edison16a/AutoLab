@@ -1,0 +1,125 @@
+/*
+  Page layouts. A .page is a padded, centered column for reading screens
+  (Home, Data, Statistics, Settings). A .workspace fills everything under the
+  top bar for the tool screens (Live, Hardware).
+*/
+
+.page {
+  width: 100%;
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 32px 32px 72px;
+}
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+  padding: 16px;
+  background: var(--bg-workspace);
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.page-header__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.section {
+  margin-top: 36px;
+}
+
+.section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.section__link {
+  color: var(--accent-text);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.section__link:hover {
+  text-decoration: underline;
+}
+
+/*
+  Small screens: the name and actions stay on the first row and the section
+  nav drops to its own scrollable row, keeping the same sliding underline.
+*/
+@media (max-width: 860px) {
+  .top-bar {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: 52px 44px;
+    height: auto;
+    padding: 0 12px 0 16px;
+    row-gap: 0;
+  }
+
+  .top-bar__end {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .site-nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    gap: 22px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .device-trigger__state {
+    display: none;
+  }
+
+  .device-trigger {
+    max-width: 44vw;
+  }
+
+  .page {
+    padding: 20px 16px 48px;
+  }
+
+  .workspace {
+    height: auto;
+    min-height: 100%;
+    padding: 12px;
+  }
+
+  h1 {
+    font-size: 21px;
+  }
+
+  .toasts {
+    right: 16px;
+    bottom: 16px;
+  }
+
+  /* The nav scrolls on small screens, which would clip a line hanging below it. */
+  .site-nav__underline {
+    bottom: 0;
+  }
+}
