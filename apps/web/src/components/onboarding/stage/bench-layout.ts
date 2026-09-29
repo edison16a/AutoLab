@@ -12,8 +12,11 @@ export const PI_POSITION: Vec3 = [0, 0.068, 0];
 
 /** The CSI connector's box in the Pi model, for the accent outline. */
 export const CSI_BOX = { position: [-0.25, 0.056, 0.08] as Vec3, size: [0.06, 0.085, 0.31] as Vec3 };
-/** Label anchor at the connector's front end, so the pill never covers the ribbon going in. */
-export const CSI_LABEL: Vec3 = [-0.25, 0.1, 0.26];
+/**
+ * Label anchor just right of the connector. The ribbon arrives from the
+ * left and above, so the space on this side stays clear for the pill.
+ */
+export const CSI_LABEL: Vec3 = [0.14, 0.1, 0.1];
 
 /**
  * The HQ camera hangs lens down, as it does over the well plate, just left
