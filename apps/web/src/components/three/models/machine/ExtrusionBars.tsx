@@ -60,7 +60,7 @@ export function ExtrusionBars({ bars, profile = "2020", caps = false }: Extrusio
 
   return (
     <>
-      <Repeat items={items} geometry={extrusionGeometry(profile)} material="graphite" />
+      <Repeat items={items} geometry={extrusionGeometry(profile)} material="frameAnodised" />
       {capItems.length ? <Repeat items={capItems} material="plasticBlack" /> : null}
     </>
   );

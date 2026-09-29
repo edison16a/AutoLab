@@ -77,7 +77,7 @@ export function EnclosureFrame() {
     <group>
       <ExtrusionBars bars={BARS} />
       <Repeat items={CORNERS} geometry={roundedBoxGeometry(CORNER_SIZE, CORNER_SIZE, CORNER_SIZE, 0.05)} material="plasticBlack" />
-      <Repeat items={GUSSETS} material="graphite" />
+      <Repeat items={GUSSETS} material="frameAnodised" />
       <Repeat items={GUSSET_BOLTS} shape="cylinderLow" material="steel" scale={BOLT_SCALE} />
     </group>
   );

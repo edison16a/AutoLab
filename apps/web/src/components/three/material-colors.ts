@@ -102,6 +102,10 @@ export const COLOR_RECIPES = {
   foamPink: () => standard("#f39bb0", 0.84),
   // High temperature silicone sponge, the usual orange red door seal on ovens and incubators.
   siliconeGasket: () => standard("#d4532f", 0.78),
+  // The Ender's black anodised extrusions: a metal under a thin glossy oxide, so edges and faces catch a
+  // soft sheen from the studio instead of going flat like black plastic.
+  frameAnodised: () =>
+    new MeshPhysicalMaterial({ color: "#30333a", roughness: 0.38, metalness: 0.7, clearcoat: 0.6, clearcoatRoughness: 0.28 }),
   // Satin stainless for the humidity tray: brighter and softer than the polished steel of screws.
   stainless: () => standard("#c8cbcf", 0.34, 0.9),
   // Clean water with the faint blue it takes on in a steel pan.

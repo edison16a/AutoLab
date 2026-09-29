@@ -32,8 +32,8 @@ export function Door() {
       <Block position={[0, MID, Z_DOOR]} size={[WIDTH - RIM, HEIGHT - RIM, 0.016]} material="acrylic" />
       {bars.map((side) => (
         <group key={side}>
-          <Block position={[side * (WIDTH / 2 - RIM / 2), MID, Z_DOOR]} size={[RIM, HEIGHT, DEPTH]} radius={0.012} material="graphite" />
-          <Block position={[0, MID + side * (HEIGHT / 2 - RIM / 2), Z_DOOR]} size={[WIDTH - RIM * 2 + 0.02, RIM, DEPTH]} radius={0.012} material="graphite" />
+          <Block position={[side * (WIDTH / 2 - RIM / 2), MID, Z_DOOR]} size={[RIM, HEIGHT, DEPTH]} radius={0.012} material="frameAnodised" />
+          <Block position={[0, MID + side * (HEIGHT / 2 - RIM / 2), Z_DOOR]} size={[WIDTH - RIM * 2 + 0.02, RIM, DEPTH]} radius={0.012} material="frameAnodised" />
           <Block position={[side * (WIDTH / 2 - GASKET_EDGE), MID, GASKET_Z]} size={[GASKET.width, HEIGHT + GASKET.proud * 2, GASKET.thickness]} radius={0.008} material="siliconeGasket" />
           <Block position={[0, MID + side * (HEIGHT / 2 - GASKET_EDGE), GASKET_Z]} size={[WIDTH, GASKET.width, GASKET.thickness]} radius={0.008} material="siliconeGasket" />
         </group>
