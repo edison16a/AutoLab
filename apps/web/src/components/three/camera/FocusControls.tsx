@@ -96,6 +96,17 @@ export function FocusControls({ focus, focusKey, minDistance = 0.4, maxDistance 
     control.setBoundary(bounds ? new Box3(new Vector3(...bounds.min), new Vector3(...bounds.max)) : undefined);
   }, [bounds]);
 
+  // Development only: screenshot scripts can place the camera exactly, which dragging can't.
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+    const debug = window as { __autolabLook?: (eye: Vec3, target: Vec3) => void };
+    debug.__autolabLook = (eye, target) => {
+      void controls.current?.setLookAt(...eye, ...target, false);
+      invalidate();
+    };
+    return () => void delete debug.__autolabLook;
+  }, [invalidate]);
+
   return (
     <CameraControls
       ref={controls}
