@@ -20,7 +20,7 @@ const MIN_RADIUS = 0.32;
 /** Orbit targets can't leave this box, so panning never loses the machine. */
 export const MACHINE_BOUNDS = { min: [-3, 0, -2.6] as Vec3, max: [4.4, 4.9, 2.6] as Vec3 };
 
-/** The whole machine, enclosure plus the electronics box on the right. */
+/** The whole machine: the enclosure plus the Pi platform beside it on the right. */
 export function overviewFocus(exploded: boolean): CameraFocus {
   return { target: [0.7, 2.05, 0.1], radius: exploded ? 4.1 : 3.55, direction: OVERVIEW_DIRECTION, fill: 0.84 };
 }

@@ -16,7 +16,7 @@ interface ConnectionsProps {
   piLive: boolean;
 }
 
-/** Where the gateway line ends: up and to the right of the electronics box. */
+/** Where the gateway line ends: up and to the right of the Pi platform. */
 const GATEWAY: Vec3 = [4.7, 2.4, -0.3];
 const SAMPLES = 16;
 
