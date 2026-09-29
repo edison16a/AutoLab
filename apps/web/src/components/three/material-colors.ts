@@ -63,13 +63,21 @@ export const COLOR_RECIPES = {
   capRed: () => standard("#c9302c", 0.45),
   tipRackBlue: () => standard("#2d6ad6", 0.4),
   pipetteBlue: () => standard("#2a67cf", 0.35),
+  // The dark slate handle of the team's P1000, as in their photo.
+  pipetteNavy: () => standard("#262c38", 0.42),
   polystyrene: () => tinted("#f3f6fa", 0.32, 0.12),
   tubing: () => tinted("#eef3f6", 0.5, 0.25),
   mediaPink: () => tinted("#e2607f", 0.7, 0.15),
   wasteAmber: () => tinted("#d9a55a", 0.6, 0.2),
+  // Natural HDPE is milky, so the liquid level still shows through it.
+  hdpeNatural: () => tinted("#f2f1ea", 0.72, 0.5),
   // Printer parts
   bedTextured: () => standard("#26272a", 0.85, 0.1),
   printerRed: () => standard("#c8322b", 0.45),
+  // Light grey PLA for the printed brackets and the pipette mount, matte like a fresh print.
+  plaGrey: () => standard("#c3c5c8", 0.62),
+  // Bed heater pads are orange red silicone.
+  siliconeHeater: () => standard("#c4492c", 0.72),
 } satisfies Record<string, () => Material>;
 
 export type ColorKey = keyof typeof COLOR_RECIPES;
