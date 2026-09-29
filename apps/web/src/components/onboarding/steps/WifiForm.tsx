@@ -18,8 +18,9 @@ interface WifiFormProps {
 
 /**
  * Step 4 over Bluetooth: the Wi-Fi name, password and the PIN the Pi shows
- * go straight to the Pi. The password and PIN are cleared once sent, and
- * none of it is stored or sent anywhere else.
+ * go straight to the Pi and are never stored or sent anywhere else. The
+ * PIN is cleared after each attempt; the password stays, so a mistyped PIN
+ * doesn't mean typing the password again.
  */
 export function WifiForm({ busy, waiting, message, state, onSubmit, onManual, onStop }: WifiFormProps) {
   const [name, setName] = useState("My Autolab");
@@ -31,7 +32,6 @@ export function WifiForm({ busy, waiting, message, state, onSubmit, onManual, on
   async function submit(event: FormEvent) {
     event.preventDefault();
     await onSubmit({ name, ssid, password, pin });
-    setPassword("");
     setPin("");
   }
 
