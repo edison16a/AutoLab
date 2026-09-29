@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LogoMark } from "@/components/ui/LogoMark";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import "@/styles/auth.css";
 
 export const metadata: Metadata = { title: "Page not found" };
@@ -12,6 +13,9 @@ export const metadata: Metadata = { title: "Page not found" };
 export default function NotFound() {
   return (
     <main className="auth">
+      <div className="auth__corner">
+        <ThemeToggle />
+      </div>
       <div className="auth__card">
         <LogoMark size={36} />
         <div className="auth__heading">
