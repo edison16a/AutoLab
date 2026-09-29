@@ -55,7 +55,7 @@ export function Enclosure() {
         <Cylinder key={`foot${x}${z}`} position={[x * 0.93, 0.05, z * 0.94]} radius={0.14} height={0.1} material="rubber" />
       ))}
       <Block position={[0, 0.27, 0]} size={[X * 2 + 0.26, 0.34, Z * 2 + 0.36]} radius={0.05} material="plasticWhite" />
-      <TextDecal text="Autolab" position={[-1.45, 0.27, Z + 0.181]} rotation={[0, 0, 0]} width={0.9} height={0.2} ink="dark" />
+      <TextDecal text="Autolab" position={[-1.35, 0.27, Z + 0.181]} rotation={[0, 0, 0]} width={1.1} height={0.24} ink="dark" weight={700} />
       <Block position={[0, FLOOR + 0.01, 0]} size={[SPAN_X, 0.02, SPAN_Z]} material="aluminium" />
       {CORNERS.map(([x, z]) => (
         <Extrusion key={`post${x}${z}`} position={[x, MID, z]} length={HEIGHT} />
