@@ -3,6 +3,7 @@
  * units: 1 unit is about 81 mm, Y is up, the floor is y = 0, +X is to the
  * right of the enclosure and +Z comes out of the front door toward you.
  */
+import type { RigName } from "@/components/three/motion/Rig";
 import type { Vec3 } from "@/components/three/types";
 
 export type { Vec3 };
@@ -39,6 +40,8 @@ export type PartModelKey =
 export interface PartHitBox {
   center: Vec3;
   size: Vec3;
+  /** For a part that is only partly carried, like a cable: what this pick volume moves with. */
+  rig?: RigName;
 }
 
 export interface PartDefinition {
@@ -64,6 +67,8 @@ export interface PartDefinition {
   center?: Vec3;
   /** Several smaller pick volumes for long thin parts like the camera ribbon. */
   hits?: PartHitBox[];
+  /** What carries the part when the machine moves (the gantry, the beam, the carriage or the plunger drive). Fixed parts leave it out. */
+  rig?: RigName;
   /** How far the part moves out in the exploded view. */
   exploded: Vec3;
   /** Direction the camera looks from when the part is focused. */

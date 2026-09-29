@@ -35,6 +35,7 @@ export const ELECTRONICS_PARTS: PartDefinition[] = [
     position: [1.35, 2.3, -0.05],
     size: [0.66, 0.5, 0.66],
     center: [0, -0.17, 0],
+    rig: "gantry",
     exploded: [0.5, 0.75, 0.6],
     // From the front left, so the front right post doesn't stand in the way.
     view: [-0.35, 0.35, 1],
@@ -54,7 +55,8 @@ export const ELECTRONICS_PARTS: PartDefinition[] = [
     size: [1.25, 2.05, 0.3],
     center: [0.13, 0.08, 0.02],
     hits: [
-      { center: [-0.3, 1.05, 0], size: [0.55, 0.2, 0.3] },
+      // The run off the camera rolls with the gantry; the rest lies along the wall.
+      { center: [-0.3, 1.05, 0], size: [0.55, 0.2, 0.3], rig: "gantry" },
       { center: [-0.08, 0.35, 0], size: [0.2, 1.3, 0.3] },
       { center: [0.4, -0.65, 0.04], size: [0.95, 0.45, 0.3] },
     ],

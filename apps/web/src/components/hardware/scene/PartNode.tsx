@@ -6,6 +6,7 @@ import { HitBox } from "@/components/three/interaction/HitBox";
 import { Highlight } from "@/components/three/interaction/Highlight";
 import { SceneLabel } from "@/components/three/interaction/SceneLabel";
 import { PART_MODELS } from "@/components/three/models";
+import { Rig } from "@/components/three/motion/Rig";
 import { useShadowRefresh } from "@/components/three/stage/StageShadows";
 import type { Vec3 } from "@/components/three/types";
 import { partHitBoxes, partPosition, type PartDefinition } from "@/data/hardware-parts";
@@ -52,23 +53,34 @@ export const PartNode = memo(function PartNode({ part, live, exploded, selected,
   const [cx, cy, cz] = part.center ?? [0, 0, 0];
   const labelAnchor: Vec3 = [cx, cy + part.size[1] / 2, cz];
 
-  return (
+  const node = (
     <group ref={group} position={part.position} name={part.id}>
       <group ref={model} rotation={part.rotation}>
         <Model live={live} />
       </group>
-      {partHitBoxes(part).map((hit, index) => (
-        <HitBox
-          key={index}
-          center={hit.center}
-          size={hit.size}
-          onOver={() => onHover?.(part.id, true)}
-          onOut={() => onHover?.(part.id, false)}
-          onPick={() => onSelect?.(part.id)}
-        />
-      ))}
+      {partHitBoxes(part).map((hit, index) => {
+        const box = (
+          <HitBox
+            key={index}
+            center={hit.center}
+            size={hit.size}
+            onOver={() => onHover?.(part.id, true)}
+            onOut={() => onHover?.(part.id, false)}
+            onPick={() => onSelect?.(part.id)}
+          />
+        );
+        return hit.rig ? (
+          <Rig key={index} rig={hit.rig}>
+            {box}
+          </Rig>
+        ) : (
+          box
+        );
+      })}
       <Highlight target={model} variant={selected ? "selected" : hovered ? "hover" : null} />
       {selected || hovered ? <SceneLabel text={part.shortName} position={labelAnchor} tone={selected ? "accent" : "plain"} /> : null}
     </group>
   );
+  // Parts on the moving machine ride their rig in the Home demo; everywhere else it holds still.
+  return part.rig ? <Rig rig={part.rig}>{node}</Rig> : node;
 });
