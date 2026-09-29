@@ -59,9 +59,13 @@ class Camera:
                 im = Image.new("RGB", size, (10, 18, 29))
                 draw = ImageDraw.Draw(im)
                 scale = size[0] / 640
+                drift = time.time() * 12
                 for i in range(18):
-                    x = (70 + i * 97 + int(time.time() * 12)) % 580 + 30
-                    y = (60 + i * 61) % 410 + 30
+                    # An R2 sequence spreads the circles evenly instead of in
+                    # clumps. They start below the label so none covers the clock.
+                    x = (0.5 + i * 0.7548777) % 1 * 580 + drift
+                    x = x % 580 + 30
+                    y = (0.5 + i * 0.5698403) % 1 * 360 + 85
                     r = int((12 + i % 4 * 6) * scale)
                     x = int(x * scale)
                     y = int(y * scale)
