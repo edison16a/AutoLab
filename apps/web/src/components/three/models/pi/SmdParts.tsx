@@ -1,4 +1,5 @@
 "use client";
+import type { MaterialKey } from "../../materials";
 import { Block, Repeat, type RepeatItem } from "../../primitives";
 import type { Vec3 } from "../../types";
 import { at, mmX, mmZ, onTop, PI_PARTS, TOP } from "./layout";
@@ -68,23 +69,31 @@ const INDUCTORS: [number, number][] = [
 const INDUCTOR_SIZE: Vec3 = [mmX(4), 0.022, mmZ(4)];
 
 /**
- * Small surface mount parts: passives, inductors and the power and
- * activity LEDs on the left edge. The LEDs glow in the accent while the
- * Pi is powered and stay dark otherwise.
+ * The power LED (red) sits nearest the USB-C corner and the activity LED
+ * (green) just behind it, both on the left edge like the real board.
+ */
+const LEDS = [
+  { dz: 0, on: "ledRed", off: "ledRedOff" },
+  { dz: mmZ(2.8), on: "ledGreen", off: "ledGreenOff" },
+] as const satisfies { dz: number; on: MaterialKey; off: MaterialKey }[];
+
+/**
+ * Small surface mount parts: tan ceramic capacitors, black resistors with
+ * tinned ends, the shielded power inductors and the two status LEDs, which
+ * light in their real colours while the Pi is powered.
  */
 export function SmdParts({ powered }: { powered: boolean }) {
   const [ledX, ledZ] = at(PI_PARTS.leds[0], PI_PARTS.leds[1]);
-  const led = powered ? "ledOn" : "ledOff";
   return (
     <group>
-      <Repeat items={PARTS.caps} material="plasticGrey" />
+      <Repeat items={PARTS.caps} material="ceramicTan" />
       <Repeat items={PARTS.resistors} material="plasticBlack" />
-      <Repeat items={PARTS.ends} material="steel" />
+      <Repeat items={PARTS.ends} material="tin" />
       {INDUCTORS.map(([x, y]) => (
         <Block key={`${x}:${y}`} position={onTop(x, y, INDUCTOR_SIZE[1] / 2)} size={INDUCTOR_SIZE} material="graphite" />
       ))}
-      {[0, mmZ(2.8)].map((dz) => (
-        <Block key={dz} position={[ledX, TOP + 0.005, ledZ - dz]} size={[mmX(1.6), 0.01, mmZ(0.9)]} radius={0.002} material={led} />
+      {LEDS.map(({ dz, on, off }) => (
+        <Block key={dz} position={[ledX, TOP + 0.005, ledZ - dz]} size={[mmX(1.6), 0.01, mmZ(0.9)]} radius={0.002} material={powered ? on : off} />
       ))}
     </group>
   );
