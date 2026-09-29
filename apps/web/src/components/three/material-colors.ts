@@ -92,6 +92,9 @@ export const COLOR_RECIPES = {
   plaGrey: () => standard("#c3c5c8", 0.62),
   // Bed heater pads are orange red silicone.
   siliconeHeater: () => standard("#c4492c", 0.72),
+  // Enclosure
+  // Pink XPS insulation board: a matte, slightly waxy skin, the same colour right through.
+  foamPink: () => standard("#f39bb0", 0.84),
 } satisfies Record<string, () => Material>;
 
 export type ColorKey = keyof typeof COLOR_RECIPES;

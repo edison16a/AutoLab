@@ -2,11 +2,10 @@
 import { Block, Ring } from "../../primitives";
 import { ExtrusionBars, type Bar } from "./ExtrusionBars";
 import { GasLines } from "./GasLines";
-import { ENCLOSURE, GANTRY, PROFILE } from "./layout";
+import { ENCLOSURE, GANTRY, PROFILE, SENSOR_RAIL_Y } from "./layout";
 
 const { halfX: X, halfZ: Z, top: TOP } = ENCLOSURE;
 /** A 2020 rail across the back wall at sensor height; the SHT85 and CO₂ board mount on it. */
-const SENSOR_RAIL_Y = 3.45;
 const SENSOR_RAIL: Bar[] = [{ position: [0, SENSOR_RAIL_Y, -Z], length: X * 2 - PROFILE, axis: "x" }];
 const RAIL_FRONT = -Z + PROFILE / 2;
 /** The CO₂ board is taller than the rail, so it sits on a printed adapter plate. */

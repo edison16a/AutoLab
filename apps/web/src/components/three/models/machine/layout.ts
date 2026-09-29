@@ -47,6 +47,18 @@ export const TOOL = { x: -0.35, z: 0.05, driveZ: -0.1 } as const;
  */
 export const PROFILE = 0.16;
 
+/**
+ * Height of the 2020 rail across the back wall. The SHT85 and the CO₂
+ * board mount on it, and the back foam panel is cut in two around it.
+ */
+export const SENSOR_RAIL_Y = 3.45;
+
+/**
+ * The foam wall boards: half inch XPS pushed into the frame openings, a
+ * hair thinner than the bars so the black faces always sit in front.
+ */
+export const FOAM = PROFILE - 0.012;
+
 /** Top of the aluminium floor plate that lines the chamber. */
 export const CHAMBER_FLOOR = ENCLOSURE.floor + 0.02;
 

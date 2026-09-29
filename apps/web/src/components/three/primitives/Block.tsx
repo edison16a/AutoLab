@@ -9,6 +9,11 @@ export interface BlockProps extends Placement {
   /** Edge radius in scene units. Zero keeps sharp edges and shares one unit box. */
   radius?: number;
   material?: MaterialKey;
+  /**
+   * Opaque blocks cast shadows by default. Turn it off for a big panel that
+   * would otherwise leave the inside of the model in its shade.
+   */
+  castShadow?: boolean;
 }
 
 /**
@@ -16,7 +21,7 @@ export interface BlockProps extends Placement {
  * and frames. Sharp boxes are one shared unit cube scaled into place, so
  * hundreds of them cost a single vertex buffer.
  */
-export function Block({ size = [1, 1, 1], radius = 0, material = "plasticGrey", position, rotation }: BlockProps) {
+export function Block({ size = [1, 1, 1], radius = 0, material = "plasticGrey", position, rotation, castShadow }: BlockProps) {
   const rounded = radius > 0;
   return (
     <mesh
@@ -25,7 +30,7 @@ export function Block({ size = [1, 1, 1], radius = 0, material = "plasticGrey", 
       position={position}
       rotation={rotation}
       scale={rounded ? 1 : size}
-      castShadow={castsShadow(material)}
+      castShadow={castShadow ?? castsShadow(material)}
       receiveShadow
       // Geometry and material are shared, so React must never dispose them.
       dispose={null}
