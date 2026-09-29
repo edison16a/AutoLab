@@ -14,6 +14,7 @@ from websockets.asyncio.client import connect
 
 from .camera import Camera
 from .credentials import load_or_create, write_setup_info
+from .endpoints import allowed_gateway, device_socket_url, http_base
 from .telemetry import metadata
 
 load_dotenv()
@@ -31,14 +32,9 @@ async def run(args):
     camera = Camera(args.simulate)
     print(f"Device ID: {creds['device_id']}", flush=True)
     if args.mode == "cloud":
-        base = (
-            args.gateway.replace("wss://", "https://")
-            .replace("ws://", "http://")
-            .rstrip("/")
-        )
         async with httpx.AsyncClient(timeout=30) as client:
             r = await client.post(
-                base + "/devices/register",
+                http_base(args.gateway) + "/devices/register",
                 json={"device_id": creds["device_id"], "secret": creds["secret"]},
             )
             r.raise_for_status()
@@ -65,7 +61,7 @@ async def run(args):
         while True:
             try:
                 async with connect(
-                    f"{args.gateway.rstrip('/')}/ws/device/{creds['device_id']}",
+                    device_socket_url(args.gateway, creds["device_id"]),
                     max_size=16 * 1024 * 1024,
                     max_queue=2,
                     write_limit=65536,
@@ -212,7 +208,7 @@ if __name__ == "__main__":
     )
     p.add_argument("--simulate", action="store_true")
     args = p.parse_args()
-    if not args.gateway.startswith(("ws://localhost:", "ws://127.0.0.1:", "wss://")):
+    if not allowed_gateway(args.gateway):
         p.error("Use WSS for remote gateways")
     try:
         asyncio.run(run(args))
