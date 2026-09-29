@@ -1,50 +1,13 @@
-"""Protocol and isolation tests against the real ASGI gateway."""
+"""Socket protocol and room isolation, against the real ASGI gateway."""
 
-import io
-import sys
 import uuid
-from pathlib import Path
 
 import pytest
 from fastapi import HTTPException
-from fastapi.testclient import TestClient
-from PIL import Image
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services/gateway"))
-import main
 from autolab_gateway import state
 from autolab_gateway.protocol import pack, unpack
-
-
-@pytest.fixture
-def client(monkeypatch):
-    monkeypatch.setattr(state, "cloud", None)
-    state.rooms.clear()
-    state.limits.clear()
-    with TestClient(main.app) as c:
-        yield c
-
-
-def opened(c, role, device):
-    return c.websocket_connect(f"/ws/{role}/{device}")
-
-
-def hello(ws, **kw):
-    ws.send_json({"type": "hello", **kw})
-
-
-def until(ws, kind):
-    for _ in range(20):
-        data = ws.receive_json()
-        if data.get("type") == kind:
-            return data
-    raise AssertionError(f"No {kind} received")
-
-
-def jpeg():
-    out = io.BytesIO()
-    Image.new("RGB", (64, 48), "blue").save(out, format="JPEG")
-    return out.getvalue()
+from gateway_support import hello, jpeg, opened, until
 
 
 def test_capture_preview_worker_and_no_replay(client):
@@ -149,79 +112,6 @@ def test_cloud_ownership_checked(client, monkeypatch):
             hello(ws, token=token)
             assert until(ws, "error")["message"] == message
     assert not state.rooms
-
-
-def test_invalid_packets_and_cloud_disabled(client):
-    with pytest.raises(ValueError):
-        unpack(b"abcd")
-    assert client.get("/devices").status_code == 404
-    assert client.get("/health").json()["mode"] == "demo"
-
-
-def test_cloud_capture_rolls_back_orphan_upload():
-    import asyncio
-    from autolab_gateway.cloud import Cloud
-
-    calls = []
-    c = Cloud.__new__(Cloud)
-
-    async def call(method, path, body=None, raw=None):
-        calls.append((method, path, body))
-        if path.startswith("/rest/v1/devices"):
-            return [{"owner_id": "owner"}]
-        if path == "/rest/v1/images":
-            raise HTTPException(502, "Database unavailable")
-        return {}
-
-    c.call = call
-    with pytest.raises(HTTPException):
-        asyncio.run(c.save("device", "image", jpeg(), {"width": 64, "height": 48}))
-    assert calls[-1] == (
-        "DELETE",
-        "/storage/v1/object/autolab-images",
-        {"prefixes": ["owner/device/originals/image.jpg"]},
-    )
-
-
-def test_cloud_delete_requires_owner_and_removes_associated_objects():
-    import asyncio
-    from autolab_gateway.cloud import Cloud
-
-    calls = []
-    c = Cloud.__new__(Cloud)
-
-    async def call(method, path, body=None, raw=None):
-        calls.append((method, path, body))
-        if method == "GET" and path.startswith("/rest/v1/images?"):
-            assert "&owner_id=eq.owner" in path
-            return [{"storage_path": "owner/device/originals/image.jpg"}]
-        if path.startswith("/rest/v1/image_analysis?"):
-            return [{"overlay_storage_path": "owner/device/overlays/overlay.jpg"}]
-        return {}
-
-    c.call = call
-    asyncio.run(c.delete_image("image", "owner"))
-    assert calls[-2][2]["prefixes"] == [
-        "owner/device/originals/image.jpg",
-        "owner/device/overlays/overlay.jpg",
-    ]
-    assert calls[-1][:2] == ("DELETE", "/rest/v1/images?id=eq.image")
-
-
-def test_cloud_device_rejects_wrong_or_revoked_secret():
-    import asyncio
-    from autolab_gateway.cloud import Cloud, digest
-
-    c = Cloud.__new__(Cloud)
-
-    async def call(method, path, body=None, raw=None):
-        assert "revoked_at=is.null" in path
-        return [{"secret_hash": digest("correct-secret")}]
-
-    c.call = call
-    with pytest.raises(HTTPException):
-        asyncio.run(c.device("device", "wrong-secret"))
-    asyncio.run(c.device("device", "correct-secret"))
 
 
 def test_reported_metadata_and_sensor_state_without_synthetic_values(client):
