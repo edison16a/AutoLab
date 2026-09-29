@@ -79,6 +79,8 @@ export const COLOR_RECIPES = {
   hdpeNatural: () => tinted("#f2f1ea", 0.72, 0.5),
   // P1000 tips are moulded in a see through blue, so a loaded tip reads at a glance.
   tipBlue: () => tinted("#4f8fe6", 0.6, 0.25),
+  // A thin walled HDPE bottle: milky, but the liquid inside still shows its colour.
+  hdpeThin: () => tinted("#f3f2ec", 0.4, 0.45),
   // Printer parts
   bedTextured: () => standard("#26272a", 0.85, 0.1),
   printerRed: () => standard("#c8322b", 0.45),
