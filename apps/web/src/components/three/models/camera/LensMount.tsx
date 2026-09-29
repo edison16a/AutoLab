@@ -26,33 +26,34 @@ function LockingScrew() {
 /**
  * The tripod block below the mount on the -Z side, standing a little past
  * the board edge like the real one, with its 1/4 inch thread facing out.
+ * It is the same black anodised aluminium as the mount.
  */
 function TripodBlock() {
   const y = BOARD_BOTTOM - 0.05;
   return (
     <group position={[0, y, -0.2925]}>
-      <Block size={[0.2, 0.1, 0.085]} radius={0.008} material="aluminium" />
-      <Ring position={[0, -0.005, -0.043]} rotation={[0, 0, 0]} radius={0.024} material="aluminium" />
+      <Block size={[0.2, 0.1, 0.085]} radius={0.008} material="blackAnodised" />
+      <Ring position={[0, -0.005, -0.043]} rotation={[0, 0, 0]} radius={0.024} material="blackAnodised" />
       <Cylinder position={[0, -0.005, -0.0425]} rotation={[Math.PI / 2, 0, 0]} radius={0.019} height={0.002} material="rubber" />
     </group>
   );
 }
 
 /**
- * The aluminium C/CS mount under the board: the base flange, the knurled
- * back focus ring with its locking screw, and the C-CS adapter ring the
- * lens threads into. A thin dark line marks each thread joint.
+ * The black anodised C/CS mount under the board: the base flange, the
+ * knurled back focus ring with its silver locking screw, and the C-CS
+ * adapter ring the lens threads into. A matte line marks each thread joint.
  */
 export function LensMount() {
   return (
     <group>
-      <Cylinder position={[0, mid(BASE), 0]} radius={0.228} height={span(BASE)} material="aluminium" />
-      <Cylinder position={[0, mid(FOCUS_RING), 0]} radius={0.236} height={span(FOCUS_RING)} material="aluminium" />
-      <Knurl y={mid(FOCUS_RING)} radius={0.244} height={span(FOCUS_RING) * 0.6} teeth={90} depth={0.03} material="aluminium" />
-      <Ring position={[0, FOCUS_RING[0] - 0.001, 0]} radius={0.229} thin material="graphite" />
+      <Cylinder position={[0, mid(BASE), 0]} radius={0.228} height={span(BASE)} material="blackAnodised" />
+      <Cylinder position={[0, mid(FOCUS_RING), 0]} radius={0.236} height={span(FOCUS_RING)} material="blackAnodised" />
+      <Knurl y={mid(FOCUS_RING)} radius={0.244} height={span(FOCUS_RING) * 0.6} teeth={90} depth={0.03} material="blackAnodised" />
+      <Ring position={[0, FOCUS_RING[0] - 0.001, 0]} radius={0.229} thin material="rubber" />
       <LockingScrew />
-      <Cylinder position={[0, mid(ADAPTER), 0]} radius={0.212} height={span(ADAPTER)} material="aluminium" />
-      <Ring position={[0, ADAPTER[0] - 0.001, 0]} radius={0.213} thin material="graphite" />
+      <Cylinder position={[0, mid(ADAPTER), 0]} radius={0.212} height={span(ADAPTER)} material="blackAnodised" />
+      <Ring position={[0, ADAPTER[0] - 0.001, 0]} radius={0.213} thin material="rubber" />
       <TripodBlock />
     </group>
   );
