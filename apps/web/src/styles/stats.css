@@ -57,6 +57,11 @@
   flex: 1;
 }
 
+/* Few sources leave spare height here. Centring the bars splits it evenly instead of leaving a hole above "View table". */
+.stats__stack .stats-panel__body {
+  justify-content: center;
+}
+
 .stats__empty {
   margin-bottom: 16px;
 }
