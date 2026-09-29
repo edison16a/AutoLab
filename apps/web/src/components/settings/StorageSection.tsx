@@ -70,7 +70,7 @@ export function StorageSection() {
       >
         <button
           type="button"
-          className="btn"
+          className="btn btn--sm"
           onClick={() => setConfirming(true)}
           disabled={!photosReady || local.count === 0 || clearing}
         >

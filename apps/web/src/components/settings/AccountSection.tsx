@@ -41,7 +41,7 @@ export function AccountSection() {
           </span>
           {email ? <span className="settings-row__hint">{email}</span> : null}
         </div>
-        <button type="button" className="btn" onClick={() => void leave()} disabled={leaving}>
+        <button type="button" className="btn btn--sm" onClick={() => void leave()} disabled={leaving}>
           <LogOut size={16} strokeWidth={1.8} aria-hidden="true" />
           Sign out
         </button>
