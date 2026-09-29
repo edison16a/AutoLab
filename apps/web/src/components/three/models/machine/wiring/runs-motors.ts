@@ -58,6 +58,46 @@ const X_RUN: WireRun = {
   ],
 };
 
-export const MOTOR_RUNS: WireRun[] = [X_RUN];
+/** Lifts a bundle over a lower one lying across its lane at `x`. */
+function over(x: number, lane: number, width = 0.07): Vec3[] {
+  return [
+    [x + width, FLOOR_Y, lane],
+    [x, FLOOR_Y + 0.056, lane],
+    [x - width, FLOOR_Y, lane],
+  ];
+}
 
-export const MOTOR_PLUGS: PlugPart[] = [jstPlug(SOCKET_X.x, PLUG_Y, PLUG_BACK)];
+/** Where the red and black heater leads cross the floor lanes on their way to the board. */
+const HEATER_X = 0.76;
+
+/**
+ * Y motor: it stands shaft down in the back right corner, so its leads
+ * rise off the top. The cable turns over, drops down the corner in front
+ * of the motor, passes under the Y rod and belt, and comes in along the
+ * floor, over the heater leads, to the Y socket.
+ */
+const Y_RUN: WireRun = {
+  wires: STEPPER,
+  ties: TIES,
+  points: [
+    [2.06, 1.49, -1.38],
+    [2.06, 1.575, -1.375],
+    [2.065, 1.62, -1.29],
+    [2.075, 1.52, -1.12],
+    [2.08, 1.15, -1.05],
+    [2.08, 0.66, -1.03],
+    [2.03, 0.51, -1.01],
+    [1.85, FLOOR_Y, -1.0],
+    [1.6, FLOOR_Y, -1.0],
+    [1.25, FLOOR_Y, -0.93],
+    [1.08, FLOOR_Y, -0.76],
+    [0.95, FLOOR_Y, -0.7],
+    ...over(HEATER_X, -0.7),
+    [0.45, FLOOR_Y, -0.7],
+    ...intoSocket(SOCKET_X.y, -0.7).slice(1),
+  ],
+};
+
+export const MOTOR_RUNS: WireRun[] = [X_RUN, Y_RUN];
+
+export const MOTOR_PLUGS: PlugPart[] = [jstPlug(SOCKET_X.x, PLUG_Y, PLUG_BACK), jstPlug(SOCKET_X.y, PLUG_Y, PLUG_BACK)];
