@@ -4,7 +4,7 @@ import { Images } from "lucide-react";
 import { formatDateTime, relativeTime } from "@/lib/format";
 import type { Photo } from "@/model/types";
 import { EmptyState } from "../ui/EmptyState";
-import { useNow } from "./use-now";
+import { useNow } from "@/hooks/use-now";
 
 interface CaptureGridProps {
   title: string;

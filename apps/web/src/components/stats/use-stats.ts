@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { computeStats } from "@/lib/stats/compute";
 import { ALL_DEVICES, type StatsFilter, type StatsRange } from "@/lib/stats/types";
 import type { Device, Photo } from "@/model/types";
-import { useClock } from "./use-clock";
+import { useNow } from "@/hooks/use-now";
 
 const RANGE_KEY = "autolab:stats-range";
 const RANGES: StatsRange[] = ["7d", "30d", "all"];
@@ -24,7 +24,7 @@ function savedRange(): StatsRange {
  */
 export function useStats(photos: Photo[], devices: Device[]) {
   const [filter, setFilter] = useState<StatsFilter>({ range: "30d", deviceId: ALL_DEVICES });
-  const now = useClock(60_000);
+  const now = useNow(60_000);
 
   useEffect(() => {
     const range = savedRange();

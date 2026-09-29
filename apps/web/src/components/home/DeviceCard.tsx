@@ -5,7 +5,7 @@ import { formatDateTime, relativeTime } from "@/lib/format";
 import type { Connection, DeviceStatus } from "@/model/types";
 import { useAutolab } from "@/providers/autolab-context";
 import { StatusDot, type DotState } from "../ui/StatusDot";
-import { useNow } from "./use-now";
+import { useNow } from "@/hooks/use-now";
 
 interface Fact {
   label: string;

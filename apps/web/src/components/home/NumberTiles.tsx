@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { useAutolab } from "@/providers/autolab-context";
 import { homeTiles } from "./home-numbers";
-import { useNow } from "./use-now";
+import { useNow } from "@/hooks/use-now";
 
 /**
  * Four headline numbers, each a way into Statistics. While the library is

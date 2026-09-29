@@ -4,7 +4,7 @@ import { useDeviceSummary } from "@/hooks/use-device-summary";
 import { formatDateTime, relativeTime } from "@/lib/format";
 import { useAutolab } from "@/providers/autolab-context";
 import { StatusDot } from "../ui/StatusDot";
-import { useClock } from "./use-clock";
+import { useNow } from "@/hooks/use-now";
 
 /**
  * What the selected Autolab is doing right now. Kept apart from the charts
@@ -13,7 +13,7 @@ import { useClock } from "./use-clock";
 export function LiveDevicePanel() {
   const { device, status, preview, fps, openConnect } = useAutolab();
   const summary = useDeviceSummary();
-  const now = useClock(5_000);
+  const now = useNow(5_000);
 
   return (
     <section className="panel stats-live" aria-labelledby="stats-live-title">

@@ -2,7 +2,7 @@
 import { relativeTime } from "@/lib/format";
 import { useAutolab } from "@/providers/autolab-context";
 import { FactList, type Fact } from "../FactList";
-import { useNow } from "../use-now";
+import { useNow } from "@/hooks/use-now";
 
 /** The few things worth knowing about the Pi while watching its camera. */
 export function DeviceFacts() {
