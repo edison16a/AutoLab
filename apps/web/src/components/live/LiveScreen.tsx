@@ -5,6 +5,7 @@ import "@/styles/live-controls.css";
 import { useState } from "react";
 import { Tabs } from "../ui/Tabs";
 import { AutolabCamera } from "./autolab/AutolabCamera";
+import { ComputerCamera } from "./computer-camera/ComputerCamera";
 
 type Source = "autolab" | "computer";
 
@@ -24,7 +25,7 @@ export function LiveScreen() {
   return (
     <div className="workspace live">
       <Tabs className="live__tabs" label="Camera source" items={SOURCES} value={source} onChange={setSource} />
-      {source === "autolab" ? <AutolabCamera /> : null}
+      {source === "autolab" ? <AutolabCamera /> : <ComputerCamera />}
     </div>
   );
 }
