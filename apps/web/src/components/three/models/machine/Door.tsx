@@ -32,7 +32,7 @@ function Hinge({ y }: { y: number }) {
  */
 export function Door() {
   const bars = [-1, 1];
-  const handleX = X - 0.24;
+  const handleX = X - RIM / 2;
   return (
     <group>
       <Block position={[0, MID, Z_DOOR]} size={[WIDTH - RIM, HEIGHT - RIM, 0.016]} material="acrylic" />
