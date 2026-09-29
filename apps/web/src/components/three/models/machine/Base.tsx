@@ -50,7 +50,7 @@ export function Base() {
       <Block position={[0, PLINTH.bottom + PLINTH_HEIGHT / 2, 0]} size={[PLINTH.width, PLINTH_HEIGHT, PLINTH.depth]} radius={0.06} material="powderBlue" />
       {/* A dark reveal where the frame meets the base, so the two read as separate pieces. */}
       <Block position={[0, FLOOR + 0.004, 0]} size={[X * 2 + PROFILE + 0.04, 0.008, Z * 2 + PROFILE + 0.04]} material="plasticBlack" />
-      <Block position={[0, CHAMBER_FLOOR - 0.01, 0]} size={[spanX, 0.02, spanZ]} material="aluminium" />
+      <Block position={[0, CHAMBER_FLOOR - 0.01, 0]} size={[spanX, 0.02, spanZ]} material="aluminiumBlasted" />
       <Repeat items={VENTS} material="plasticBlack" scale={VENT_SCALE} />
       <Nameplate />
     </group>
