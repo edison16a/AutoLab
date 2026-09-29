@@ -101,6 +101,10 @@
   opacity: 0;
 }
 
+/*
+  It sits on the photo, not on the page, so theme colours don't apply: a
+  white ring over a dimmed centre reads on light and dark images alike.
+*/
 .photo-card__check {
   position: absolute;
   top: 10px;
@@ -110,9 +114,9 @@
   place-items: center;
   width: 22px;
   height: 22px;
-  border: 1.5px solid var(--border-strong);
+  border: 1.5px solid var(--on-accent);
   border-radius: 50%;
-  background: var(--bg);
+  background: var(--overlay);
   color: transparent;
   transition: background-color 120ms ease, border-color 120ms ease;
 }
