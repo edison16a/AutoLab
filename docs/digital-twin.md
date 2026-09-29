@@ -5,7 +5,7 @@ The web app draws the whole Autolab in 3D with Three.js, React Three Fiber and D
 ## Where it shows up
 
 - **Home** shows the whole machine running a demo loop (see below). Clicking a part opens it on the Hardware screen.
-- **Hardware** is the full workspace. The machine stands still here so every part can be inspected.
+- **Hardware** is the full workspace. The machine stands still here so every part can be inspected, until you press **Live view**.
 - The **Connect device** wizard reuses the same models to show where the camera ribbon goes, how the Pi is powered and, at the end, the assembled machine.
 
 ## Using the Hardware screen
@@ -13,7 +13,7 @@ The web app draws the whole Autolab in 3D with Three.js, React Three Fiber and D
 1. Click a part in the model or in the list on the left. The camera flies in close to it, and the rest of the machine stays visible around it.
 2. The panel on the right shows what the part is, how it connects and its live state.
 3. **Inspect item** shows the part on its own, centred, so you can turn it over. **Back to machine** returns to it in place.
-4. **Exploded view** moves the door and side panel out and each part along the way it's mounted. **Connections** draws the links between parts. **Reset view** flies back to the whole machine.
+4. **Exploded view** moves the door and side panel out and each part along the way it's mounted. **Live view** plays the Home demo here; press it again to pause, and it turns Exploded view off while it runs. **Connections** draws the links between parts. **Reset view** flies back to the whole machine.
 
 Drag to orbit and right drag (or two fingers) to pan. The scroll wheel and trackpad pinch zoom toward the pointer, so whatever is under the cursor stays under it. `/hardware?part=<id>` opens with that part selected, which is how Home links in.
 
@@ -28,7 +28,7 @@ Home runs a looping media change, the same one the real machine is built for:
 
 Z always lifts to a safe height before any X or Y travel. Travel is quick with eased starts and stops, and moves onto a tip or into liquid are slow. Lead screws, pulleys and motor shafts turn with their axes, the drag chain rolls, the cables bend across the moving joints and the circulation fan spins.
 
-The demo pauses when the model is scrolled out of view or the tab is hidden, and it's off entirely when the system asks for reduced motion. The Hardware screen never runs it.
+The demo pauses when the model is scrolled out of view or the tab is hidden. On Home it's off entirely when the system asks for reduced motion. The Hardware screen runs it only when you press **Live view**, and then it plays whatever the motion setting, since you asked for it.
 
 ## Telling the truth about parts
 

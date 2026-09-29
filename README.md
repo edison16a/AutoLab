@@ -30,7 +30,7 @@ The library and statistics shots use sample images, since object detection can't
 - **Live** streams the Pi camera at about 4 frames a second, takes full resolution stills and can run object detection on the stream. It can also use your computer's camera or an uploaded photo.
 - **Data** keeps every image with its detections. Filter, search by label, open an image, analyze it, download or delete.
 - **Statistics** charts captures per day and by hour, detected objects, confidence, inference time and sources.
-- **Hardware** is the 3D model. Click a part to fly to it, then **Inspect item** to see it on its own. **Exploded view** opens the enclosure and spreads the parts out. Parts without a driver yet say so instead of showing made up readings.
+- **Hardware** is the 3D model. Click a part to fly to it, then **Inspect item** to see it on its own. **Exploded view** opens the enclosure and spreads the parts out, and **Live view** plays the same pipetting run as Home. Parts without a driver yet say so instead of showing made up readings.
 - **Connect device** walks through seating the camera ribbon and powering the Pi, then finds the Pi over Bluetooth and sends it your Wi-Fi details. Manual setup is there as a fallback.
 - Light and dark mode, and it works on a phone.
 
