@@ -28,10 +28,12 @@ export function useSelection(visibleIds: string[], keysEnabled: boolean) {
     setPicked(new Set());
   }, []);
 
-  // Escape leaves select mode, unless a dialog on top is using the key.
+  // Escape leaves select mode, unless a dialog or menu on top is using the key.
   useEffect(() => {
     if (!active || !keysEnabled) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMode(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !document.querySelector("[role='menu'], [role='dialog']")) setMode(false);
+    };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [active, keysEnabled, setMode]);
