@@ -3,7 +3,7 @@ import "@/styles/onboarding.css";
 import "@/styles/onboarding-stage.css";
 import "@/styles/onboarding-steps.css";
 import "@/styles/onboarding-forms.css";
-import { useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { ArrowLeft, X } from "lucide-react";
 import { StepContent } from "./StepContent";
 import { StepIndicator } from "./StepIndicator";
@@ -20,8 +20,14 @@ import { STEP } from "./wizard-steps";
  */
 export default function ConnectWizard({ onClose }: { onClose: () => void }) {
   const dialog = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
   const flow = useConnectFlow();
   useModalFocus(dialog, onClose);
+
+  // A new step starts at its top, even if the last one was scrolled to its button on a phone.
+  useLayoutEffect(() => {
+    panel.current?.scrollTo({ top: 0 });
+  }, [flow.step, flow.path]);
 
   const canGoBack = flow.step > STEP.camera && flow.step < STEP.ready && !flow.busy && !flow.waiting;
 
@@ -29,7 +35,7 @@ export default function ConnectWizard({ onClose }: { onClose: () => void }) {
     <div className="onboarding">
       <div ref={dialog} className="onboarding__dialog" role="dialog" aria-modal="true" aria-label="Connect device" tabIndex={-1}>
         <WizardStage step={flow.step} wifi={flow.wifiLinked} gateway={flow.gatewayLinked} />
-        <div className="onboarding__panel">
+        <div ref={panel} className="onboarding__panel">
           <div className="onboarding__head">
             <StepIndicator step={flow.step} />
             <button type="button" className="icon-btn" aria-label="Close setup" title="Close" onClick={onClose}>
