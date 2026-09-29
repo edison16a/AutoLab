@@ -7,7 +7,8 @@ let cached: boolean | null = null;
 function probe(): boolean {
   try {
     const canvas = document.createElement("canvas");
-    const context = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
+    // three.js r163 and later need WebGL2, so a WebGL1 only browser gets the fallback.
+    const context = canvas.getContext("webgl2");
     context?.getExtension("WEBGL_lose_context")?.loseContext();
     return !!context;
   } catch {
