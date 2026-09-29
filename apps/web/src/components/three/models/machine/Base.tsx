@@ -2,6 +2,7 @@
 import { Block, Cylinder, Repeat, TextDecal, type RepeatItem } from "../../primitives";
 import type { Vec3 } from "../../types";
 import { CHAMBER_FLOOR, ENCLOSURE, PROFILE } from "./layout";
+import { LogoEngraving } from "./LogoEngraving";
 
 const { halfX: X, halfZ: Z, floor: FLOOR } = ENCLOSURE;
 const PLINTH = { width: X * 2 + 0.26, depth: Z * 2 + 0.36, bottom: 0.1 } as const;
@@ -15,14 +16,20 @@ const FEET: [number, number][] = [-1, 1].flatMap((x) => [-1, 1].map((z) => [x * 
 const VENTS: RepeatItem[] = Array.from({ length: 14 }, (_, i) => ({ position: [(i - 6.5) * 0.16, PLINTH.bottom + PLINTH_HEIGHT / 2, -FRONT - 0.001] }));
 const VENT_SCALE: Vec3 = [0.05, 0.16, 0.006];
 
-/** The recessed nameplate on the front left of the base, as in the sketch. */
+/**
+ * The badge on the front left of the base, where the sketch writes the
+ * name: the team logo engraved into the white plastic, then the black
+ * nameplate beside it, like a logo and wordmark.
+ */
 function Nameplate() {
   const y = PLINTH.bottom + PLINTH_HEIGHT / 2;
-  const x = -X + 0.95;
   return (
-    <group position={[x, y, FRONT]}>
-      <Block size={[1.16, 0.2, 0.014]} radius={0.006} material="plasticBlack" />
-      <TextDecal text="Autolab" position={[0, 0, 0.008]} rotation={[0, 0, 0]} width={0.96} height={0.17} ink="light" weight={700} />
+    <group position={[-X, y, FRONT]}>
+      <LogoEngraving position={[0.22, 0, 0.002]} height={0.21} />
+      <group position={[1.03, 0, 0]}>
+        <Block size={[1.16, 0.2, 0.014]} radius={0.006} material="plasticBlack" />
+        <TextDecal text="Autolab" position={[0, 0, 0.008]} rotation={[0, 0, 0]} width={0.96} height={0.17} ink="light" weight={700} />
+      </group>
     </group>
   );
 }
