@@ -16,7 +16,7 @@ function tiles(s: Summary): Tile[] {
   const unsizedOnly = s.captures > 0 && s.unsized === s.captures;
   return [
     { label: "Captures", value: formatCount(s.captures), sub: `${formatCount(s.today)} today` },
-    { label: "Analyzed", value: formatCount(s.analyzed), sub: `${s.analyzedPercent}% of captures` },
+    { label: "Analyzed", value: formatCount(s.analyzed), sub: s.captures ? `${s.analyzedPercent}% of captures` : "No captures" },
     { label: "Objects detected", value: formatCount(s.detections), sub: plural(s.labels, "label") },
     {
       label: "Objects per image",
