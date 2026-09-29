@@ -29,5 +29,11 @@ export interface MachineViewProps {
    * Ignored when the person prefers reduced motion.
    */
   demo?: boolean;
+  /**
+   * Runs the same demo because the person pressed Live view on the Hardware
+   * screen. They asked for the motion, so it plays whatever the motion
+   * setting or renderer.
+   */
+  play?: boolean;
   className?: string;
 }

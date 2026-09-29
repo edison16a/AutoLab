@@ -37,6 +37,7 @@ export default function MachineCanvas({
   insetRight = 0,
   overviewFill,
   demo = false,
+  play = false,
   className,
 }: MachineViewProps) {
   const states = usePartStates();
@@ -89,7 +90,7 @@ export default function MachineCanvas({
         bounds={measured ? undefined : MACHINE_BOUNDS}
         insetRight={insetRight}
       />
-      <MachineMotion active={demo && !reducedMotion && !software && !inspectPart}>
+      <MachineMotion active={((demo && !reducedMotion && !software) || play) && !inspectPart}>
         {inspectPart ? <InspectScene part={inspectPart} live={states[inspectPart.id]?.live ?? false} onMeasured={onMeasured} /> : scene}
       </MachineMotion>
       <ShadowSync signature={`${inspectPart?.id ?? ""}:${exploded}`} />
