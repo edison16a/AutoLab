@@ -121,11 +121,6 @@
   transition: background-color 120ms ease, border-color 120ms ease;
 }
 
-.photo-card__checkbox:focus-visible + .photo-card__check {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 .photo-card.is-selected .photo-card__check {
   border-color: var(--accent);
   background: var(--accent);
@@ -135,6 +130,12 @@
 .photo-card.is-selected .photo-card__link {
   border-color: var(--accent);
   outline: 1px solid var(--accent);
+}
+
+/* Keyboard focus rings the whole card, the same as a card link outside select mode. */
+.photo-card__link:has(.photo-card__checkbox:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Phone cards are narrow, so the meta row tightens to keep the time whole. */
