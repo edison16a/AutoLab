@@ -23,12 +23,12 @@ const CAP = 0.002;
 const RIM_DEPTH = 0.008;
 
 /**
- * A metal connector housing whose +X face has real openings. Rotate the
+ * A nickel plated connector housing whose +X face has real openings. Rotate the
  * whole port to point it elsewhere. The shell is one seamless mesh; dark
  * plugs fill each opening from `recess` back, and a thin plate closes the
  * back so the openings don't show through from behind.
  */
-export function Port({ size, holes, recess, shell = "steel", rim = 0, position, rotation, children }: PortProps) {
+export function Port({ size, holes, recess, shell = "tin", rim = 0, position, rotation, children }: PortProps) {
   const [depth, height, width] = size;
   // The lip is a thin frame whose inner edge hides inside the shell wall.
   const lip = useMemo(

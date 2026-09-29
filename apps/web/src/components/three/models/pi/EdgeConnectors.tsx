@@ -34,7 +34,7 @@ const USBC = { width: mmX(8.94), height: mmY(3.26), depth: mmZ(7.35), wall: 0.00
  */
 function UsbC({ emphasis }: { emphasis: boolean }) {
   const [x] = at(PI_PARTS.usbC[0], 0);
-  const shell: MaterialKey = emphasis ? "accent" : "steel";
+  const shell: MaterialKey = emphasis ? "accent" : "tin";
   return (
     <group position={[x, TOP + USBC.height / 2, FRONT - USBC.depth / 2]}>
       <mesh geometry={stadiumShellGeometry(USBC.width, USBC.height, USBC.depth, USBC.wall)} material={getMaterial(shell)} castShadow receiveShadow dispose={null} />
@@ -42,7 +42,7 @@ function UsbC({ emphasis }: { emphasis: boolean }) {
       <Block position={[0, 0, 0.002]} size={[0.07, 0.007, 0.08]} material="plasticBlack" />
       {/* Solder tabs on each side, down to the board. */}
       {[-1, 1].map((side) => (
-        <Block key={side} position={[side * (USBC.width / 2 + 0.004), -USBC.height / 2 + 0.006, -0.02]} size={[0.008, 0.012, 0.03]} material="steel" />
+        <Block key={side} position={[side * (USBC.width / 2 + 0.004), -USBC.height / 2 + 0.006, -0.02]} size={[0.008, 0.012, 0.03]} material="tin" />
       ))}
     </group>
   );
