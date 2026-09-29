@@ -20,3 +20,4 @@ apps/web/public/inference/*.wasm
 # Written by next dev on every start
 apps/web/AGENTS.md
 apps/web/CLAUDE.md
+apps/web/next-env.d.ts
