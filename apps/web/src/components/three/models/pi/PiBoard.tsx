@@ -1,45 +1,24 @@
 "use client";
-import { ExtrudeGeometry, Path, Shape } from "three";
-import { cachedGeometry } from "../../geometries";
 import { getMaterial } from "../../materials";
 import { Block, Repeat, TextDecal, type RepeatItem } from "../../primitives";
 import type { Vec3 } from "../../types";
-import { welded } from "../shared/welded";
+import { boardGeometry, type BoardOutline } from "../shared/board-geometry";
 import { at, mmX, mmZ, PI_BOARD, PI_HOLES, PI_PARTS, TOP } from "./layout";
-
-const CORNER = mmX(3);
-const HOLE_RADIUS = mmX(1.375);
 
 /**
  * The board outline: 3 mm corner radii and the four M2.5 holes where the
- * real Pi has them. The kit's Board centres its holes in each corner, and
- * the off-centre pattern is one of the things that makes a Pi look like a Pi.
+ * real Pi has them. The off-centre hole pattern is one of the things that
+ * makes a Pi look like a Pi.
  */
-function outlineGeometry() {
-  return cachedGeometry("pi4:board", () => {
-    const { width: w, depth: d, thickness: h } = PI_BOARD;
-    const [x0, x1, z0, z1] = [-w / 2, w / 2, -d / 2, d / 2];
-    const shape = new Shape();
-    shape.moveTo(x0 + CORNER, z0);
-    shape.lineTo(x1 - CORNER, z0);
-    shape.quadraticCurveTo(x1, z0, x1, z0 + CORNER);
-    shape.lineTo(x1, z1 - CORNER);
-    shape.quadraticCurveTo(x1, z1, x1 - CORNER, z1);
-    shape.lineTo(x0 + CORNER, z1);
-    shape.quadraticCurveTo(x0, z1, x0, z1 - CORNER);
-    shape.lineTo(x0, z0 + CORNER);
-    shape.quadraticCurveTo(x0, z0, x0 + CORNER, z0);
-    for (const [xmm, ymm] of PI_HOLES) {
-      const [x, z] = at(xmm, ymm);
-      // The shape is drawn in X/Y and turned flat below, which flips Y into -Z.
-      shape.holes.push(new Path().absarc(x, -z, HOLE_RADIUS, 0, Math.PI * 2, true));
-    }
-    const geometry = new ExtrudeGeometry(shape, { depth: h, bevelEnabled: false, curveSegments: 10 });
-    geometry.rotateX(-Math.PI / 2);
-    geometry.translate(0, -h / 2, 0);
-    return welded(geometry);
-  });
-}
+const OUTLINE: BoardOutline = {
+  key: "pi4",
+  width: PI_BOARD.width,
+  depth: PI_BOARD.depth,
+  thickness: PI_BOARD.thickness,
+  corner: mmX(3),
+  holes: PI_HOLES.map(([x, y]) => at(x, y)),
+  holeRadius: mmX(1.375),
+};
 
 /** Plated pads on both faces of every hole: flattened tori, one draw. */
 const PADS: RepeatItem[] = PI_HOLES.flatMap(([xmm, ymm]) => {
@@ -79,7 +58,7 @@ function Silkscreen() {
 export function PiBoard() {
   return (
     <group>
-      <mesh geometry={outlineGeometry()} material={getMaterial("pcbGraphite")} castShadow receiveShadow dispose={null} />
+      <mesh geometry={boardGeometry(OUTLINE)} material={getMaterial("pcbGraphite")} castShadow receiveShadow dispose={null} />
       <Repeat items={PADS} shape="torus" material="steel" scale={PAD_SCALE} />
       <MicroSd />
       <Silkscreen />
