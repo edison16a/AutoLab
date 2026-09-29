@@ -41,6 +41,11 @@
   align-self: stretch;
 }
 
+/* An open table there would stretch the other side into a tall empty card, so both keep their own height. */
+.stats__grid:has(> :nth-last-child(-n + 2) .stats-table[open]) > :nth-last-child(-n + 2) {
+  align-self: start;
+}
+
 .stats__stack {
   display: flex;
   flex-direction: column;
