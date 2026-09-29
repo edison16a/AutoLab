@@ -132,3 +132,22 @@
   border-color: var(--accent);
   outline: 1px solid var(--accent);
 }
+
+/* Phone cards are narrow, so the meta row tightens to keep the time whole. */
+@media (max-width: 860px) {
+  .photo-card__meta {
+    gap: 6px;
+    min-height: 40px;
+    padding: 8px 10px;
+  }
+
+  .photo-card__time {
+    font-size: 12px;
+  }
+
+  .photo-card__meta .badge {
+    height: 20px;
+    padding: 0 7px;
+    font-size: 11px;
+  }
+}
