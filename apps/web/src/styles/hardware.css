@@ -69,7 +69,7 @@
 }
 
 /* Nothing to reset or explode when the browser can't draw the model. */
-.hardware__stage:has(.stage3d__fallback) .hardware-toolbar {
+.hardware__stage:has(.stage3d--unavailable) .hardware-toolbar {
   display: none;
 }
 

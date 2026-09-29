@@ -70,8 +70,9 @@ export function Stage({ children, label, className = "", cameraPosition = [8, 6,
     [label],
   );
 
+  const unavailable = supported === false || lost;
   let content: ReactNode = null;
-  if (supported === false || lost) content = <StageFallback />;
+  if (unavailable) content = <StageFallback />;
   else if (supported)
     content = (
       <StageBoundary>
@@ -84,6 +85,7 @@ export function Stage({ children, label, className = "", cameraPosition = [8, 6,
           events={createEvents}
           onCreated={onCreated}
           onPointerMissed={onPointerMissed}
+          // Rendered inside <canvas>, so it only ever shows where canvas itself is unsupported.
           fallback={<StageFallback />}
         >
           <StageLighting theme={theme} shadowRadius={shadowRadius} />
@@ -95,7 +97,7 @@ export function Stage({ children, label, className = "", cameraPosition = [8, 6,
     );
 
   return (
-    <div className={`stage3d ${className}`} aria-busy={supported === null}>
+    <div className={`stage3d${unavailable ? " stage3d--unavailable" : ""} ${className}`} aria-busy={supported === null}>
       {content}
     </div>
   );
