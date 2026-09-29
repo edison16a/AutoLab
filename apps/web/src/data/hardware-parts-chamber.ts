@@ -50,7 +50,7 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     connection: "EZO-pH module",
     model: "ph_probe",
     liveNow: false,
-    position: [-1.96, 1.95, -1.0],
+    position: [-1.96, 1.95, -1.35],
     size: [0.2, 0.94, 0.2],
     center: [0, -0.04, 0],
     exploded: [0.4, 0.3, 0.7],

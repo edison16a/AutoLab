@@ -36,7 +36,8 @@ export const ELECTRONICS_PARTS: PartDefinition[] = [
     size: [0.66, 0.5, 0.66],
     center: [0, -0.17, 0],
     exploded: [0.5, 0.75, 0.6],
-    view: [0.4, 0.3, 1],
+    // From the front left, so the front right post doesn't stand in the way.
+    view: [-0.35, 0.35, 1],
     // Lens toward the viewer, so the isolated view shows the optics rather than the back of the board.
     inspectRotation: [-Math.PI / 2, 0, 0],
   },

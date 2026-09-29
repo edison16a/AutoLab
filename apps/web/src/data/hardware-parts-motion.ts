@@ -53,7 +53,7 @@ export const MOTION_PARTS: PartDefinition[] = [
     connection: "Digital input to Pico",
     model: "pipette_home",
     liveNow: false,
-    position: [-0.08, 3.42, -0.08],
+    position: [0.06, 3.42, -0.08],
     size: [0.4, 0.3, 0.2],
     center: [0.02, 0.02, 0],
     exploded: [0.75, 0.25, 0.2],
