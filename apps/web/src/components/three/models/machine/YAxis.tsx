@@ -37,7 +37,7 @@ function Side({ side }: { side: 1 | -1 }) {
       {[-0.19, 0.19].map((dz) => (
         <Block key={dz} position={[x, (Y_RAIL_Y - 0.08 + footTop - FOOT.thickness) / 2, Z + dz]} size={[0.24, footTop - FOOT.thickness - Y_RAIL_Y + 0.08, 0.2]} radius={0.015} material="aluminium" />
       ))}
-      <Block position={[footX, footTop - FOOT.thickness / 2, Z]} size={[X + 0.1 - FOOT_INNER, FOOT.thickness, FOOT.depth]} material="aluminium" />
+      <Block position={[footX, footTop - FOOT.thickness / 2, Z]} size={[X + 0.1 - FOOT_INNER, FOOT.thickness, FOOT.depth]} material="blackAnodised" />
     </group>
   );
 }
@@ -45,7 +45,10 @@ function Side({ side }: { side: 1 | -1 }) {
 /**
  * The Y axis on the chamber floor: a steel rod each side carrying the foot
  * plates the uprights stand on, and a belt down the right side driven by a
- * motor standing shaft down in the back right corner.
+ * motor standing shaft down in the back right corner. Rod supports and
+ * bearing blocks are bare aluminium, the foot plates are black anodised
+ * like the Ender's, and the brackets added for the conversion are printed
+ * in light grey PLA.
  */
 export function YAxis() {
   const motorY = BELT.y + 0.1 + 0.245 + 0.06;
@@ -57,14 +60,14 @@ export function YAxis() {
         <StepperMotorModel />
       </group>
       {/* Printed bracket that holds the motor up off the floor. */}
-      <Block position={[BELT.x, (CHAMBER_FLOOR + motorY - 0.245) / 2, BELT.back - 0.29]} size={[0.5, motorY - 0.245 - CHAMBER_FLOOR, 0.04]} radius={0.01} material="plasticGrey" />
-      <Block position={[BELT.x, motorY - 0.265, BELT.back - 0.03]} size={[0.56, 0.04, 0.56]} radius={0.01} material="plasticGrey" />
+      <Block position={[BELT.x, (CHAMBER_FLOOR + motorY - 0.245) / 2, BELT.back - 0.29]} size={[0.5, motorY - 0.245 - CHAMBER_FLOOR, 0.04]} radius={0.01} material="plaGrey" />
+      <Block position={[BELT.x, motorY - 0.265, BELT.back - 0.03]} size={[0.56, 0.04, 0.56]} radius={0.01} material="plaGrey" />
       <Pulley position={[BELT.x, BELT.y, BELT.back]} rotation={[Math.PI, 0, 0]} />
       <Pulley position={[BELT.x, BELT.y, BELT.front]} />
-      <Block position={[BELT.x, CHAMBER_FLOOR + (BELT.y - CHAMBER_FLOOR) / 2 - 0.03, BELT.front]} size={[0.12, BELT.y - CHAMBER_FLOOR - 0.06, 0.12]} radius={0.01} material="plasticGrey" />
+      <Block position={[BELT.x, CHAMBER_FLOOR + (BELT.y - CHAMBER_FLOOR) / 2 - 0.03, BELT.front]} size={[0.12, BELT.y - CHAMBER_FLOOR - 0.06, 0.12]} radius={0.01} material="plaGrey" />
       <Belt from={[BELT.x, BELT.y, BELT.back]} to={[BELT.x, BELT.y, BELT.front]} axle="y" />
       {/* Clamp that ties the right foot plate to the belt. */}
-      <Block position={[BELT.x, (BELT.y + MOTION.footTop) / 2, Z]} size={[0.2, MOTION.footTop - BELT.y, 0.16]} radius={0.01} material="plasticGrey" />
+      <Block position={[BELT.x, (BELT.y + MOTION.footTop) / 2, Z]} size={[0.2, MOTION.footTop - BELT.y, 0.16]} radius={0.01} material="plaGrey" />
     </group>
   );
 }
