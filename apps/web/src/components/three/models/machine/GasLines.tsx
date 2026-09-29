@@ -18,15 +18,16 @@ const CLIPS = [-1.6, -2.4, -3.1].map((dy) => at(-0.13, dy, 0.22));
 const DIFFUSER = at(-0.1, -3.8, 0.18);
 
 /**
- * The CO₂ gas lines: the supply up the outside of the left wall, and the
- * dosing line clipped down the front left post to a diffuser stone just
- * above the chamber floor, as in the system design sketch.
+ * The CO₂ gas lines in clear PU tubing: the supply up the outside of the
+ * left wall, and the dosing line clipped down the front left post to a
+ * diffuser stone just above the chamber floor, as in the system design
+ * sketch.
  */
 export function GasLines() {
   return (
     <group>
-      <Tube points={SUPPLY} radius={0.026} material="plasticWhite" segments={64} />
-      <Tube points={DOSING} radius={0.026} material="plasticWhite" segments={64} />
+      <Tube points={SUPPLY} radius={0.026} material="tubing" segments={64} />
+      <Tube points={DOSING} radius={0.026} material="tubing" segments={64} />
       {CLIPS.map((position) => (
         <Block key={position[1]} position={position} size={[0.1, 0.04, 0.1]} radius={0.012} material="plasticBlack" />
       ))}
