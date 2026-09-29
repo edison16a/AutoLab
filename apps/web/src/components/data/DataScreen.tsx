@@ -55,16 +55,18 @@ export function DataScreen() {
   if (!photosReady) body = <LibrarySkeleton />;
   else if (!photos.length)
     body = (
-      <EmptyState
-        icon={Images}
-        title="No photos yet"
-        text="Captures and uploads show up here."
-        action={
-          <Link href="/live" className="btn btn--primary">
-            Open live view
-          </Link>
-        }
-      />
+      <div className="panel">
+        <EmptyState
+          icon={Images}
+          title="No photos yet"
+          text="Captures and uploads show up here."
+          action={
+            <Link href="/live" className="btn btn--primary">
+              Open live view
+            </Link>
+          }
+        />
+      </div>
     );
   else if (!library.visible.length)
     body = (
