@@ -1,0 +1,83 @@
+/*
+  Statistics number tiles. The 1px gap over a border coloured background
+  draws the dividers, so they stay hairlines at any column count.
+*/
+.stats-tiles {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--border);
+}
+
+.stats-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 16px 18px;
+  background: var(--bg);
+}
+
+.stats-tile dd {
+  margin: 0;
+}
+
+.stats-tile__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* Proportional figures: tabular digits look loose at this size. */
+.stats-tile__value {
+  margin-top: 4px;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stats-tile__value--none {
+  color: var(--text-faint);
+}
+
+.stats-tile__skeleton {
+  display: block;
+  width: 64px;
+  height: 30px;
+}
+
+.stats-tile__sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 1100px) {
+  .stats-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .stats-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stats-tile {
+    padding: 14px;
+  }
+
+  .stats-tile__value {
+    font-size: 21px;
+  }
+}
