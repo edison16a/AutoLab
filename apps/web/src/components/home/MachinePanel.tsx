@@ -15,7 +15,7 @@ export function MachinePanel() {
 
   return (
     <section className="home-machine" aria-label="Machine">
-      <MachineView onSelect={openPart} />
+      <MachineView onSelect={openPart} overviewFill={0.96} />
     </section>
   );
 }

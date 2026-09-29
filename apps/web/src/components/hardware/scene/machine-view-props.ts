@@ -18,5 +18,10 @@ export interface MachineViewProps {
   flight?: number;
   /** Pixels on the right covered by a floating panel, so framing centres on the rest. */
   insetRight?: number;
+  /**
+   * Share of the view the whole machine fills when nothing is selected. Home
+   * sets it higher than the Hardware default, since nothing floats over it.
+   */
+  overviewFill?: number;
   className?: string;
 }

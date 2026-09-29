@@ -32,6 +32,7 @@ export default function MachineCanvas({
   connections = false,
   flight = 0,
   insetRight = 0,
+  overviewFill,
   className,
 }: MachineViewProps) {
   const states = usePartStates();
@@ -47,7 +48,8 @@ export default function MachineCanvas({
 
   // The key decides when to fly; the focus says where. Until the inspected
   // part is measured, keep the in-context key so the camera waits for it.
-  let focus = overviewFocus(exploded);
+  const overview = overviewFocus(exploded);
+  let focus = overviewFill ? { ...overview, fill: overviewFill } : overview;
   let focusKey = `machine:${exploded}:${flight}`;
   if (part && measured) {
     focus = inspectFocus(measured.center, measured.radius);
