@@ -73,7 +73,9 @@ async def rename(device: str, body: Rename, request: Request):
 
 @router.get("/devices/{device}/images")
 async def images(device: str, request: Request, offset: int = Query(0, ge=0)):
-    return await state.cloud.images(uid(device), await user(request), offset)
+    # Check the mode first. state.cloud is None in demo mode, so reading it early crashed with a 500.
+    owner = await user(request)
+    return await state.cloud.images(uid(device), owner, offset)
 
 
 @router.delete("/images/{image}")
