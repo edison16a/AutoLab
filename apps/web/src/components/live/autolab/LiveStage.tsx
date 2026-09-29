@@ -1,4 +1,5 @@
 "use client";
+import type { CSSProperties } from "react";
 import { CameraOff, Pause, Plug, WifiOff } from "lucide-react";
 import { useAutolab } from "@/providers/autolab-context";
 import { ImageView } from "../../ui/ImageView";
@@ -36,7 +37,7 @@ export function LiveStage({ state, onResume }: LiveStageProps) {
               </>
             }
           />
-          <div className="live-stage__view">
+          <div className="live-stage__view" style={{ "--view-ratio": `${frame.width} / ${frame.height}` } as CSSProperties}>
             <ImageView
               url={frame.url}
               width={frame.width}

@@ -32,7 +32,10 @@ export function WebcamStage({ camera }: { camera: ComputerCameraModel }) {
           }
         />
       ) : null}
-      <div className={`live-stage__view ${shown ? "" : "live-stage__view--hidden"}`}>
+      <div
+        className={`live-stage__view ${shown ? "" : "live-stage__view--hidden"}`}
+        style={shown ? ({ "--view-ratio": `${shown.width} / ${shown.height}` } as CSSProperties) : undefined}
+      >
         <video
           ref={videoRef}
           className={`live-stage__video ${showVideo ? "" : "live-stage__video--hidden"}`}

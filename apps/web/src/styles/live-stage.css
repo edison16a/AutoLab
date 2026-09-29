@@ -96,9 +96,10 @@
     gap: 8px;
   }
 
+  /* No spare height to fill on a phone, so the view takes the picture's own shape. */
   .live-stage__view {
     flex: none;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: var(--view-ratio, 4 / 3);
   }
 
   .live-stage__message {
