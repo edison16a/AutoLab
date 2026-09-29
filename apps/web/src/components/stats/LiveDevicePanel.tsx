@@ -3,7 +3,6 @@ import { Plug } from "lucide-react";
 import { useDeviceSummary } from "@/hooks/use-device-summary";
 import { formatDateTime, relativeTime } from "@/lib/format";
 import { useAutolab } from "@/providers/autolab-context";
-import { EmptyState } from "../ui/EmptyState";
 import { StatusDot } from "../ui/StatusDot";
 import { useClock } from "./use-clock";
 
@@ -52,16 +51,14 @@ export function LiveDevicePanel() {
           </div>
         </dl>
       ) : (
-        <EmptyState
-          compact
-          icon={Plug}
-          title="No device connected"
-          action={
-            <button type="button" className="btn btn--primary" onClick={openConnect}>
-              Connect device
-            </button>
-          }
-        />
+        // A quiet row, not a second big call to action: the top bar already has one.
+        <div className="stats-live__none">
+          <Plug size={16} strokeWidth={1.8} aria-hidden="true" />
+          <p className="grow">No device connected</p>
+          <button type="button" className="btn btn--sm" onClick={openConnect}>
+            Connect device
+          </button>
+        </div>
       )}
     </section>
   );
