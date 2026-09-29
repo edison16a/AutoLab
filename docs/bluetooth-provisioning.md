@@ -1,6 +1,6 @@
-# Optional Bluetooth Wi-Fi setup
+# Bluetooth setup
 
-Bluetooth is now an optional initial setup path. Camera commands, preview and ML continue over the existing internet WebSocket gateway. If the browser lacks Web Bluetooth, the wizard offers the same manual Wi-Fi/SSH path. No normal operation requires Bluetooth.
+Bluetooth is the main way to connect a new Autolab. The connect wizard finds the Pi over Bluetooth, hands it your Wi-Fi details and waits until it's online. After that, camera commands, the preview and detection all run over the internet through the gateway, so Bluetooth is only used during setup. Browsers without Web Bluetooth (anything other than Chrome or Edge, or a page not on HTTPS) get the manual path instead: set up Wi-Fi yourself and paste the Device ID.
 
 ## Before first use
 
@@ -38,12 +38,12 @@ Alternatively replace `YOUR_USER` in `systemd/autolab-provisioning.service`, cop
 
 In the web app:
 
-1. Click Connect device and complete the camera and power steps.
-2. Click Find Autolab, select the nearby Pi in the browser chooser, and allow OS pairing if requested.
-3. Enter the Wi-Fi SSID, WPA personal password and setup PIN printed on the Pi.
-4. Wait for actual NetworkManager activation and a successful gateway health check.
-5. The browser connects to the device channel. In cloud mode it also claims the device with its authenticated account.
-6. Open Autolab becomes available only after the device reports an online camera.
+1. Click **Connect device** and go through the camera and power steps.
+2. Click **Find Autolab**, pick the nearby Pi in the browser's chooser, and allow pairing if the OS asks.
+3. Enter the **Wi-Fi name**, the **Wi-Fi password** and the **setup PIN shown on the Pi**, then **Connect Wi-Fi**.
+4. The wizard waits for NetworkManager to join the network and for the Pi to reach the gateway.
+5. The browser opens the device channel. In cloud mode it also claims the device for your account.
+6. **Open Autolab** appears only once the device reports a working camera.
 
 Supported provisioning networks use WPA personal credentials, such as a home router or personal hotspot. Enterprise Wi-Fi, captive portals, open networks and unusual authentication methods require the manual network setup path. The user's laptop must also retain internet access to the web app and gateway.
 
