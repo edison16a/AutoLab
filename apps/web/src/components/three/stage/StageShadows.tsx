@@ -18,8 +18,12 @@ export function useShadowRefresh() {
 /** How long shadows keep redrawing after the last refresh call. */
 const SETTLE_MS = 300;
 
-/** The soft floor shadow, plus the switch that keeps both shadow passes frozen while nothing moves. */
-export function StageShadows({ opacity, children }: { opacity: number; children: ReactNode }) {
+/**
+ * The soft floor shadow, plus the switch that keeps both shadow passes frozen while nothing moves.
+ * `scale` is the floor area it covers; keep it close to the subject so small
+ * parts still get a defined shadow.
+ */
+export function StageShadows({ opacity, scale, children }: { opacity: number; scale: number; children: ReactNode }) {
   const gl = useThree((state) => state.gl);
   const invalidate = useThree((state) => state.invalidate);
   const [live, setLive] = useState(true);
@@ -56,7 +60,7 @@ export function StageShadows({ opacity, children }: { opacity: number; children:
       <ContactShadows
         frames={live ? Infinity : 1}
         position={[0, 0.002, 0]}
-        scale={20}
+        scale={scale}
         resolution={512}
         blur={2.6}
         far={4.5}
