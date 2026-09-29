@@ -1,8 +1,6 @@
 "use client";
 import { useCallback, useRef } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpRight } from "lucide-react";
 import { MachineView } from "@/components/hardware/MachineView";
 import { usePageWheel } from "./use-page-wheel";
 
@@ -21,10 +19,6 @@ export function MachinePanel() {
   return (
     <section ref={panel} className="home-machine" aria-label="Machine">
       <MachineView onSelect={openPart} />
-      <Link href="/hardware" className="btn btn--sm home-machine__open">
-        Open hardware
-        <ArrowUpRight size={16} strokeWidth={1.8} aria-hidden="true" />
-      </Link>
     </section>
   );
 }
