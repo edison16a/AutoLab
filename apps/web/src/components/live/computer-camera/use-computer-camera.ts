@@ -120,6 +120,7 @@ export function useComputerCamera() {
       if (file.size > MAX_UPLOAD_BYTES) return setError("Choose an image smaller than 20 MB.");
       liveWanted.current = false;
       stopWebcam();
+      clear();
       const mine = ++turn.current;
       setError(null);
       setUploading(true);
@@ -144,7 +145,7 @@ export function useComputerCamera() {
         if (mine === turn.current) setUploading(false);
       }
     },
-    [stopWebcam, show, saveLocal, notify],
+    [stopWebcam, clear, show, saveLocal, notify],
   );
 
   return {
