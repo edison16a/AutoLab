@@ -13,7 +13,7 @@ The web app draws the whole Autolab in 3D with Three.js, React Three Fiber and D
 1. Click a part in the model or in the list on the left. The camera flies in close to it, and the rest of the machine stays visible around it.
 2. The panel on the right shows what the part is, how it connects and its live state.
 3. **Inspect item** shows the part on its own, centred, so you can turn it over. **Back to machine** returns to it in place.
-4. **Exploded view** opens the enclosure and moves each part out along the way it's mounted. **Connections** draws the links between parts. **Reset view** flies back to the whole machine.
+4. **Exploded view** moves the door and side panel out and each part along the way it's mounted. **Connections** draws the links between parts. **Reset view** flies back to the whole machine.
 
 Drag to orbit and right drag (or two fingers) to pan. The scroll wheel and trackpad pinch zoom toward the pointer, so whatever is under the cursor stays under it. `/hardware?part=<id>` opens with that part selected, which is how Home links in.
 
@@ -69,7 +69,7 @@ That's an example of the format only. Nothing in the app or the agent sends samp
 
 To change where a part sits, edit its registry entry. The model, its hit boxes, the camera framing, the exploded view and the demo's reach all follow from it. To swap a hand built model for a GLB file, keep the model's origin and scale and replace its body.
 
-Materials live in `materials.ts` and their colours in `material-colors.ts`. The UI uses only the accent blue plus black and white, and the 3D models use real colours: a green Pi on a white platform, pink foam walls, a blue powder coated base with the team logo engraved in white, and colour coded wiring.
+Materials live in `materials.ts` and their colours in `material-colors.ts`. The UI uses only the accent blue plus black and white, and the 3D models use real colours: a green Pi on a white platform, an open black frame, a blue powder coated base with the team logo engraved in black, and colour coded wiring.
 
 ## Performance
 
