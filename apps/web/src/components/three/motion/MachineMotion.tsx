@@ -46,13 +46,30 @@ function MotionClock({ pose }: { pose: MachinePose }) {
   const running = useOnScreen();
   const time = useRef(0);
   const shadowsAt = useRef(0);
+  const frozen = useRef<number | null>(null);
 
   useEffect(() => {
     if (running) invalidate();
   }, [running, invalidate]);
 
+  // Development only: screenshot scripts can stop the demo at a chosen moment, since software GL runs it far below real time.
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+    const debug = window as { __autolabDemoAt?: (seconds: number) => void };
+    debug.__autolabDemoAt = (seconds) => {
+      frozen.current = seconds;
+      invalidate();
+    };
+    return () => void delete debug.__autolabDemoAt;
+  }, [invalidate]);
+
   // Runs before the parts read the pose this frame.
   useFrame((_, delta) => {
+    if (frozen.current !== null) {
+      poseAt(pose, frozen.current);
+      gl.shadowMap.needsUpdate = true;
+      return;
+    }
     if (!running) return;
     time.current += Math.min(delta, MAX_STEP);
     poseAt(pose, time.current);
