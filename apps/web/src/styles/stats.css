@@ -133,4 +133,13 @@
   .stats__filters {
     justify-content: flex-start;
   }
+
+  /* Full width on its own row, like the Data filters. */
+  .stats-select {
+    flex: 1 1 auto;
+  }
+
+  .stats-select__control {
+    flex: 1;
+  }
 }
