@@ -5,6 +5,7 @@ import { MachineMotion } from "@/components/three/motion/MachineMotion";
 import { useReducedMotion } from "@/components/three/motion/use-reduced-motion";
 import { Stage } from "@/components/three/Stage";
 import { useShadowRefresh } from "@/components/three/stage/StageShadows";
+import { useWebGLSupport } from "@/components/three/stage/webgl";
 import { partById } from "@/data/hardware-parts";
 import { usePartStates } from "../use-part-states";
 import { inspectFocus, MACHINE_BOUNDS, overviewFocus, partFocus } from "./camera-focus";
@@ -45,6 +46,8 @@ export default function MachineCanvas({
   const setHover = onHover ?? setOwnHover;
   const onMeasured = useCallback((next: InspectMeasure) => setMeasure(next), []);
   const reducedMotion = useReducedMotion();
+  // A software renderer would run the demo at a frame or two a second and tie up the page.
+  const software = useWebGLSupport()?.software ?? false;
 
   const part = selected ? partById[selected] ?? null : null;
   const inspectPart = inspecting ? part : null;
@@ -86,7 +89,7 @@ export default function MachineCanvas({
         bounds={measured ? undefined : MACHINE_BOUNDS}
         insetRight={insetRight}
       />
-      <MachineMotion active={demo && !reducedMotion && !inspectPart}>
+      <MachineMotion active={demo && !reducedMotion && !software && !inspectPart}>
         {inspectPart ? <InspectScene part={inspectPart} live={states[inspectPart.id]?.live ?? false} onMeasured={onMeasured} /> : scene}
       </MachineMotion>
       <ShadowSync signature={`${inspectPart?.id ?? ""}:${exploded}`} />
