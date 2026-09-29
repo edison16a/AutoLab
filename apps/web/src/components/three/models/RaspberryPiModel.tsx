@@ -9,7 +9,7 @@ import { Silicon } from "./pi/Silicon";
 import { SmdParts } from "./pi/SmdParts";
 
 export interface RaspberryPiModelProps extends PartModelProps {
-  /** Lights the power and activity LEDs. Defaults to `live`, which is what the parts registry passes. */
+  /** Lights the status and Ethernet LEDs. Defaults to `live`, which is what the parts registry passes. */
   powered?: boolean;
   /** Paints one connector in the accent, for setup steps that point at it. */
   highlight?: "csi" | "power";
@@ -30,7 +30,7 @@ export function RaspberryPiModel({ live = false, powered = live, highlight }: Ra
       <PinHeaders />
       <FlexConnectors emphasiseCamera={highlight === "csi"} />
       <EdgeConnectors emphasisePower={highlight === "power"} />
-      <NetworkPorts />
+      <NetworkPorts powered={powered} />
     </group>
   );
 }

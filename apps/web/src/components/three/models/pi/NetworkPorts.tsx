@@ -1,6 +1,6 @@
 "use client";
 import type { MaterialKey } from "../../materials";
-import { Repeat, type RepeatItem } from "../../primitives";
+import { Block, Repeat, type RepeatItem } from "../../primitives";
 import type { Vec3 } from "../../types";
 import { at, mmX, mmY, mmZ, PI_BOARD, PI_PARTS, TOP } from "./layout";
 import { Port } from "./Port";
@@ -37,17 +37,17 @@ const DIMPLES: RepeatItem[] = [-0.04, 0.04].map((z) => ({ position: [USB_SIZE[0]
 const DIMPLE_SCALE: Vec3 = [0.014, 0.004, 0.014];
 
 /**
- * A stacked pair of USB-A sockets. USB 3 tongues are the lighter grey
- * (the real ones are blue), so the two stacks still read differently.
+ * A stacked pair of USB-A sockets. USB 3 tongues are blue and USB 2 ones
+ * black, the colour code on every real board, with gold contacts.
  */
 function UsbStack({ drawing, superSpeed }: { drawing: readonly [number, number]; superSpeed: boolean }) {
   const [, z] = at(drawing[0], drawing[1]);
-  const tongue: MaterialKey = superSpeed ? "plasticGrey" : "plasticBlack";
+  const tongue: MaterialKey = superSpeed ? "usbBlue" : "plasticBlack";
   return (
     <Port position={[FACE_X - USB_SIZE[0] / 2, TOP + USB_SIZE[1] / 2, z]} size={USB_SIZE} holes={USB_HOLES} recess={USB_RECESS} rim={0.004}>
       <Repeat items={TONGUES} material={tongue} />
-      <Repeat items={superSpeed ? USB3_CONTACTS : USB2_CONTACTS} material="steel" />
-      <Repeat items={DIMPLES} shape="sphere" material="steel" scale={DIMPLE_SCALE} />
+      <Repeat items={superSpeed ? USB3_CONTACTS : USB2_CONTACTS} material="gold" />
+      <Repeat items={DIMPLES} shape="sphere" material="tin" scale={DIMPLE_SCALE} />
     </Port>
   );
 }
@@ -66,27 +66,33 @@ const RJ45_CONTACTS: RepeatItem[] = Array.from({ length: 8 }, (_, i) => ({
   scale: [0.07, 0.004, 0.006],
 }));
 
-/** Link and speed light pipes in the bottom corners. They stay dark; the Pi's own LEDs carry the state. */
-const RJ45_LIGHTS: RepeatItem[] = [-0.075, 0.075].map((z) => ({ position: [RJ45_SIZE[0] / 2 + 0.001, -0.062, z], scale: [0.004, 0.02, 0.03] }));
+/** The jack's two LED windows in the bottom corners: green for link, amber for gigabit speed. */
+const LINK_LIGHT: Vec3 = [RJ45_SIZE[0] / 2 + 0.001, -0.062, -0.075];
+const SPEED_LIGHT: Vec3 = [RJ45_SIZE[0] / 2 + 0.001, -0.062, 0.075];
+const LIGHT_SIZE: Vec3 = [0.004, 0.02, 0.03];
 
-/** The gigabit Ethernet jack, next to the GPIO header on the Pi 4. */
-function EthernetJack() {
+/**
+ * The gigabit Ethernet jack, next to the GPIO header on the Pi 4. Its LEDs
+ * light while the Pi is up, since the machine is wired to the network.
+ */
+function EthernetJack({ powered }: { powered: boolean }) {
   const [, z] = at(PI_PARTS.ethernet[0], PI_PARTS.ethernet[1]);
   return (
     <Port position={[FACE_X - RJ45_SIZE[0] / 2, TOP + RJ45_SIZE[1] / 2, z]} size={RJ45_SIZE} holes={RJ45_HOLES} recess={RJ45_RECESS} rim={0.003}>
-      <Repeat items={RJ45_CONTACTS} material="steel" />
-      <Repeat items={RJ45_LIGHTS} material="ledOff" />
+      <Repeat items={RJ45_CONTACTS} material="gold" />
+      <Block position={LINK_LIGHT} size={LIGHT_SIZE} material={powered ? "ledGreen" : "ledGreenOff"} />
+      <Block position={SPEED_LIGHT} size={LIGHT_SIZE} material={powered ? "ledAmber" : "ledAmberOff"} />
     </Port>
   );
 }
 
 /** Everything on the Pi's network edge: two USB 2, two USB 3 and Ethernet. */
-export function NetworkPorts() {
+export function NetworkPorts({ powered }: { powered: boolean }) {
   return (
     <group>
       <UsbStack drawing={PI_PARTS.usb2} superSpeed={false} />
       <UsbStack drawing={PI_PARTS.usb3} superSpeed />
-      <EthernetJack />
+      <EthernetJack powered={powered} />
     </group>
   );
 }
