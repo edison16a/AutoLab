@@ -10,6 +10,7 @@ import { LeadScrew, VWheels } from "./motion-parts";
 
 const { halfX: X, z: Z, top: TOP, beamY: BEAM_Y } = GANTRY;
 const MOTOR_HALF = 0.245;
+export const LEAD_REACH = 0.07;
 const SCREW_BASE = MOTION.footTop + MOTOR_HALF * 2 + 0.16;
 const SCREW_TOP = TOP - 0.07;
 /** The Z carriage plate rides on the inside face of each upright. */
@@ -31,7 +32,8 @@ function Drive({ side }: { side: 1 | -1 }) {
   return (
     <group>
       <group position={[screwX, MOTION.footTop + MOTOR_HALF, Z]} rotation={[0, side === 1 ? Math.PI : 0, 0]}>
-        <StepperMotorModel shaft={zScrewAngle} />
+        {/* Leads drop close to the motor, clear of the heated plate's edge as the gantry rolls past it. */}
+        <StepperMotorModel shaft={zScrewAngle} leadReach={LEAD_REACH} />
       </group>
       {/* Coupler and screw turn together about the screw's axis. */}
       <group position={[screwX, 0, Z]}>

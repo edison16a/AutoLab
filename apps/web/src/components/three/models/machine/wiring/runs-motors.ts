@@ -7,6 +7,8 @@
 import type { MaterialKey } from "../../../materials";
 import type { Vec3 } from "../../../types";
 import type { WireRun } from "./harness-geometry";
+import { MOTION } from "../layout";
+import { LEAD_REACH } from "../ZAxis";
 import { FLOOR_Y, PLUG_BACK, PLUG_Y, SOCKET_X } from "./mainboard-ports";
 import { jstPlug, type PlugPart } from "./Plugs";
 
@@ -108,6 +110,9 @@ const Z_LANE = -0.625;
 const SPLITTER: Vec3 = [SOCKET_X.z, FLOOR_Y, Z_LANE];
 const SPLIT = 0.04;
 
+/** Where each Z motor's lead sleeve hangs: the socket's mouth plus the lead's reach, in from the screw. */
+const SLEEVE_X = MOTION.screwX - (0.52 / 2 + 0.06) - LEAD_REACH;
+
 /** Out of a Z motor's lead sleeve, which ends at the floor beside the foot plate. */
 function offMotor(x: number): Vec3[] {
   return [
@@ -120,13 +125,13 @@ function offMotor(x: number): Vec3[] {
 const Z_LEFT: WireRun = {
   wires: STEPPER,
   ties: TIES,
-  points: [...offMotor(-1.04), [-0.6, FLOOR_Y, Z_LANE], [SPLITTER[0] - SPLIT, FLOOR_Y, Z_LANE]],
+  points: [...offMotor(-SLEEVE_X), [-0.6, FLOOR_Y, Z_LANE], [SPLITTER[0] - SPLIT, FLOOR_Y, Z_LANE]],
 };
 
 const Z_RIGHT: WireRun = {
   wires: STEPPER,
   ties: TIES,
-  points: [...offMotor(1.04), [0.9, FLOOR_Y, Z_LANE], [SPLITTER[0] + SPLIT, FLOOR_Y, Z_LANE]],
+  points: [...offMotor(SLEEVE_X), [0.9, FLOOR_Y, Z_LANE], [SPLITTER[0] + SPLIT, FLOOR_Y, Z_LANE]],
 };
 
 const Z_MAIN: WireRun = {

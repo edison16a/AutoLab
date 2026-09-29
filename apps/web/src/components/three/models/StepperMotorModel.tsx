@@ -52,7 +52,14 @@ function Housing({ y, height, inset = 0, material }: { y: number; height: number
  * pipette plunger and all three axes; `shaft` turns the shaft in the Home
  * demo.
  */
-export function StepperMotorModel({ shaft }: PartModelProps & { shaft?: (pose: MachinePose) => number }) {
+export interface StepperMotorProps extends PartModelProps {
+  /** Turns the shaft in the Home demo. */
+  shaft?: (pose: MachinePose) => number;
+  /** How far from the motor's side the leads drop (see StepperLeads). */
+  leadReach?: number;
+}
+
+export function StepperMotorModel({ shaft, leadReach }: StepperMotorProps) {
   const ridge = chamferedPrism(FACE - 0.012, 0.012, FACE - 0.012, CHAMFER - 0.006);
   return (
     <group>
@@ -71,7 +78,7 @@ export function StepperMotorModel({ shaft }: PartModelProps & { shaft?: (pose: M
         <Block position={[0.022, BODY / 2 + 0.19, 0]} size={[0.02, 0.18, 0.05]} material="tin" />
       </Spin>
       <Block position={SOCKET} size={[0.06, 0.07, 0.2]} radius={0.008} material="plasticWhite" />
-      <StepperLeads socket={MOUTH} />
+      <StepperLeads socket={MOUTH} reach={leadReach} />
     </group>
   );
 }
