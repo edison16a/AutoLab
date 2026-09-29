@@ -1,4 +1,5 @@
 "use client";
+import { Rig } from "../../motion/Rig";
 import { ExtrusionBars, type Bar } from "./ExtrusionBars";
 import { GANTRY, MOTION, PROFILE } from "./layout";
 import { XChain } from "./wiring/XChain";
@@ -25,12 +26,16 @@ const CROSSBAR: Bar[] = [{ position: [0, TOP + PROFILE / 2, Z], length: X * 2 + 
 export function Gantry() {
   return (
     <group>
-      <ExtrusionBars bars={UPRIGHTS} profile="2040" caps />
-      <ExtrusionBars bars={CROSSBAR} caps />
+      <Rig rig="gantry">
+        <ExtrusionBars bars={UPRIGHTS} profile="2040" caps />
+        <ExtrusionBars bars={CROSSBAR} caps />
+      </Rig>
       <YAxis />
       <ZAxis />
       <XAxis />
-      <XChain />
+      <Rig rig="beam">
+        <XChain />
+      </Rig>
     </group>
   );
 }

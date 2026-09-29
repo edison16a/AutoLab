@@ -1,5 +1,6 @@
 "use client";
 import { Block, Ring } from "../../primitives";
+import { Rig } from "../../motion/Rig";
 import { ExtrusionBars, type Bar } from "./ExtrusionBars";
 import { GasLines } from "./GasLines";
 import { ENCLOSURE, GANTRY, PROFILE, SENSOR_RAIL_Y } from "./layout";
@@ -60,7 +61,10 @@ export function ChamberFixtures() {
       <ExtrusionBars bars={SENSOR_RAIL} />
       <Block position={[CO2_PLATE.x, CO2_PLATE.y, RAIL_FRONT + CO2_PLATE.thickness / 2]} size={[CO2_PLATE.width, CO2_PLATE.height, CO2_PLATE.thickness]} material="plaGrey" />
       <ProbeClip />
-      <CameraDock />
+      {/* The dock hangs off the right upright, so it rolls with the gantry. */}
+      <Rig rig="gantry">
+        <CameraDock />
+      </Rig>
       {/* The valve plate spans the roof's front left corner, resting on both top rails. */}
       <Block position={[-X + 0.24, TOP + 0.005, Z - 0.26]} size={[0.64, 0.01, 0.6]} material="aluminium" />
       <GasLines />

@@ -1,6 +1,7 @@
 "use client";
 import { Block, Bolt, type RepeatItem } from "../../primitives";
 import type { Vec3 } from "../../types";
+import { Rig } from "../../motion/Rig";
 import { StepperMotorModel } from "../StepperMotorModel";
 import { ExtrusionBars, type Bar } from "./ExtrusionBars";
 import { GANTRY, MOTION, PROFILE, TOOL } from "./layout";
@@ -37,20 +38,33 @@ export function XAxis() {
   const motorZ = BEAM_BACK - 0.02 - MOTOR_HALF;
   return (
     <group>
-      <ExtrusionBars bars={BEAM} profile="2040" />
-      <group position={[DRIVE[0], DRIVE[1], motorZ]} rotation={[Math.PI / 2, 0, 0]}>
-        <StepperMotorModel />
-      </group>
-      {/* Motor plate bolted to the back of the beam. */}
-      <Block position={[DRIVE[0], (BEAM_Y + DRIVE[1] + 0.3) / 2, BEAM_BACK - 0.01]} size={[0.6, DRIVE[1] + 0.3 - BEAM_Y, 0.02]} material="blackAnodised" />
-      <Pulley position={DRIVE} rotation={[Math.PI / 2, 0, 0]} />
-      <Pulley position={IDLER} rotation={[Math.PI / 2, 0, 0]} />
-      {/* Tensioner: a block on the beam with two cheeks either side of the idler. */}
-      <Block position={[IDLER[0] + 0.05, BEAM_TOP + 0.05, BEAM_Z]} size={[0.3, 0.1, 0.2]} radius={0.015} material="blackAnodised" />
-      {[-1, 1].map((side) => (
-        <Block key={side} position={[IDLER[0], (BEAM_TOP + IDLER[1]) / 2 + 0.05, BEAM_Z + side * 0.07]} size={[0.2, IDLER[1] - BEAM_TOP + 0.1, 0.02]} radius={0.008} material="blackAnodised" />
-      ))}
-      <Belt from={DRIVE} to={IDLER} axle="z" />
+      <Rig rig="beam">
+        <ExtrusionBars bars={BEAM} profile="2040" />
+        <group position={[DRIVE[0], DRIVE[1], motorZ]} rotation={[Math.PI / 2, 0, 0]}>
+          <StepperMotorModel />
+        </group>
+        {/* Motor plate bolted to the back of the beam. */}
+        <Block position={[DRIVE[0], (BEAM_Y + DRIVE[1] + 0.3) / 2, BEAM_BACK - 0.01]} size={[0.6, DRIVE[1] + 0.3 - BEAM_Y, 0.02]} material="blackAnodised" />
+        <Pulley position={DRIVE} rotation={[Math.PI / 2, 0, 0]} />
+        <Pulley position={IDLER} rotation={[Math.PI / 2, 0, 0]} />
+        {/* Tensioner: a block on the beam with two cheeks either side of the idler. */}
+        <Block position={[IDLER[0] + 0.05, BEAM_TOP + 0.05, BEAM_Z]} size={[0.3, 0.1, 0.2]} radius={0.015} material="blackAnodised" />
+        {[-1, 1].map((side) => (
+          <Block key={side} position={[IDLER[0], (BEAM_TOP + IDLER[1]) / 2 + 0.05, BEAM_Z + side * 0.07]} size={[0.2, IDLER[1] - BEAM_TOP + 0.1, 0.02]} radius={0.008} material="blackAnodised" />
+        ))}
+        <Belt from={DRIVE} to={IDLER} axle="z" />
+      </Rig>
+      <Rig rig="carriage">
+        <XCarriage />
+      </Rig>
+    </group>
+  );
+}
+
+/** The wheeled plate the pipette tool hangs from, clamped to the belt's lower run. */
+function XCarriage() {
+  return (
+    <group>
       <Block position={[TOOL.x, BEAM_Y, CARRIAGE.z]} size={[CARRIAGE.width, CARRIAGE.height, 0.03]} material="blackAnodised" />
       <VWheels items={WHEELS} />
       {CARRIAGE_BOLTS.map((position) => (

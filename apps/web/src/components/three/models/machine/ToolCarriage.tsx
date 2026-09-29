@@ -1,5 +1,6 @@
 "use client";
 import { Block, Cylinder, Ring } from "../../primitives";
+import { Rig } from "../../motion/Rig";
 import { LeadScrew } from "./motion-parts";
 import { GANTRY, PROFILE, TOOL } from "./layout";
 
@@ -33,8 +34,8 @@ function PipetteMount() {
   );
 }
 
-/** Motor shelf, coupler and lead screw, the linear guide with its block, and the nut block that pushes the load cell. */
-function PlungerDrive() {
+/** Motor shelf, coupler and lead screw, and the linear guide rail: the drive's parts that stay put on the tool. */
+function DriveFrame() {
   return (
     <group>
       <Block position={[X, MOTOR_FACE - 0.02, DRIVE_Z]} size={[0.58, 0.04, 0.56]} material="plaGrey" />
@@ -44,6 +45,14 @@ function PlungerDrive() {
       ))}
       <LeadScrew base={[X, 2.92, DRIVE_Z]} length={MOTOR_FACE - 0.28 - 2.92} radius={0.024} />
       <Block position={[GUIDE_X, 3.18, PLATE_FRONT + 0.02]} size={[0.05, 0.66, 0.04]} material="steel" />
+    </group>
+  );
+}
+
+/** What the screw drives down as the plunger is pressed: the guide block, the nut block with its nut and flag, and the pusher. */
+function PlungerSlide() {
+  return (
+    <group>
       <Block position={[GUIDE_X, NUT_Y, PLATE_FRONT + 0.06]} size={[0.11, 0.15, 0.06]} radius={0.012} material="steel" />
       {/* Nut block: bridges the screw and the guide, and reaches forward over the load cell. */}
       <Block position={[X + 0.05, NUT_Y, (PLATE_FRONT + Z + 0.07) / 2 + 0.005]} size={[0.38, 0.1, Z + 0.07 - PLATE_FRONT]} radius={0.02} material="plaGrey" />
@@ -69,11 +78,16 @@ export function ToolCarriage() {
   const { bottom, top, half, thickness } = PLATE;
   return (
     <group>
-      <Block position={[X, (bottom + top) / 2, PLATE_Z]} size={[half * 2, top - bottom, thickness]} material="plaGrey" />
-      {/* Tab the home switch is screwed to. */}
-      <Block position={[X + half + 0.1, 3.44, PLATE_Z]} size={[0.24, 0.2, thickness]} radius={0.015} material="plaGrey" />
-      <PlungerDrive />
-      <PipetteMount />
+      <Rig rig="carriage">
+        <Block position={[X, (bottom + top) / 2, PLATE_Z]} size={[half * 2, top - bottom, thickness]} material="plaGrey" />
+        {/* Tab the home switch is screwed to. */}
+        <Block position={[X + half + 0.1, 3.44, PLATE_Z]} size={[0.24, 0.2, thickness]} radius={0.015} material="plaGrey" />
+        <DriveFrame />
+        <PipetteMount />
+      </Rig>
+      <Rig rig="plunger">
+        <PlungerSlide />
+      </Rig>
     </group>
   );
 }

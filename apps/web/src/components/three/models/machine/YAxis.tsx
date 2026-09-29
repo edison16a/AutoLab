@@ -1,5 +1,6 @@
 "use client";
 import { Block, Cylinder } from "../../primitives";
+import { Rig } from "../../motion/Rig";
 import { StepperMotorModel } from "../StepperMotorModel";
 import { CHAMBER_FLOOR, GANTRY, MOTION, Y_RAIL_Y } from "./layout";
 import { Belt, Pulley } from "./motion-parts";
@@ -24,16 +25,25 @@ function RodSupport({ x, z }: { x: number; z: number }) {
   );
 }
 
-/** One side of the Y axis: the rod, its supports, two bearing blocks and the foot plate on top. */
-function Side({ side }: { side: 1 | -1 }) {
+/** One side's fixed rail: the rod and its two supports. */
+function Rail({ side }: { side: 1 | -1 }) {
   const x = side * X;
-  const footTop = MOTION.footTop;
-  const footX = side * ((X + 0.1 + FOOT_INNER) / 2);
   return (
     <group>
       <Cylinder position={[x, Y_RAIL_Y, (ROD.back + ROD.front) / 2]} rotation={[Math.PI / 2, 0, 0]} radius={0.034} height={ROD_LENGTH} material="steel" />
       <RodSupport x={x} z={ROD.back} />
       <RodSupport x={x} z={ROD.front} />
+    </group>
+  );
+}
+
+/** What rolls along one rail with the gantry: two bearing blocks and the foot plate on top. */
+function Carriage({ side }: { side: 1 | -1 }) {
+  const x = side * X;
+  const footTop = MOTION.footTop;
+  const footX = side * ((X + 0.1 + FOOT_INNER) / 2);
+  return (
+    <group>
       {[-0.19, 0.19].map((dz) => (
         <Block key={dz} position={[x, (Y_RAIL_Y - 0.08 + footTop - FOOT.thickness) / 2, Z + dz]} size={[0.24, footTop - FOOT.thickness - Y_RAIL_Y + 0.08, 0.2]} radius={0.015} material="aluminium" />
       ))}
@@ -54,8 +64,8 @@ export function YAxis() {
   const motorY = BELT.y + 0.1 + 0.245 + 0.06;
   return (
     <group>
-      <Side side={-1} />
-      <Side side={1} />
+      <Rail side={-1} />
+      <Rail side={1} />
       <group position={[BELT.x, motorY, BELT.back]} rotation={[Math.PI, 0, 0]}>
         <StepperMotorModel />
       </group>
@@ -66,8 +76,12 @@ export function YAxis() {
       <Pulley position={[BELT.x, BELT.y, BELT.front]} />
       <Block position={[BELT.x, CHAMBER_FLOOR + (BELT.y - CHAMBER_FLOOR) / 2 - 0.03, BELT.front]} size={[0.12, BELT.y - CHAMBER_FLOOR - 0.06, 0.12]} radius={0.01} material="plaGrey" />
       <Belt from={[BELT.x, BELT.y, BELT.back]} to={[BELT.x, BELT.y, BELT.front]} axle="y" />
-      {/* Clamp that ties the right foot plate to the belt. */}
-      <Block position={[BELT.x, (BELT.y + MOTION.footTop) / 2, Z]} size={[0.2, MOTION.footTop - BELT.y, 0.16]} radius={0.01} material="plaGrey" />
+      <Rig rig="gantry">
+        <Carriage side={-1} />
+        <Carriage side={1} />
+        {/* Clamp that ties the right foot plate to the belt. */}
+        <Block position={[BELT.x, (BELT.y + MOTION.footTop) / 2, Z]} size={[0.2, MOTION.footTop - BELT.y, 0.16]} radius={0.01} material="plaGrey" />
+      </Rig>
     </group>
   );
 }

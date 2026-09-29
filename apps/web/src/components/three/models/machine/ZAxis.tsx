@@ -1,6 +1,7 @@
 "use client";
 import { Block, Cylinder, type RepeatItem } from "../../primitives";
 import type { Vec3 } from "../../types";
+import { Rig } from "../../motion/Rig";
 import { StepperMotorModel } from "../StepperMotorModel";
 import { GANTRY, MOTION, PROFILE } from "./layout";
 import { LeadScrew, VWheels } from "./motion-parts";
@@ -22,12 +23,9 @@ const WHEELS: RepeatItem[] = [-1, 1].flatMap((side) =>
   ),
 );
 
-/** One side's drive: motor on the foot plate, coupler, screw, top bearing, carriage plate and nut. */
-function Side({ side }: { side: 1 | -1 }) {
+/** One side's drive, which rides the gantry: motor on the foot plate, coupler, screw and top bearing. */
+function Drive({ side }: { side: 1 | -1 }) {
   const screwX = side * MOTION.screwX;
-  const plateX = side * PLATE.x;
-  const plateDepth = PLATE.front - PLATE.back;
-  const nutY = BEAM_Y - 0.2;
   return (
     <group>
       <group position={[screwX, MOTION.footTop + MOTOR_HALF, Z]} rotation={[0, side === 1 ? Math.PI : 0, 0]}>
@@ -38,7 +36,18 @@ function Side({ side }: { side: 1 | -1 }) {
       {/* Flange bearing hung under the crossbar. */}
       <Block position={[screwX, TOP - 0.035, Z]} size={[0.24, 0.07, 0.14]} radius={0.015} material="aluminium" />
       <Cylinder position={[screwX, TOP - 0.08, Z]} radius={0.045} height={0.03} material="steel" />
-      {/* Carriage plate, with the nut arm reaching back to the screw. */}
+    </group>
+  );
+}
+
+/** What climbs the screw with the beam: the carriage plate, with the nut arm reaching back to the screw. */
+function Lift({ side }: { side: 1 | -1 }) {
+  const screwX = side * MOTION.screwX;
+  const plateX = side * PLATE.x;
+  const plateDepth = PLATE.front - PLATE.back;
+  const nutY = BEAM_Y - 0.2;
+  return (
+    <group>
       <Block position={[plateX, BEAM_Y, (PLATE.back + PLATE.front) / 2]} size={[PLATE.thickness, PLATE.height, plateDepth]} material="blackAnodised" />
       <Block position={[(plateX + screwX) / 2, nutY, Z]} size={[Math.abs(plateX - screwX) + 0.04, 0.08, 0.2]} radius={0.015} material="blackAnodised" />
       <Cylinder position={[screwX, nutY, Z]} radius={0.05} height={0.14} material="brass" />
@@ -56,9 +65,15 @@ function Side({ side }: { side: 1 | -1 }) {
 export function ZAxis() {
   return (
     <group>
-      <Side side={-1} />
-      <Side side={1} />
-      <VWheels items={WHEELS} />
+      <Rig rig="gantry">
+        <Drive side={-1} />
+        <Drive side={1} />
+      </Rig>
+      <Rig rig="beam">
+        <Lift side={-1} />
+        <Lift side={1} />
+        <VWheels items={WHEELS} />
+      </Rig>
     </group>
   );
 }
