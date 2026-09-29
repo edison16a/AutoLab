@@ -28,6 +28,7 @@ export const MOTION_PARTS: PartDefinition[] = [
     size: [0.64, 0.8, 0.54],
     center: [0.03, -0.14, 0],
     rig: "carriage",
+    // Up off its shelf, freeing the shaft from the coupler.
     exploded: [0, 0.6, 0],
     view: TOOL_VIEW,
   },
@@ -44,7 +45,8 @@ export const MOTION_PARTS: PartDefinition[] = [
     size: [0.3, 0.27, 0.3],
     center: [0, 0.13, 0],
     rig: "carriage",
-    exploded: [0, 1.1, 0],
+    // Above the motor, along the same axis.
+    exploded: [0, 0.9, 0],
     view: [0.5, 0.8, 1],
   },
   {
@@ -62,7 +64,8 @@ export const MOTION_PARTS: PartDefinition[] = [
     size: [0.3, 0.2, 0.1],
     center: [0, -0.02, 0],
     rig: "carriage",
-    exploded: [0.75, 0.25, 0.2],
+    // Out sideways off its tab.
+    exploded: [0.4, 0, 0],
     view: TOOL_VIEW,
     inspectRotation: [0, 0, 0],
   },
@@ -78,7 +81,8 @@ export const MOTION_PARTS: PartDefinition[] = [
     position: [TOOL_X, 2.87, TOOL_Z],
     size: [0.24, 0.6, 0.24],
     rig: "plunger",
-    exploded: [0, 0.1, 1.2],
+    // Held between the nut block and the pusher, so it comes out forward.
+    exploded: [0, 0, 0.55],
     view: TOOL_VIEW,
   },
   {
@@ -95,7 +99,8 @@ export const MOTION_PARTS: PartDefinition[] = [
     size: [0.16, 0.44, 0.32],
     center: [0.03, 0, 0],
     rig: "carriage",
-    exploded: [0.85, 0, 0.35],
+    // Out sideways off the pipette mount.
+    exploded: [0.45, 0, 0],
     view: [1, 0.25, 0.6],
     inspectRotation: [0, 0, 0],
   },
@@ -112,7 +117,8 @@ export const MOTION_PARTS: PartDefinition[] = [
     size: [0.34, 1.4, 0.34],
     center: [0, 0.28, 0],
     rig: "carriage",
-    exploded: [0, -0.3, 0.95],
+    // Down out of its collars, away from the pusher.
+    exploded: [0, -0.3, 0],
     view: [0.55, 0.2, 1],
   },
   {
@@ -128,7 +134,7 @@ export const MOTION_PARTS: PartDefinition[] = [
     size: [0.42, 0.24, 0.22],
     center: [0, 0.1, 0],
     rig: "beam",
-    exploded: [-0.45, 0.55, 0.3],
+    exploded: [0, 0.35, 0],
     view: [0.4, 0.5, 1],
   },
   {
@@ -145,7 +151,7 @@ export const MOTION_PARTS: PartDefinition[] = [
     rotation: [0, -Math.PI / 2, 0],
     size: [0.22, 0.24, 0.42],
     center: [0, 0.1, 0],
-    exploded: [-0.4, 0.4, -0.5],
+    exploded: [0, 0.35, 0],
     view: [0.4, 0.8, 1],
   },
   {
@@ -163,7 +169,8 @@ export const MOTION_PARTS: PartDefinition[] = [
     size: [0.24, 0.2, 0.42],
     center: [0.1, 0, 0],
     rig: "gantry",
-    exploded: [-0.5, 0, 0.6],
+    // Off the upright, into the chamber.
+    exploded: [0.4, 0, 0],
     view: [1, 0.4, 0.6],
     inspectRotation: [0, 0, 0],
   },

@@ -20,7 +20,8 @@ export const ELECTRONICS_PARTS: PartDefinition[] = [
     position: [3.1, 0.24, -0.08],
     size: [1.12, 0.4, 0.8],
     center: [0, 0.11, 0],
-    exploded: [0.9, 0.7, -0.2],
+    // Each board lifts straight up off its standoffs or breadboard.
+    exploded: [0, 0.7, 0],
     view: [0.5, 1.1, 0.8],
   },
   {
@@ -36,7 +37,8 @@ export const ELECTRONICS_PARTS: PartDefinition[] = [
     size: [0.66, 0.5, 0.66],
     center: [0, -0.17, 0],
     rig: "gantry",
-    exploded: [0.5, 0.75, 0.6],
+    // Slid forward out of its dock rails.
+    exploded: [0, -0.15, 0.5],
     // From the front left, so the front right post doesn't stand in the way.
     view: [-0.35, 0.35, 1],
     // Lens toward the viewer, so the isolated view shows the optics rather than the back of the board.
@@ -60,7 +62,7 @@ export const ELECTRONICS_PARTS: PartDefinition[] = [
       { center: [-0.08, 0.35, 0], size: [0.2, 1.3, 0.3] },
       { center: [0.4, -0.65, 0.04], size: [0.95, 0.45, 0.3] },
     ],
-    exploded: [1.1, 0.5, 0.5],
+    exploded: [0.45, 0.25, 0.3],
     view: [0.8, 0.25, 1],
   },
   {
@@ -75,7 +77,7 @@ export const ELECTRONICS_PARTS: PartDefinition[] = [
     position: [2.82, 0.2, 0.86],
     size: [0.3, 0.18, 0.66],
     center: [0, -0.05, 0],
-    exploded: [0.6, 0.55, 1],
+    exploded: [0, 0.45, 0],
     view: [0.45, 1.1, 0.8],
   },
   {
@@ -90,7 +92,7 @@ export const ELECTRONICS_PARTS: PartDefinition[] = [
     position: [3.4, 0.2, 0.86],
     size: [0.68, 0.3, 0.42],
     center: [-0.06, 0, 0],
-    exploded: [1.1, 0.45, 1.1],
+    exploded: [0, 0.45, 0],
     view: [0.5, 1.1, 0.8],
   },
   {
@@ -105,7 +107,8 @@ export const ELECTRONICS_PARTS: PartDefinition[] = [
     position: [0.45, 0.505, -1.28],
     size: [1.2, 0.28, 0.84],
     center: [0, 0.09, 0],
-    exploded: [0, 0.6, -1.3],
+    // Up off the chamber floor.
+    exploded: [0, 0.6, 0],
     // From above, through the roof window: the back wall is foam board, and from the front the camera dock hangs in the way.
     view: [0.1, 1, 0.5],
   },
