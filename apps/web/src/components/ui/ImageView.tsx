@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, type CSSProperties } from "react";
-import { drawDetections } from "@/lib/overlay";
+import { drawDetections, overlayStyle } from "@/lib/overlay";
 import type { Analysis } from "@/model/types";
 
 interface ImageViewProps {
@@ -30,8 +30,15 @@ export function ImageView({
   const canvas = useRef<HTMLCanvasElement>(null);
   const showBoxes = overlays && fit === "contain";
 
+  // Redrawn whenever the shown size changes, so labels keep one on screen size.
   useEffect(() => {
-    if (showBoxes && canvas.current) drawDetections(canvas.current, width, height, analysis);
+    const node = canvas.current;
+    if (!showBoxes || !node) return;
+    const draw = () => drawDetections(node, width, height, analysis, overlayStyle(node, width));
+    draw();
+    const observer = new ResizeObserver(draw);
+    observer.observe(node);
+    return () => observer.disconnect();
   }, [width, height, analysis, showBoxes]);
 
   return (

@@ -6,10 +6,32 @@
 import type { Analysis } from "@/model/types";
 import { placeChips } from "./overlay-labels";
 
-const ACCENT = "#2684FF";
+export interface OverlayStyle {
+  /** Image pixels per CSS pixel as shown, so labels read the same size on a phone and a monitor. */
+  scale: number;
+  accent: string;
+  /** Text on the accent chips. */
+  ink: string;
+  font: string;
+}
+
+/**
+ * The look comes from the page (the accent token and the UI font), read off
+ * the canvas element, and the size from how wide the image is drawn now.
+ */
+export function overlayStyle(canvas: HTMLCanvasElement, imageWidth: number): OverlayStyle {
+  const css = getComputedStyle(canvas);
+  const shown = canvas.getBoundingClientRect().width;
+  return {
+    scale: shown > 0 ? imageWidth / shown : 1,
+    accent: css.getPropertyValue("--accent").trim() || "#2684ff",
+    ink: css.getPropertyValue("--on-accent").trim() || "#ffffff",
+    font: css.fontFamily || "sans-serif",
+  };
+}
 
 /** Canvas size matches the image's pixel size, so detection coordinates map one to one. */
-export function drawDetections(canvas: HTMLCanvasElement, width: number, height: number, analysis?: Analysis) {
+export function drawDetections(canvas: HTMLCanvasElement, width: number, height: number, analysis: Analysis | undefined, style: OverlayStyle) {
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
@@ -17,19 +39,20 @@ export function drawDetections(canvas: HTMLCanvasElement, width: number, height:
   ctx.clearRect(0, 0, width, height);
   if (!analysis) return;
 
-  // Scale strokes and text with the image so a 4K still reads like a 640px frame.
-  const scale = Math.max(1, width / 640);
+  const { scale, accent, ink } = style;
   ctx.lineWidth = 2 * scale;
-  ctx.font = `600 ${12 * scale}px ui-sans-serif, system-ui, sans-serif`;
-  ctx.strokeStyle = ACCENT;
+  ctx.font = `600 ${12 * scale}px ${style.font}`;
+  ctx.strokeStyle = accent;
 
   for (const d of analysis.detections) {
     if (d.polygon?.length) {
-      ctx.fillStyle = "rgba(38, 132, 255, 0.14)";
       ctx.beginPath();
       d.polygon.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
       ctx.closePath();
+      ctx.globalAlpha = 0.14;
+      ctx.fillStyle = accent;
       ctx.fill();
+      ctx.globalAlpha = 1;
       ctx.stroke();
     }
     const [x1, y1, x2, y2] = d.bbox;
@@ -49,9 +72,9 @@ export function drawDetections(canvas: HTMLCanvasElement, width: number, height:
     height,
   );
   chips.forEach((chip, i) => {
-    ctx.fillStyle = ACCENT;
+    ctx.fillStyle = accent;
     ctx.fillRect(chip.x, chip.y, chip.width, chip.height);
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = ink;
     ctx.fillText(texts[i], chip.x + 6 * scale, chip.y + 14 * scale);
   });
 }
