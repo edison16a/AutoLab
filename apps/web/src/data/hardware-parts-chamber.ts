@@ -50,11 +50,12 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     connection: "EZO-pH module",
     model: "ph_probe",
     liveNow: false,
-    position: [-1.96, 1.95, -1.35],
+    position: [-1.96, 1.95, -1.55],
     size: [0.2, 0.94, 0.2],
     center: [0, -0.04, 0],
     exploded: [0.4, 0.3, 0.7],
-    view: [1, 0.25, 0.7],
+    // Along the left wall from the front right, clear of the Z lead screw.
+    view: [1, 0.3, 0.45],
   },
   {
     id: "heated_platform",
@@ -98,7 +99,8 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     rotation: [0, -Math.PI / 2, 0],
     size: [0.24, 0.82, 0.82],
     exploded: [0.9, 0.2, 0],
-    view: [-1, 0.25, 0.6],
+    // From above the X motor, looking down at the intake side.
+    view: [-0.55, 0.5, 0.7],
     inspectRotation: [0, -Math.PI / 5, 0],
   },
   {

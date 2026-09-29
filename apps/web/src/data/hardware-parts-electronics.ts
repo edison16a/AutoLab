@@ -104,6 +104,7 @@ export const ELECTRONICS_PARTS: PartDefinition[] = [
     size: [1.08, 0.34, 0.66],
     center: [0, 0.1, 0],
     exploded: [0, 0.6, -1.3],
-    view: [0.3, 1.2, 0.8],
+    // From behind, through the back panel: from the front the camera dock hangs in the way.
+    view: [0.2, 0.9, -0.8],
   },
 ];

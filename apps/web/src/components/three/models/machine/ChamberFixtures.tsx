@@ -10,7 +10,7 @@ export function ChamberFixtures() {
   return (
     <group>
       <Block position={[0.2, 3.45, -1.74]} size={[3.3, 0.1, 0.04]} radius={0.015} material="aluminium" />
-      <group position={[-2.06, 1.95, -1.35]}>
+      <group position={[-2.06, 1.95, -1.55]}>
         <Block size={[0.08, 0.12, 0.2]} radius={0.02} material="plasticGrey" />
         <Ring position={[0.1, 0.02, 0]} radius={0.075} material="plasticGrey" />
       </group>
