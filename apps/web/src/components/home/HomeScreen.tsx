@@ -1,11 +1,34 @@
 "use client";
-import { PageHeader } from "../ui/PageHeader";
+import "@/styles/home.css";
+import "@/styles/home-device.css";
+import "@/styles/home-tiles.css";
+import "@/styles/home-captures.css";
+import { useAutolab } from "@/providers/autolab-context";
+import { ConnectCard } from "./ConnectCard";
+import { DeviceCard } from "./DeviceCard";
+import { HomeHeader } from "./HomeHeader";
+import { MachinePanel } from "./MachinePanel";
+import { NumberTiles } from "./NumberTiles";
+import { RecentCaptures } from "./RecentCaptures";
 
-/** Placeholder until the Home screen is built. */
+/**
+ * Home: the machine in 3D, how the device is doing, a few numbers and the
+ * latest captures. Everything deeper lives on its own screen, one click away.
+ */
 export function HomeScreen() {
+  const { device } = useAutolab();
+
   return (
-    <div className="page">
-      <PageHeader title="Home" />
+    <div className="page home">
+      <HomeHeader />
+      <div className="home-hero">
+        <MachinePanel />
+        <div className="home-side">
+          {device ? <DeviceCard /> : <ConnectCard />}
+          <NumberTiles />
+        </div>
+      </div>
+      <RecentCaptures />
     </div>
   );
 }
