@@ -12,6 +12,16 @@ interface LiveControlsProps {
   onResume: () => void;
 }
 
+/**
+ * The preview starts by itself once the camera is reachable, so the only
+ * way it's off while ready is a pause. Before that the button is disabled
+ * and shouldn't claim anything was paused.
+ */
+function previewLabel(preview: boolean, ready: boolean) {
+  if (preview) return "Pause preview";
+  return ready ? "Resume preview" : "Start preview";
+}
+
 /** The bar under the Autolab stage: shutter, preview toggle and detection. */
 export function LiveControls({ ready, onTakePhoto, onPause, onResume }: LiveControlsProps) {
   const { preview, capturing, liveDetect, setLiveDetect, detectorStatus, liveFrame } = useAutolab();
@@ -48,7 +58,7 @@ export function LiveControls({ ready, onTakePhoto, onPause, onResume }: LiveCont
           ) : (
             <Play size={18} strokeWidth={1.8} aria-hidden="true" />
           )}
-          {preview ? "Pause preview" : "Resume preview"}
+          {previewLabel(preview, ready)}
         </button>
       </div>
       <div className="live-controls__summary">{analysis ? <DetectionSummary analysis={analysis} showTiming={false} /> : null}</div>
