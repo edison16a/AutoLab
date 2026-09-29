@@ -5,17 +5,15 @@ import asyncio
 import json
 import logging
 import os
-import secrets
 import struct
 import time
-import uuid
-from pathlib import Path
 
 import httpx
 from dotenv import load_dotenv
 from websockets.asyncio.client import connect
 
 from .camera import Camera
+from .credentials import load_or_create, write_setup_info
 from .telemetry import metadata
 
 load_dotenv()
@@ -28,20 +26,8 @@ def packet(header, data):
     return struct.pack("!I", len(b)) + b + data
 
 
-def credentials(path):
-    path = Path(path).expanduser()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if path.exists():
-        return json.loads(path.read_text())
-    data = {"device_id": str(uuid.uuid4()), "secret": secrets.token_urlsafe(32)}
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(fd, "w") as f:
-        json.dump(data, f)
-    return data
-
-
 async def run(args):
-    creds = credentials(args.credentials)
+    creds = load_or_create(args.credentials)
     camera = Camera(args.simulate)
     print(f"Device ID: {creds['device_id']}", flush=True)
     if args.mode == "cloud":
@@ -59,18 +45,15 @@ async def run(args):
             result = r.json()
             # The local provisioning service reads this protected, short-lived
             # result instead of registering again and invalidating this claim.
-            info_path = Path(args.credentials).expanduser().with_suffix(".setup.json")
-            info = {
-                **result,
-                "device_id": creds["device_id"],
-                "created_at": time.time(),
-                "gateway": args.gateway,
-            }
-            temp = info_path.with_suffix(".tmp")
-            fd = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-            with os.fdopen(fd, "w") as output:
-                json.dump(info, output)
-            os.replace(temp, info_path)
+            write_setup_info(
+                args.credentials,
+                {
+                    **result,
+                    "device_id": creds["device_id"],
+                    "created_at": time.time(),
+                    "gateway": args.gateway,
+                },
+            )
             print(
                 "Already claimed"
                 if result.get("claimed")
