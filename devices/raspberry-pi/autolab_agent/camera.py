@@ -1,3 +1,5 @@
+"""The CSI camera through Picamera2, or a clearly labeled simulator."""
+
 import io
 import threading
 import time
@@ -6,13 +8,20 @@ from PIL import Image, ImageDraw
 
 
 class Camera:
-    def __init__(self, simulate=False):
+    """Preview frames and full-resolution stills as JPEG bytes.
+
+    A missing or broken camera does not crash the agent. It stays connected
+    and reports the camera offline, with the reason kept in `error`.
+    """
+
+    def __init__(self, simulate: bool = False) -> None:
         self.simulate = simulate
         self.lock = threading.Lock()
         self.cam = None
         self.error = None
         if not simulate:
             try:
+                # Imported here so the simulator runs on machines without picamera2.
                 from picamera2 import Picamera2
 
                 cameras = Picamera2.global_camera_info()
@@ -31,15 +40,21 @@ class Camera:
                 self.error = str(exc)
 
     @property
-    def online(self):
+    def online(self) -> bool:
         return self.simulate or self.cam is not None and self.error is None
 
-    def capture(self, still=False):
+    def capture(self, still: bool = False) -> tuple[bytes, int, int]:
+        """Return (jpeg, width, height). Blocking, so callers run it in a thread.
+
+        The lock matters because preview and capture threads share one camera,
+        and a still briefly switches the sensor to its full-resolution mode.
+        """
         if not self.online:
             raise RuntimeError(self.error or "Camera is unavailable")
         with self.lock:
             buf = io.BytesIO()
             if self.simulate:
+                # Drifting circles plus a clock, so a frozen stream is easy to spot.
                 size = (1920, 1440) if still else (640, 480)
                 im = Image.new("RGB", size, (10, 18, 29))
                 draw = ImageDraw.Draw(im)
@@ -69,11 +84,12 @@ class Camera:
             else:
                 self.cam.capture_file(buf, format="jpeg")
             data = buf.getvalue()
+            # Report the size of the JPEG that was produced, not the requested one.
             with Image.open(io.BytesIO(data)) as im:
                 w, h = im.size
             return data, w, h
 
-    def close(self):
+    def close(self) -> None:
         if self.cam:
             self.cam.stop()
             self.cam.close()
