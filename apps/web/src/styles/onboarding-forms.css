@@ -45,7 +45,9 @@
   background: var(--bg-elevated);
   font-size: 12px;
   line-height: 1.6;
-  white-space: pre;
+  /* Long gateway URLs wrap rather than hide past the edge. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .onboarding-details__text {
