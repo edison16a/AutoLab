@@ -18,14 +18,14 @@ const VENT_SCALE: Vec3 = [0.05, 0.16, 0.006];
 
 /**
  * The badge on the front left of the base, where the sketch writes the
- * name: the team logo engraved into the blue powder coat and filled white,
- * then the wordmark screen printed beside it in the same white.
+ * name: the team logo engraved into the blue powder coat and filled black,
+ * then the wordmark screen printed beside it in white.
  */
 function Nameplate() {
   const y = PLINTH.bottom + PLINTH_HEIGHT / 2;
   return (
     <group position={[-X, y, FRONT]}>
-      <LogoEngraving position={[0.22, 0, 0.002]} height={0.21} material="labelWhite" />
+      <LogoEngraving position={[0.22, 0, 0.002]} height={0.21} material="plasticBlack" />
       <TextDecal text="Autolab" position={[0.86, 0, 0.002]} rotation={[0, 0, 0]} width={0.96} height={0.2} ink="light" weight={700} />
     </group>
   );
