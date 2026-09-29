@@ -10,7 +10,9 @@
   height: 100dvh;
 }
 
+/* Positioned so visually hidden text inside screens can't escape the scroll area. */
 .app__main {
+  position: relative;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
