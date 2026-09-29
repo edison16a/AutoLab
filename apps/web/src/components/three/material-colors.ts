@@ -45,6 +45,8 @@ export const COLOR_RECIPES = {
   usbBlue: () => standard("#2566cf", 0.45),
   stiffenerBlue: () => standard("#2a5bb4", 0.5),
   labelWhite: () => standard("#f7f7f5", 0.6),
+  // Pluggable screw terminals on printer mainboards are moulded in this leaf green.
+  terminalGreen: () => standard("#2f8f4e", 0.5),
   // LEDs
   ledRed: () => lit("#ff3b30"),
   ledGreen: () => lit("#34c759"),
