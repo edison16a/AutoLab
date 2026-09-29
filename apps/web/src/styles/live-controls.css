@@ -65,7 +65,9 @@
   outline-offset: 2px;
 }
 
-.live-controls__upload:has(input:disabled) {
+.live-controls__upload:has(input:disabled),
+.live-controls__upload:has(input:disabled):hover {
+  background: var(--bg);
   opacity: 0.45;
   cursor: not-allowed;
 }
