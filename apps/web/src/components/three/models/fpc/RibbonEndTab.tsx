@@ -16,9 +16,10 @@ interface RibbonEndTabProps {
 }
 
 /**
- * One end of the ribbon as it goes into a socket: a grey stiffener on one
- * face and fifteen bare contact fingers on the other. Built in the end's
- * own frame (+X out of the cable, Z across it, Y off its face).
+ * One end of the ribbon as it goes into a socket: the blue stiffener on one
+ * face and fifteen bare tinned contact fingers on the other, like the real
+ * camera cable. Built in the end's own frame (+X out of the cable, Z across
+ * it, Y off its face).
  */
 export function RibbonEndTab({ end, width, thickness, length }: RibbonEndTabProps) {
   const fingers = useMemo<RepeatItem[]>(() => {
@@ -32,8 +33,8 @@ export function RibbonEndTab({ end, width, thickness, length }: RibbonEndTabProp
 
   return (
     <group position={end.position} quaternion={end.quaternion}>
-      <Block position={[-length / 2, -thickness / 2 - 0.004, 0]} size={[length, 0.008, width]} material="plasticGrey" />
-      <Repeat items={fingers} material="steel" />
+      <Block position={[-length / 2, -thickness / 2 - 0.004, 0]} size={[length, 0.008, width]} material="stiffenerBlue" />
+      <Repeat items={fingers} material="tin" />
     </group>
   );
 }
