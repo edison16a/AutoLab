@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Camera, Loader2, Plug, Video } from "lucide-react";
+import { Camera, Loader2, Video } from "lucide-react";
 import { useDeviceSummary } from "@/hooks/use-device-summary";
 import { useAutolab } from "@/providers/autolab-context";
 import { PageHeader } from "../ui/PageHeader";
@@ -35,20 +35,13 @@ function TakePhotoButton() {
 
 /**
  * The device's name and state, plus the two things people come to Home to
- * do. Before any device is added the main action becomes connecting one.
+ * do. Before any device is added there's nothing to photograph, and the
+ * connect card below (and the top bar) already offer to connect one, so a
+ * third "Connect device" here would only add noise.
  */
 export function HomeHeader() {
-  const { device, openConnect } = useAutolab();
+  const { device } = useAutolab();
   const summary = useDeviceSummary();
-
-  const primary = device ? (
-    <TakePhotoButton />
-  ) : (
-    <button type="button" className="btn btn--primary" onClick={openConnect}>
-      <Plug size={16} strokeWidth={1.8} aria-hidden="true" />
-      Connect device
-    </button>
-  );
 
   return (
     <PageHeader
@@ -65,7 +58,7 @@ export function HomeHeader() {
             <Video size={16} strokeWidth={1.8} aria-hidden="true" />
             Live view
           </Link>
-          {primary}
+          {device ? <TakePhotoButton /> : null}
         </>
       }
     />
