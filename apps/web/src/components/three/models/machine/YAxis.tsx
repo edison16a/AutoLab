@@ -73,7 +73,8 @@ export function YAxis() {
       </group>
       {/* Printed bracket that holds the motor up off the floor. */}
       <Block position={[BELT.x, (CHAMBER_FLOOR + motorY - 0.245) / 2, BELT.back - 0.29]} size={[0.5, motorY - 0.245 - CHAMBER_FLOOR, 0.04]} radius={0.01} material="plaGrey" />
-      <Block position={[BELT.x, motorY - 0.265, BELT.back - 0.03]} size={[0.56, 0.04, 0.56]} radius={0.01} material="plaGrey" />
+      {/* Its top stops a hair short of the motor face, so the two never share a plane and flicker. */}
+      <Block position={[BELT.x, motorY - 0.267, BELT.back - 0.03]} size={[0.56, 0.04, 0.56]} radius={0.01} material="plaGrey" />
       <group position={[BELT.x, BELT.y, BELT.back]} rotation={[Math.PI, 0, 0]}>
         <Spin axis="y" angle={yPulleyAngle}>
           <Pulley position={[0, 0, 0]} />

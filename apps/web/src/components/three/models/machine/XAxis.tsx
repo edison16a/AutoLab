@@ -17,6 +17,13 @@ const BEAM_TOP = BEAM_Y + PROFILE;
 const DRIVE: Vec3 = [-1.05, MOTION.beltY, BEAM_Z];
 const IDLER: Vec3 = [1.45, MOTION.beltY, BEAM_Z];
 const MOTOR_HALF = 0.245;
+/**
+ * The motor plate and the motor's face each stand a hair off the part behind
+ * them. Flush faces share one plane, and the GPU can't tell which is in front,
+ * so they flicker between the two colours as the view moves.
+ */
+const GAP = 0.002;
+const PLATE = { thickness: 0.02, front: BEAM_BACK - GAP } as const;
 
 /** The carriage plate sits just proud of the beam's front face. */
 const CARRIAGE = { z: BEAM_Z + PROFILE / 2 + 0.03, width: 0.62, height: 0.66 } as const;
@@ -37,7 +44,7 @@ const CARRIAGE_BOLTS: Vec3[] = [-0.2, 0.2].flatMap((dx) => [-1, 1].map((side) =>
  * aluminium.
  */
 export function XAxis() {
-  const motorZ = BEAM_BACK - 0.02 - MOTOR_HALF;
+  const motorZ = PLATE.front - PLATE.thickness - GAP - MOTOR_HALF;
   return (
     <group>
       <Rig rig="beam">
@@ -46,7 +53,11 @@ export function XAxis() {
           <StepperMotorModel shaft={xPulleyAngle} />
         </group>
         {/* Motor plate bolted to the back of the beam. */}
-        <Block position={[DRIVE[0], (BEAM_Y + DRIVE[1] + 0.3) / 2, BEAM_BACK - 0.01]} size={[0.6, DRIVE[1] + 0.3 - BEAM_Y, 0.02]} material="blackAnodised" />
+        <Block
+          position={[DRIVE[0], (BEAM_Y + DRIVE[1] + 0.3) / 2, PLATE.front - PLATE.thickness / 2]}
+          size={[0.6, DRIVE[1] + 0.3 - BEAM_Y, PLATE.thickness]}
+          material="blackAnodised"
+        />
         {[DRIVE, IDLER].map((at) => (
           <group key={at[0]} position={at} rotation={[Math.PI / 2, 0, 0]}>
             <Spin axis="y" angle={xPulleyAngle}>

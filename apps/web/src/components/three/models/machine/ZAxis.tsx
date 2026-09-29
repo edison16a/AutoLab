@@ -31,7 +31,8 @@ function Drive({ side }: { side: 1 | -1 }) {
   const screwX = side * MOTION.screwX;
   return (
     <group>
-      <group position={[screwX, MOTION.footTop + MOTOR_HALF, Z]} rotation={[0, side === 1 ? Math.PI : 0, 0]}>
+      {/* A hair above the foot plate, so the motor's base and the plate never share a plane. */}
+      <group position={[screwX, MOTION.footTop + MOTOR_HALF + 0.002, Z]} rotation={[0, side === 1 ? Math.PI : 0, 0]}>
         {/* Leads drop close to the motor, clear of the heated plate's edge as the gantry rolls past it. */}
         <StepperMotorModel shaft={zScrewAngle} leadReach={LEAD_REACH} />
       </group>
