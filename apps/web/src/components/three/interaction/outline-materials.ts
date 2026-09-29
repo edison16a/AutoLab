@@ -40,9 +40,17 @@ const LOOK: Record<HighlightVariant, { width: number; opacity: number }> = {
 const VERTEX = /* glsl */ `
 uniform float thickness;
 uniform vec2 size;
+#include <common>
+#include <skinning_pars_vertex>
 void main() {
-  vec3 pos = position;
-  vec3 nrm = normal;
+  vec3 objectNormal = normal;
+  vec3 transformed = position;
+  // Skinned sources (cables that flex in the Home demo) bend their outline on the same bones.
+  #include <skinbase_vertex>
+  #include <skinnormal_vertex>
+  #include <skinning_vertex>
+  vec3 pos = transformed;
+  vec3 nrm = objectNormal;
   #ifdef USE_INSTANCING
     pos = (instanceMatrix * vec4(pos, 1.0)).xyz;
     nrm = mat3(instanceMatrix) * nrm;

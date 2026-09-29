@@ -1,14 +1,11 @@
 "use client";
 import { useEffect, useMemo, type ReactNode } from "react";
-import { Bone, Matrix4, Skeleton, type SkinnedMesh } from "three";
 import { getMaterial } from "../../../materials";
-import { Rig, rigOffset } from "../../../motion/Rig";
-import { usePoseFrame } from "../../../motion/use-pose-frame";
+import { Rig } from "../../../motion/Rig";
 import { Repeat } from "../../../primitives";
 import { harnessGeometries, tiePlacements, type WireRun } from "./harness-geometry";
-import { CARRIERS, type Carrier } from "./harness-rig";
-
-const BIND = new Matrix4();
+import type { Carrier } from "./harness-rig";
+import { useRigSkeleton } from "./use-rig-skeleton";
 
 /** Ties ride their carrier like any other part; the frame's stay put. */
 function Carried({ carrier, children }: { carrier: Carrier; children: ReactNode }) {
@@ -27,29 +24,8 @@ function Carried({ carrier, children }: { carrier: Carrier; children: ReactNode 
 export function Harness({ runs }: { runs: WireRun[] }) {
   const parts = useMemo(() => harnessGeometries(runs), [runs]);
   const ties = useMemo(() => tiePlacements(runs), [runs]);
-  const skeleton = useMemo(() => new Skeleton(CARRIERS.map(() => new Bone())), []);
+  const bind = useRigSkeleton();
   useEffect(() => () => parts.forEach(({ geometry }) => geometry.dispose()), [parts]);
-  useEffect(() => () => skeleton.dispose(), [skeleton]);
-
-  usePoseFrame(
-    (pose) => {
-      skeleton.bones.forEach((bone, i) => {
-        const carrier = CARRIERS[i];
-        if (carrier !== "fixed") rigOffset(pose, carrier, bone.position);
-        bone.updateMatrixWorld();
-      });
-    },
-    () => {
-      for (const bone of skeleton.bones) {
-        bone.position.set(0, 0, 0);
-        bone.updateMatrixWorld();
-      }
-    },
-  );
-
-  const bind = (mesh: SkinnedMesh | null) => {
-    if (mesh && mesh.skeleton !== skeleton) mesh.bind(skeleton, BIND);
-  };
 
   return (
     <group>

@@ -1,10 +1,13 @@
 "use client";
 import { useEffect, useMemo } from "react";
 import { getMaterial } from "../materials";
+import { Rig } from "../motion/Rig";
 import type { Vec3 } from "../types";
 import { CAMERA_FPC_ENTRY } from "./camera/layout";
 import { RibbonEndTab } from "./fpc/RibbonEndTab";
 import { ribbonGeometry } from "./fpc/ribbon-geometry";
+import type { Ride } from "./machine/wiring/harness-rig";
+import { useRigSkeleton } from "./machine/wiring/use-rig-skeleton";
 import type { PartModelProps } from "./model-props";
 import { PI_CSI_ENTRY } from "./pi/layout";
 
@@ -44,6 +47,16 @@ const ROUTE: Vec3[] = [
   END,
 ];
 
+/**
+ * The camera hangs off the gantry's right upright, so in the Home demo the
+ * run from its socket over to the wall rides the gantry, and the drop down
+ * the wall bends back to the fixed slot in the side panel.
+ */
+const RIDE: Ride[] = [
+  { from: 0, carrier: "gantry" },
+  { from: 6, carrier: "fixed", span: 3 },
+];
+
 /** 16 mm wide in reality; drawn a touch narrower so it doesn't dominate the chamber. */
 const WIDTH = 0.17;
 const THICKNESS = 0.004;
@@ -62,14 +75,22 @@ export interface FPCModelProps extends PartModelProps {
 export function FPCModel({ points = ROUTE }: FPCModelProps) {
   // Callers may pass a fresh array each render, so key on the values.
   const key = points.map((p) => p.join(",")).join(";");
-  const ribbon = useMemo(() => ribbonGeometry(points, WIDTH, THICKNESS), [key]);
+  const ride = points === ROUTE ? RIDE : undefined;
+  const ribbon = useMemo(() => ribbonGeometry(points, WIDTH, THICKNESS, 120, ride), [key]);
+  const bind = useRigSkeleton();
   useEffect(() => () => ribbon.geometry.dispose(), [ribbon]);
+  const [cameraEnd, piEnd] = ribbon.ends;
   return (
     <group>
-      <mesh geometry={ribbon.geometry} material={getMaterial("ribbon")} castShadow receiveShadow dispose={null} />
-      {ribbon.ends.map((end, i) => (
-        <RibbonEndTab key={i} end={end} width={WIDTH} thickness={THICKNESS} length={TAB} />
-      ))}
+      <skinnedMesh ref={bind} geometry={ribbon.geometry} material={getMaterial("ribbon")} castShadow receiveShadow frustumCulled={false} dispose={null} />
+      {ride ? (
+        <Rig rig="gantry">
+          <RibbonEndTab end={cameraEnd} width={WIDTH} thickness={THICKNESS} length={TAB} />
+        </Rig>
+      ) : (
+        <RibbonEndTab end={cameraEnd} width={WIDTH} thickness={THICKNESS} length={TAB} />
+      )}
+      <RibbonEndTab end={piEnd} width={WIDTH} thickness={THICKNESS} length={TAB} />
     </group>
   );
 }

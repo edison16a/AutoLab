@@ -4,8 +4,9 @@
  * edge connector and the Pi's CSI slot) hold it that way, and a real flat
  * cable only bends across its width, never twists on a short run.
  */
-import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from "three";
+import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, Matrix4, Quaternion, Uint16BufferAttribute, Vector3 } from "three";
 import type { Vec3 } from "../../types";
+import { blendAt, type Blend, type Ride } from "../machine/wiring/harness-rig";
 
 /** Where a ribbon end sits: its tip, and a rotation whose +X points out of the cable. */
 export interface RibbonEnd {
@@ -34,18 +35,23 @@ function endFrame(point: Vector3, outward: Vector3): RibbonEnd {
  * Four faces with their own normals so the edges stay crisp. Indexed, so
  * the selection outline builds its own copy instead of editing this one.
  */
-export function ribbonGeometry(points: Vec3[], width: number, thickness: number, samples = 120) {
+export function ribbonGeometry(points: Vec3[], width: number, thickness: number, samples = 120, ride?: Ride[]) {
   const curve = new CatmullRomCurve3(points.map(([x, y, z]) => new Vector3(x, y, z)), false, "centripetal");
+  const length = curve.getLength();
   const frames = Array.from({ length: samples + 1 }, (_, i) => {
     const u = i / samples;
     const tangent = curve.getTangentAt(u).normalize();
     const side = sideAt(tangent);
-    return { point: curve.getPointAt(u), side, face: new Vector3().crossVectors(tangent, side) };
+    const blend: Blend = blendAt(ride, curve.getUtoTmapping(u, u * length) * (points.length - 1), { a: 0, b: 0, weight: 0 });
+    return { point: curve.getPointAt(u), side, face: new Vector3().crossVectors(tangent, side), blend };
   });
 
   const positions: number[] = [];
   const normals: number[] = [];
   const indices: number[] = [];
+  // Which rigs each vertex moves with, for a ribbon whose ends ride different parts (see harness-rig.ts).
+  const bones: number[] = [];
+  const weights: number[] = [];
   const corner = new Vector3();
 
   // Each face is a strip between two long edges: [offset along side, offset along face] for both.
@@ -57,12 +63,14 @@ export function ribbonGeometry(points: Vec3[], width: number, thickness: number,
   ];
   for (const [s0, f0, s1, f1, axis, sign] of faces) {
     const base = positions.length / 3;
-    for (const { point, side, face } of frames) {
+    for (const { point, side, face, blend } of frames) {
       for (const [s, f] of [[s0, f0], [s1, f1]]) {
         corner.copy(point).addScaledVector(side, (s * width) / 2).addScaledVector(face, (f * thickness) / 2);
         positions.push(corner.x, corner.y, corner.z);
         const n = (axis === "face" ? face : side).clone().multiplyScalar(sign);
         normals.push(n.x, n.y, n.z);
+        bones.push(blend.a, blend.b, 0, 0);
+        weights.push(1 - blend.weight, blend.weight, 0, 0);
       }
     }
     // Wound so the right hand rule agrees with the normals; the ribbon material is double sided and flips lighting on back faces.
@@ -75,6 +83,8 @@ export function ribbonGeometry(points: Vec3[], width: number, thickness: number,
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
   geometry.setAttribute("normal", new Float32BufferAttribute(normals, 3));
+  geometry.setAttribute("skinIndex", new Uint16BufferAttribute(bones, 4));
+  geometry.setAttribute("skinWeight", new Float32BufferAttribute(weights, 4));
   geometry.setIndex(indices);
 
   const first = frames[0].point;

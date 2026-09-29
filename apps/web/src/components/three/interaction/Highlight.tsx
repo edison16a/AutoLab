@@ -1,7 +1,7 @@
 "use client";
 import { useLayoutEffect, type RefObject } from "react";
 import { useThree } from "@react-three/fiber";
-import { InstancedMesh, Mesh, type BufferGeometry, type Material, type Object3D } from "three";
+import { InstancedMesh, Mesh, SkinnedMesh, type BufferGeometry, type Material, type Object3D } from "three";
 import { creasedGeometry, hullMaterial, maskMaterial, setOutlineViewport, type HighlightVariant } from "./outline-materials";
 
 export interface HighlightProps {
@@ -31,6 +31,11 @@ function companion(source: Mesh, geometry: BufferGeometry, material: Material, o
     const instanced = new InstancedMesh(geometry, material, source.count);
     instanced.instanceMatrix = source.instanceMatrix;
     copy = instanced;
+  } else if (source instanceof SkinnedMesh) {
+    // A cable that flexes in the Home demo: the outline bends with it on the same bones.
+    const skinned = new SkinnedMesh(geometry, material);
+    skinned.bind(source.skeleton, source.bindMatrix);
+    copy = skinned;
   } else copy = new Mesh(geometry, material);
   copy.renderOrder = order;
   // Its bounds would be the copy's own, which can be wrong for instances. It's cheap to always draw.
