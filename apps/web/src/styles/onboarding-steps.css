@@ -1,0 +1,171 @@
+/*
+  Step content in the wizard: the numbered progress row, the shared step
+  layout (title, one line, body, actions at the bottom), the short
+  instruction lists and the Ready checks.
+*/
+
+.onboarding-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.onboarding-progress__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* A short rule between steps, so the numbers read as one sequence. */
+.onboarding-progress__item + .onboarding-progress__item::before {
+  content: "";
+  width: 12px;
+  height: 1px;
+  background: var(--border-strong);
+}
+
+.onboarding-progress__mark {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.onboarding-progress__item--done .onboarding-progress__mark {
+  border-color: var(--border);
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+.onboarding-progress__item--current .onboarding-progress__mark {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.onboarding-progress__label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.onboarding-step {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 28px;
+  min-height: 0;
+}
+
+.onboarding-step__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.onboarding-step__title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+/* It takes focus only so screen readers start at the new step. */
+.onboarding-step__title:focus {
+  outline: none;
+}
+
+.onboarding-step__title + .onboarding-step__lead {
+  margin-top: -8px;
+}
+
+.onboarding-step__lead {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.onboarding-step__note {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.onboarding-step__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.onboarding-step__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.onboarding-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: onboarding-list;
+}
+
+.onboarding-list li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  counter-increment: onboarding-list;
+}
+
+.onboarding-list li::before {
+  content: counter(onboarding-list);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Line the text's first line up with the middle of the number. */
+.onboarding-list li {
+  line-height: 24px;
+}
+
+.onboarding-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.onboarding-checks li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.onboarding-checks svg {
+  box-sizing: content-box;
+  padding: 4px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
