@@ -12,7 +12,7 @@ from collections import defaultdict, deque
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass, field
 
-from cloud import Cloud, digest, now
+from autolab_gateway.cloud import Cloud, digest, now
 from dotenv import load_dotenv
 from fastapi import (
     FastAPI,

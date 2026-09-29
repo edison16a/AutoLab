@@ -158,7 +158,7 @@ def test_invalid_packets_and_cloud_disabled(client):
 
 def test_cloud_capture_rolls_back_orphan_upload():
     import asyncio
-    from cloud import Cloud
+    from autolab_gateway.cloud import Cloud
 
     calls = []
     c = Cloud.__new__(Cloud)
@@ -183,7 +183,7 @@ def test_cloud_capture_rolls_back_orphan_upload():
 
 def test_cloud_delete_requires_owner_and_removes_associated_objects():
     import asyncio
-    from cloud import Cloud
+    from autolab_gateway.cloud import Cloud
 
     calls = []
     c = Cloud.__new__(Cloud)
@@ -208,7 +208,7 @@ def test_cloud_delete_requires_owner_and_removes_associated_objects():
 
 def test_cloud_device_rejects_wrong_or_revoked_secret():
     import asyncio
-    from cloud import Cloud, digest
+    from autolab_gateway.cloud import Cloud, digest
 
     c = Cloud.__new__(Cloud)
 
