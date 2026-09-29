@@ -1,5 +1,9 @@
 "use client";
+import { useRef } from "react";
+import type { Mesh } from "three";
+import { roundedBoxGeometry } from "../../geometries";
 import { getMaterial } from "../../materials";
+import { usePoseFrame } from "../../motion/use-pose-frame";
 import { Block, Bolt, Chip, Repeat, TextDecal, type RepeatItem } from "../../primitives";
 import type { Vec3 } from "../../types";
 import { boardGeometry, type BoardOutline } from "../shared/board-geometry";
@@ -54,6 +58,31 @@ const RESISTORS: RepeatItem[] = Array.from({ length: 4 }, (_, i) => ({ position:
 const PASSIVE: Vec3 = [0.026, 0.01, 0.014];
 
 /**
+ * The red status LED, lit while the camera streams. In the Home demo it
+ * blinks once when the machine parks and takes its picture: dark for a
+ * moment if it was lit, lit for a moment if it was dark.
+ */
+function StatusLed({ online }: { online: boolean }) {
+  const led = useRef<Mesh>(null);
+  const lit = (on: boolean) => {
+    if (led.current) led.current.material = getMaterial(on ? "ledRed" : "ledRedOff");
+  };
+  usePoseFrame(
+    (pose) => lit(pose.flash > 0.3 ? !online : online),
+    () => lit(online),
+  );
+  return (
+    <mesh
+      ref={led}
+      geometry={roundedBoxGeometry(0.024, 0.01, 0.014, 0.002)}
+      material={getMaterial(online ? "ledRed" : "ledRedOff")}
+      position={[0.17, BOARD_TOP + 0.005, 0.2]}
+      dispose={null}
+    />
+  );
+}
+
+/**
  * The camera's component side: the green square board with its four gold
  * ringed holes, the ribbon socket, a few chips and a crystal, the two
  * screws that hold the lens mount and the red status LED, which lights
@@ -78,7 +107,7 @@ export function CameraBoard({ online }: { online: boolean }) {
       {[-0.07, 0.07].map((x) => (
         <Bolt key={x} position={[x, BOARD_TOP + 0.004, -0.268]} radius={0.016} />
       ))}
-      <Block position={[0.17, BOARD_TOP + 0.005, 0.2]} size={[0.024, 0.01, 0.014]} radius={0.002} material={online ? "ledRed" : "ledRedOff"} />
+      <StatusLed online={online} />
       <TextDecal text="Raspberry Pi" position={[-0.02, top, -0.2]} width={0.26} height={0.042} weight={600} />
       <TextDecal text="HQ Camera" position={[-0.02, top, -0.155]} width={0.2} height={0.032} weight={500} />
     </group>
