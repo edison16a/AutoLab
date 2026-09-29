@@ -5,6 +5,8 @@ import { partCenter, partRadius, type PartDefinition } from "@/data/hardware-par
 /** Front right, a little above: the three quarter view of the sketch. */
 const OVERVIEW_DIRECTION: Vec3 = [0.95, 0.55, 1.5];
 const PART_DIRECTION: Vec3 = [0.55, 0.42, 1];
+/** Alone on the stage nothing can block the view, so every part gets the same three quarter angle. */
+const INSPECT_DIRECTION: Vec3 = [0.75, 0.5, 1];
 
 /**
  * Share of the view the part's bounding sphere spans. The sphere is loose
@@ -34,6 +36,6 @@ export function partFocus(part: PartDefinition, exploded: boolean): CameraFocus 
 }
 
 /** The isolated part at the origin, a little closer than in context. */
-export function inspectFocus(part: PartDefinition, center: Vec3, radius: number): CameraFocus {
-  return { target: center, radius: Math.max(0.2, radius), direction: part.view ?? PART_DIRECTION, fill: 0.72 };
+export function inspectFocus(center: Vec3, radius: number): CameraFocus {
+  return { target: center, radius: Math.max(0.2, radius), direction: INSPECT_DIRECTION, fill: 0.72 };
 }

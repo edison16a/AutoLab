@@ -50,7 +50,7 @@ export default function MachineCanvas({
   let focus = overviewFocus(exploded);
   let focusKey = `machine:${exploded}:${flight}`;
   if (part && measured) {
-    focus = inspectFocus(part, measured.center, measured.radius);
+    focus = inspectFocus(measured.center, measured.radius);
     focusKey = `inspect:${part.id}:${flight}`;
   } else if (part) {
     focus = partFocus(part, exploded);
