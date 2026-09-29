@@ -5,7 +5,8 @@ module.exports = async function statsAndSettings(page) {
   await openSection(page, "Statistics", "/statistics");
   // Match the label exactly: other tiles mention captures in their sub line.
   const label = page.locator(".stats-tile__label", { hasText: /^Captures$/ });
-  const captures = page.locator(".stats-tile", { has: label }).locator(".stats-tile__value");
+  // Wait for a number: while the library loads the tile holds an empty placeholder.
+  const captures = page.locator(".stats-tile", { has: label }).locator(".stats-tile__value", { hasText: /\d/ });
   await captures.waitFor();
   assert.equal((await captures.innerText()).trim(), "1", "Statistics count the library");
 
