@@ -1,0 +1,190 @@
+/*
+  Statistics panels: the card around each chart, its "View table" twin and
+  the live device strip at the bottom.
+*/
+
+.stats-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px 20px;
+}
+
+.stats-panel__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stats-panel__title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0;
+}
+
+.stats-panel__headline {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.stats-panel__value {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Every chart gets the same height, so side by side panels line up without stretching. */
+.stats-panel__body {
+  flex: 1;
+  min-width: 0;
+  min-height: 220px;
+}
+
+.stats-panel--compact .stats-panel__body {
+  min-height: 0;
+}
+
+.stats-panel__body .empty {
+  min-height: 200px;
+}
+
+/* The table twin. Closed by default, one quiet line under the chart. */
+.stats-table {
+  margin: -4px -8px -6px;
+}
+
+.stats-table__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px 4px 4px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  list-style: none;
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.stats-table__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.stats-table__toggle:hover {
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+.stats-table[open] .stats-table__chevron {
+  transform: rotate(90deg);
+}
+
+.stats-table__scroll {
+  max-height: 320px;
+  margin-top: 8px;
+  padding: 0 8px;
+  overflow: auto;
+}
+
+.stats-table__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-table__table th,
+.stats-table__table td {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.stats-table__table th + th,
+.stats-table__table td {
+  padding-left: 16px;
+}
+
+.stats-table__table th:first-child {
+  text-align: left;
+  font-weight: 400;
+}
+
+.stats-table__table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.stats-table__table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+/* Live device strip. */
+.stats-live {
+  padding: 18px 20px;
+}
+
+.stats-live__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.stats-live__name {
+  margin-left: auto;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.stats-live__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 16px 0 0;
+}
+
+.stats-live__fact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.stats-live__fact dt {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.stats-live__fact dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@media (max-width: 560px) {
+  .stats-panel,
+  .stats-live {
+    padding: 16px;
+  }
+
+  .stats-live__facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+}
