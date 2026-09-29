@@ -1,0 +1,71 @@
+/*
+  Sign in page: one centered card on a plain background.
+*/
+
+.auth {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 24px 16px;
+  background: var(--bg-workspace);
+}
+
+.auth__corner {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.auth__card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: min(380px, 100%);
+  padding: 32px 28px 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.auth__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.auth__heading h1 {
+  font-size: 22px;
+}
+
+.auth__message {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+  font-size: 13px;
+}
+
+.auth__message--error {
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+}
+
+.auth__switch {
+  font-size: 13px;
+  text-align: center;
+}
+
+.auth__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.auth__link:hover {
+  text-decoration: underline;
+}
