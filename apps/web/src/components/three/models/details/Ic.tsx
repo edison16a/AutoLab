@@ -1,8 +1,9 @@
 "use client";
 import { useMemo } from "react";
 import type { MaterialKey } from "../../materials";
-import { Block, Repeat, TextDecal, type RepeatItem } from "../../primitives";
+import { Block, Repeat, type RepeatItem } from "../../primitives";
 import type { Vec3 } from "../../types";
+import { ChipMarking, type MarkingLine } from "../pi/ChipMarking";
 import { mm } from "./units";
 
 export interface IcProps {
@@ -15,6 +16,8 @@ export interface IcProps {
   leads?: number;
   style?: "soic" | "qfp" | "qfn";
   label?: string;
+  /** Several marking lines (maker, part number, date code) in place of a single label. */
+  lines?: MarkingLine[];
   material?: MaterialKey;
 }
 
@@ -22,10 +25,11 @@ const LEAD = { width: mm(0.4), reach: mm(1), height: mm(0.25) } as const;
 
 /**
  * A packaged chip sitting on the board: a sharp edged body (rounded tops
- * this small catch a star shaped highlight), its gull wing leads in one
- * instanced draw, and an optional part number printed on top.
+ * this small catch a star shaped highlight), its tinned gull wing leads in
+ * one instanced draw, and the part number laser marked on top in the soft
+ * grey real markings have.
  */
-export function Ic({ position, body: [w, d], height = mm(1.2), leads = 4, style = "soic", label, material = "plasticBlack" }: IcProps) {
+export function Ic({ position, body: [w, d], height = mm(1.2), leads = 4, style = "soic", label, lines, material = "plasticBlack" }: IcProps) {
   const long = Math.max(w, d);
   const short = Math.min(w, d);
   const pins = useMemo<RepeatItem[]>(() => {
@@ -53,11 +57,13 @@ export function Ic({ position, body: [w, d], height = mm(1.2), leads = 4, style 
   }, [w, d, long, short, leads, style]);
   // Print along the package's long side, like the real marking.
   const turn: Vec3 = w >= d ? [-Math.PI / 2, 0, 0] : [-Math.PI / 2, 0, Math.PI / 2];
+  const marking = lines ?? (label ? [{ text: label }] : null);
+  const markHeight = lines ? short * 0.7 : short * 0.3;
   return (
     <group position={position}>
       <Block position={[0, height / 2, 0]} size={[w, height, d]} material={material} />
-      {pins.length ? <Repeat items={pins} material="steel" /> : null}
-      {label ? <TextDecal text={label} position={[0, height + 0.0006, 0]} rotation={turn} width={long * 0.8} height={short * 0.3} weight={500} /> : null}
+      {pins.length ? <Repeat items={pins} material="tin" /> : null}
+      {marking ? <ChipMarking lines={marking} position={[0, height + 0.0006, 0]} rotation={turn} width={long * 0.8} height={markHeight} /> : null}
     </group>
   );
 }
