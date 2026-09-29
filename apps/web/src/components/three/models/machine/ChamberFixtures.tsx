@@ -1,26 +1,68 @@
 "use client";
 import { Block, Ring } from "../../primitives";
+import { ExtrusionBars, type Bar } from "./ExtrusionBars";
+import { GasLines } from "./GasLines";
+import { ENCLOSURE, GANTRY, PROFILE } from "./layout";
+
+const { halfX: X, halfZ: Z, top: TOP } = ENCLOSURE;
+/** A 2020 rail across the back wall at sensor height; the SHT85 and CO₂ board mount on it. */
+const SENSOR_RAIL_Y = 3.45;
+const SENSOR_RAIL: Bar[] = [{ position: [0, SENSOR_RAIL_Y, -Z], length: X * 2 - PROFILE, axis: "x" }];
+const RAIL_FRONT = -Z + PROFILE / 2;
+/** The CO₂ board is taller than the rail, so it sits on a printed adapter plate. */
+const CO2_PLATE = { x: -1.0, y: 3.4, width: 0.74, height: 0.7, thickness: 0.016 } as const;
+/** The pH probe hangs in a clip off the back left post, level with its registry position. */
+const PROBE = { x: -1.96, y: 1.95, z: -1.55, radius: 0.092 } as const;
+/** The camera dock hangs off the right upright's front face, under the camera board. */
+const DOCK = { x: 1.35, y: 2.26, z: -0.05, rail: 0.27, back: GANTRY.z + PROFILE, board: 0.6 } as const;
+
+/** Printed probe clip: an arm off the post's front face and a ring round the body, twice. */
+function ProbeClip() {
+  const armZ = (RAIL_FRONT + PROBE.z) / 2;
+  return (
+    <>
+      {[0.24, -0.12].map((dy) => (
+        <group key={dy} position={[0, PROBE.y + dy, 0]}>
+          <Block position={[-X + 0.04, 0, armZ]} size={[0.06, 0.05, PROBE.z - RAIL_FRONT + 0.02]} radius={0.012} material="plasticGrey" />
+          <Block position={[(-X + 0.04 + PROBE.x - PROBE.radius) / 2, 0, PROBE.z]} size={[PROBE.x - PROBE.radius - (-X + 0.04) + 0.03, 0.05, 0.06]} radius={0.012} material="plasticGrey" />
+          <Ring position={[PROBE.x, 0, PROBE.z]} radius={PROBE.radius} material="plasticGrey" />
+        </group>
+      ))}
+    </>
+  );
+}
+
+/** Two rails under the camera board's edges and a crossbar back to the upright. */
+function CameraDock() {
+  const { x, y, z, rail, back, board } = DOCK;
+  const front = z + board / 2;
+  const railLength = front - back;
+  return (
+    <group>
+      {[-rail, rail].map((dx) => (
+        <Block key={dx} position={[x + dx, y, (front + back) / 2]} size={[0.05, 0.04, railLength]} radius={0.012} material="aluminium" />
+      ))}
+      <Block position={[(x - rail + GANTRY.halfX) / 2, y, back + 0.03]} size={[GANTRY.halfX - x + rail + 0.05, 0.05, 0.06]} radius={0.015} material="aluminium" />
+    </group>
+  );
+}
 
 /**
- * Small brackets inside the chamber that hold parts in place: the sensor
- * rail on the back wall, the pH probe clip on the left wall and the camera
- * dock on the right upright.
+ * Brackets inside and on the chamber that hold parts in place: the sensor
+ * rail and the CO₂ adapter plate on the back wall, the pH probe clip, the
+ * camera dock on the right upright, and the CO₂ valve's plate on the roof
+ * with its gas lines.
  */
 export function ChamberFixtures() {
   return (
     <group>
-      <Block position={[0.2, 3.45, -1.74]} size={[3.3, 0.1, 0.04]} radius={0.015} material="aluminium" />
-      <group position={[-2.06, 1.95, -1.55]}>
-        <Block size={[0.08, 0.12, 0.2]} radius={0.02} material="plasticGrey" />
-        <Ring position={[0.1, 0.02, 0]} radius={0.075} material="plasticGrey" />
-      </group>
-      {/* Camera dock: an arm off the right upright and two rails under the board edges. */}
-      <group position={[1.35, 2.26, -0.05]}>
-        <Block position={[0.1, 0, -0.34]} size={[0.9, 0.05, 0.1]} radius={0.015} material="aluminium" />
-        {[-0.27, 0.27].map((x) => (
-          <Block key={x} position={[x, 0, 0]} size={[0.06, 0.05, 0.66]} radius={0.015} material="aluminium" />
-        ))}
-      </group>
+      <ExtrusionBars bars={SENSOR_RAIL} />
+      <Block position={[CO2_PLATE.x, CO2_PLATE.y, RAIL_FRONT + CO2_PLATE.thickness / 2]} size={[CO2_PLATE.width, CO2_PLATE.height, CO2_PLATE.thickness]} material="plasticGrey" />
+      <ProbeClip />
+      <CameraDock />
+      {/* The valve plate spans the roof's front left corner, resting on both top rails. */}
+      <Block position={[-X + 0.24, TOP + 0.005, Z - 0.26]} size={[0.64, 0.01, 0.6]} material="aluminium" />
+      <GasLines />
     </group>
   );
 }
