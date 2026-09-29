@@ -12,13 +12,14 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services/gateway"))
 import main
+from autolab_gateway import state
 
 
 @pytest.fixture
 def client(monkeypatch):
-    monkeypatch.setattr(main, "cloud", None)
-    main.rooms.clear()
-    main.limits.clear()
+    monkeypatch.setattr(state, "cloud", None)
+    state.rooms.clear()
+    state.limits.clear()
     with TestClient(main.app) as c:
         yield c
 
@@ -101,8 +102,8 @@ def test_capture_preview_worker_and_no_replay(client):
             hello(refreshed)
             assert until(refreshed, "status")["online"]
             until(refreshed, "ready")
-            assert not main.rooms[device].pending
-            assert not hasattr(main.rooms[device], "images")
+            assert not state.rooms[device].pending
+            assert not hasattr(state.rooms[device], "images")
 
 
 def test_room_isolation_and_offline_error(client):
@@ -138,7 +139,7 @@ def test_cloud_ownership_checked(client, monkeypatch):
         async def owner(self, device, owner):
             raise HTTPException(403, "Device is not owned by this account")
 
-    monkeypatch.setattr(main, "cloud", FakeCloud())
+    monkeypatch.setattr(state, "cloud", FakeCloud())
     for token, message in [
         ("bad", "Invalid or expired session"),
         ("valid", "Device is not owned by this account"),
@@ -146,7 +147,7 @@ def test_cloud_ownership_checked(client, monkeypatch):
         with opened(client, "client", str(uuid.uuid4())) as ws:
             hello(ws, token=token)
             assert until(ws, "error")["message"] == message
-    assert not main.rooms
+    assert not state.rooms
 
 
 def test_invalid_packets_and_cloud_disabled(client):

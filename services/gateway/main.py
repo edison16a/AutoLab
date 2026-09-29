@@ -6,11 +6,12 @@ import json
 import logging
 import time
 import uuid
-from collections import defaultdict, deque
 from contextlib import asynccontextmanager, suppress
 
-from autolab_gateway.cloud import Cloud, digest
+from autolab_gateway import state
+from autolab_gateway.cloud import digest
 from autolab_gateway.config import MODE, ORIGINS
+from autolab_gateway.limits import prune, rate
 from autolab_gateway.peers import Peer
 from autolab_gateway.protocol import now, pack, uid, unpack
 from autolab_gateway.rooms import Room
@@ -26,7 +27,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from pydantic import BaseModel, Field, ConfigDict
 
-cloud = Cloud() if MODE == "cloud" else None
 log = logging.getLogger("autolab")
 
 
@@ -48,40 +48,24 @@ def device_metadata(data):
     }
 
 
-rooms = {}
-limits = defaultdict(deque)
-
-
-def rate(key, count=30):
-    t = time.monotonic()
-    q = limits[key]
-    while q and q[0] < t - 60:
-        q.popleft()
-    if len(q) >= count:
-        raise HTTPException(429, "Too many requests. Try again in a minute.")
-    q.append(t)
-
-
 async def sweep():
     while True:
         await asyncio.sleep(5)
         t = time.monotonic()
-        for key in list(limits):
-            if not limits[key] or limits[key][-1] < t - 60:
-                del limits[key]
-        for room in list(rooms.values()):
+        prune(t)
+        for room in list(state.rooms.values()):
             if room.device and t - room.device.last_seen > 35:
                 with suppress(Exception):
                     await room.device.ws.close(code=1001)
             if room.worker and room.worker.live_busy and t - room.last_live > 120:
                 with suppress(Exception):
                     await room.worker.ws.close(code=1013)
-            if cloud:
+            if state.cloud:
                 for peer in list(room.clients) + ([room.worker] if room.worker else []):
                     if t - peer.checked_at > 300:
                         peer.checked_at = t
                         try:
-                            await cloud.user(peer.auth_token)
+                            await state.cloud.user(peer.auth_token)
                         except HTTPException:
                             with suppress(Exception):
                                 await peer.ws.close(code=1008)
@@ -117,10 +101,10 @@ app.add_middleware(
 
 
 async def user(request):
-    if not cloud:
+    if not state.cloud:
         raise HTTPException(404, "Cloud mode is disabled")
     token = request.headers.get("authorization", "").removeprefix("Bearer ")
-    return await cloud.user(token)
+    return await state.cloud.user(token)
 
 
 @app.get("/health")
@@ -135,10 +119,10 @@ class Registration(BaseModel):
 
 @app.post("/devices/register")
 async def register(body: Registration, request: Request):
-    if not cloud:
+    if not state.cloud:
         raise HTTPException(404, "Cloud mode is disabled")
     rate(("register", request.client.host), 10)
-    return await cloud.register(str(body.device_id), body.secret)
+    return await state.cloud.register(str(body.device_id), body.secret)
 
 
 class Claim(BaseModel):
@@ -150,7 +134,7 @@ class Claim(BaseModel):
 async def claim(body: Claim, request: Request):
     owner = await user(request)
     rate(("claim", owner), 5)
-    result = await cloud.call(
+    result = await state.cloud.call(
         "POST",
         "/rest/v1/rpc/claim_device",
         {"code_hash": digest(body.code), "new_owner": owner, "device_name": body.name},
@@ -163,7 +147,7 @@ async def claim(body: Claim, request: Request):
 @app.get("/devices")
 async def devices(request: Request):
     owner = await user(request)
-    return await cloud.call(
+    return await state.cloud.call(
         "GET", f"/rest/v1/devices?owner_id=eq.{owner}&order=created_at.desc"
     )
 
@@ -176,22 +160,22 @@ class Rename(BaseModel):
 async def rename(device: str, body: Rename, request: Request):
     device = uid(device)
     owner = await user(request)
-    await cloud.owner(device, owner)
-    return await cloud.call(
+    await state.cloud.owner(device, owner)
+    return await state.cloud.call(
         "PATCH", f"/rest/v1/devices?id=eq.{device}", {"name": body.name}
     )
 
 
 @app.get("/devices/{device}/images")
 async def images(device: str, request: Request, offset: int = Query(0, ge=0)):
-    return await cloud.images(uid(device), await user(request), offset)
+    return await state.cloud.images(uid(device), await user(request), offset)
 
 
 @app.delete("/images/{image}")
 async def delete(image: str, request: Request):
     image = uid(image)
     owner = await user(request)
-    await cloud.delete_image(image, owner)
+    await state.cloud.delete_image(image, owner)
     return {"deleted": True}
 
 
@@ -217,15 +201,15 @@ async def socket(ws: WebSocket, role: str, device_id: str):
         if hello.get("type") != "hello":
             raise ValueError("Expected hello")
         owner = None
-        if cloud:
+        if state.cloud:
             if role == "device":
-                await cloud.device(device_id, str(hello.get("secret", "")))
+                await state.cloud.device(device_id, str(hello.get("secret", "")))
             else:
-                owner = await cloud.user(str(hello.get("token", "")))
-                await cloud.owner(device_id, owner)
-        if len(rooms) >= 200 and device_id not in rooms:
+                owner = await state.cloud.user(str(hello.get("token", "")))
+                await state.cloud.owner(device_id, owner)
+        if len(state.rooms) >= 200 and device_id not in state.rooms:
             raise ValueError("Gateway at capacity")
-        room = rooms.setdefault(device_id, Room())
+        room = state.rooms.setdefault(device_id, Room())
         if role == "device" and room.device:
             raise ValueError("Device already connected")
         if role == "worker" and room.worker:
@@ -241,8 +225,8 @@ async def socket(ws: WebSocket, role: str, device_id: str):
             room.heartbeat_at = now()
             room.metadata = device_metadata(hello)
             room.sync_preview()
-            if cloud:
-                await cloud.call(
+            if state.cloud:
+                await state.cloud.call(
                     "PATCH",
                     f"/rest/v1/devices?id=eq.{device_id}",
                     {
@@ -305,12 +289,12 @@ async def socket(ws: WebSocket, role: str, device_id: str):
                                 "height": height,
                                 "captured_at": now(),
                             }
-                            if cloud:
-                                await cloud.save(device_id, rid, jpeg, h)
+                            if state.cloud:
+                                await state.cloud.save(device_id, rid, jpeg, h)
                             if target in room.clients:
                                 target.emit(pack(h, jpeg))
-                            if cloud:
-                                await cloud.call(
+                            if state.cloud:
+                                await state.cloud.call(
                                     "PATCH",
                                     f"/rest/v1/commands?id=eq.{rid}",
                                     {"status": "completed", "completed_at": now()},
@@ -335,8 +319,8 @@ async def socket(ws: WebSocket, role: str, device_id: str):
                             )
                             continue
                         rid = uid(h.get("image_id"))
-                        if cloud:
-                            rows = await cloud.call(
+                        if state.cloud:
+                            rows = await state.cloud.call(
                                 "GET",
                                 f"/rest/v1/images?id=eq.{rid}&device_id=eq.{device_id}&owner_id=eq.{owner}",
                             )
@@ -381,8 +365,8 @@ async def socket(ws: WebSocket, role: str, device_id: str):
                                 continue
                             if rid in room.pending:
                                 raise ValueError("Duplicate request")
-                            if cloud:
-                                await cloud.call(
+                            if state.cloud:
+                                await state.cloud.call(
                                     "POST",
                                     "/rest/v1/commands",
                                     {
@@ -408,8 +392,8 @@ async def socket(ws: WebSocket, role: str, device_id: str):
                                 for c in data["components"][:32]
                             ]
                         room.broadcast(room.status())
-                        if cloud:
-                            await cloud.call(
+                        if state.cloud:
+                            await state.cloud.call(
                                 "PATCH",
                                 f"/rest/v1/devices?id=eq.{device_id}",
                                 {"last_seen_at": now(), "camera_online": room.camera},
@@ -445,8 +429,8 @@ async def socket(ws: WebSocket, role: str, device_id: str):
                             entry = room.analysis.pop(rid, None)
                             if not entry:
                                 continue
-                            if cloud and kind == "analysis":
-                                await cloud.call(
+                            if state.cloud and kind == "analysis":
+                                await state.cloud.call(
                                     "POST",
                                     "/rest/v1/image_analysis",
                                     {
@@ -455,7 +439,7 @@ async def socket(ws: WebSocket, role: str, device_id: str):
                                         "result_json": data,
                                     },
                                 )
-                                await cloud.call(
+                                await state.cloud.call(
                                     "PATCH",
                                     f"/rest/v1/images?id=eq.{rid}",
                                     {"analysis_status": "completed"},
@@ -513,9 +497,9 @@ async def socket(ws: WebSocket, role: str, device_id: str):
                         }
                     )
                 room.pending.clear()
-                if cloud:
+                if state.cloud:
                     with suppress(Exception):
-                        await cloud.call(
+                        await state.cloud.call(
                             "PATCH",
                             f"/rest/v1/devices?id=eq.{device_id}",
                             {"status": "offline", "camera_online": False},
@@ -534,6 +518,6 @@ async def socket(ws: WebSocket, role: str, device_id: str):
             room.sync_preview()
             room.broadcast(room.status())
             if not room.device and not room.worker and not room.clients:
-                rooms.pop(device_id, None)
+                state.rooms.pop(device_id, None)
         with suppress(Exception):
             await ws.close()
