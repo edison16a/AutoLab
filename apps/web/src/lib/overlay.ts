@@ -4,6 +4,7 @@
  * meaning and colour never has to.
  */
 import type { Analysis } from "@/model/types";
+import { placeChips } from "./overlay-labels";
 
 const ACCENT = "#2684FF";
 
@@ -33,14 +34,24 @@ export function drawDetections(canvas: HTMLCanvasElement, width: number, height:
     }
     const [x1, y1, x2, y2] = d.bbox;
     ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
-
-    const text = `${d.label} ${Math.round(d.confidence * 100)}%`;
-    const chipHeight = 20 * scale;
-    // Keep the label inside the image when a box touches the top edge.
-    const chipTop = y1 - chipHeight < 0 ? y1 : y1 - chipHeight;
-    ctx.fillStyle = ACCENT;
-    ctx.fillRect(x1 - ctx.lineWidth / 2, chipTop, ctx.measureText(text).width + 12 * scale, chipHeight);
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillText(text, x1 + 6 * scale, chipTop + 14 * scale);
   }
+
+  // Labels go on after every box, so no outline is drawn across a label.
+  // The most confident detections are placed first and get the best spots.
+  const ordered = [...analysis.detections].sort((a, b) => b.confidence - a.confidence);
+  const texts = ordered.map((d) => `${d.label} ${Math.round(d.confidence * 100)}%`);
+  const widths = texts.map((text) => ctx.measureText(text).width + 12 * scale);
+  const chips = placeChips(
+    ordered.map((d) => d.bbox),
+    widths,
+    20 * scale,
+    width,
+    height,
+  );
+  chips.forEach((chip, i) => {
+    ctx.fillStyle = ACCENT;
+    ctx.fillRect(chip.x, chip.y, chip.width, chip.height);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillText(texts[i], chip.x + 6 * scale, chip.y + 14 * scale);
+  });
 }
