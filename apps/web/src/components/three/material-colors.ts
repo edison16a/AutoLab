@@ -102,6 +102,10 @@ export const COLOR_RECIPES = {
   foamPink: () => standard("#f39bb0", 0.84),
   // High temperature silicone sponge, the usual orange red door seal on ovens and incubators.
   siliconeGasket: () => standard("#d4532f", 0.78),
+  // Satin stainless for the humidity tray: brighter and softer than the polished steel of screws.
+  stainless: () => standard("#c8cbcf", 0.34, 0.9),
+  // Clean water with the faint blue it takes on in a steel pan.
+  water: () => tinted("#6fbbe6", 0.5, 0.04),
   // The base in the Autolab blue, a shade deeper than the UI accent as powder coat reads lighter under light.
   powderBlue: () => powderCoat("#1b62d0"),
 } satisfies Record<string, () => Material>;

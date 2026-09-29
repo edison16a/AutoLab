@@ -3,6 +3,7 @@ import { Block, Ring } from "../../primitives";
 import { ExtrusionBars, type Bar } from "./ExtrusionBars";
 import { GasLines } from "./GasLines";
 import { ENCLOSURE, GANTRY, PROFILE, SENSOR_RAIL_Y } from "./layout";
+import { WaterTray } from "./WaterTray";
 
 const { halfX: X, halfZ: Z, top: TOP } = ENCLOSURE;
 /** A 2020 rail across the back wall at sensor height; the SHT85 and CO₂ board mount on it. */
@@ -49,9 +50,9 @@ function CameraDock() {
 /**
  * Brackets inside and on the chamber that hold parts in place: the sensor
  * rail and the CO₂ adapter plate on the back wall, the pH probe clip, the
- * camera dock on the right upright, and the CO₂ valve's plate on the roof
- * with its gas lines. The printed ones are light grey PLA, the rest bare
- * aluminium.
+ * camera dock on the right upright, the CO₂ valve's plate on the roof
+ * with its gas lines, and the humidity tray on the floor. The printed ones
+ * are light grey PLA, the rest bare aluminium or stainless.
  */
 export function ChamberFixtures() {
   return (
@@ -63,6 +64,7 @@ export function ChamberFixtures() {
       {/* The valve plate spans the roof's front left corner, resting on both top rails. */}
       <Block position={[-X + 0.24, TOP + 0.005, Z - 0.26]} size={[0.64, 0.01, 0.6]} material="aluminium" />
       <GasLines />
+      <WaterTray />
     </group>
   );
 }
