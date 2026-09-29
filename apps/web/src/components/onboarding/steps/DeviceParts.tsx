@@ -30,17 +30,17 @@ export function WaitingRow({ onStop }: { onStop: () => void }) {
   );
 }
 
-const STATE_TEXT: Record<ProvisionStatus["state"], string> = {
+/** Errors are left out: the step's alert already says what went wrong and why. */
+const STATE_TEXT: Record<Exclude<ProvisionStatus["state"], "error">, string> = {
   ready: "Connected over Bluetooth",
   connecting: "Joining Wi-Fi",
   wifi_connected: "On Wi-Fi, reaching the gateway",
   gateway_connected: "Gateway reached",
-  error: "Wi-Fi setup failed",
 };
 
 /** What the Pi last said over Bluetooth, in words. */
 export function ProvisionState({ state }: { state: ProvisionStatus["state"] | null }) {
-  if (!state) return null;
+  if (!state || state === "error") return null;
   const onWifi = state === "wifi_connected" || state === "gateway_connected";
   const Icon = onWifi ? Wifi : Bluetooth;
   return (
