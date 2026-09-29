@@ -1,0 +1,76 @@
+/*
+  The live device panel: current status, heartbeat and preview rate.
+*/
+
+.stats-live {
+  padding: 18px 20px;
+}
+
+.stats-live__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.stats-live__name {
+  margin-left: auto;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.stats-live__none {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.stats-live__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 16px 0 0;
+}
+
+.stats-live__fact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.stats-live__fact dt {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.stats-live__fact dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@media (max-width: 560px) {
+  .stats-live {
+    padding: 16px;
+  }
+
+  /* On phones each fact becomes a label and value row, which stays short. */
+  .stats-live__facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .stats-live__fact {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+}
