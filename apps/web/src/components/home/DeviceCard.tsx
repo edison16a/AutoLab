@@ -52,7 +52,7 @@ export function DeviceCard() {
   ];
 
   return (
-    <section className="panel home-device" aria-labelledby="home-device-title">
+    <section className="panel home-device home-device--facts" aria-labelledby="home-device-title">
       <header className="panel__head">
         <h2 id="home-device-title" className="home-device__title">
           Device

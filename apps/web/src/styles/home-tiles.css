@@ -17,15 +17,27 @@
   list-style: none;
 }
 
+/*
+  Beside the device facts, the tiles take an equal share of the column's
+  spare height, so neither card stretches into a sparse list. The connect
+  prompt keeps it all, since it is the one thing to do.
+*/
+.home-device--facts + .home-tiles {
+  flex: 1;
+  grid-auto-rows: 1fr;
+}
+
 .home-tiles > li {
   display: flex;
   min-width: 0;
 }
 
+/* Centred, so a tile stretched by a tall column keeps its lines together. */
 .home-tile {
   display: flex;
   flex: 1;
   flex-direction: column;
+  justify-content: center;
   gap: 2px;
   min-width: 0;
   padding: 16px;

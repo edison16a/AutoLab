@@ -14,7 +14,7 @@
   font-size: 14px;
 }
 
-/* Rows share any spare height evenly, so a tall column never leaves a gap under them. */
+/* Rows share the card's spare height evenly, so a tall column never leaves a gap under them. */
 .home-device__rows {
   display: flex;
   flex: 1;
