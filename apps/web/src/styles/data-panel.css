@@ -1,0 +1,136 @@
+/*
+  The side panel on the image detail screen: date and actions, analysis
+  with its model facts, and the details list. Detection rows live in
+  data-detections.css.
+*/
+
+.image-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+}
+
+.image-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.image-panel__section + .image-panel__section {
+  border-top: 1px solid var(--border);
+}
+
+.image-panel__date {
+  font-size: 18px;
+}
+
+.image-panel__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.image-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.image-panel__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Model, backend and timing as a row of small tiles. */
+.model-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.model-facts__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+.model-facts__item + .model-facts__item {
+  border-left: 1px solid var(--border);
+}
+
+.model-facts__value {
+  margin: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-panel__title {
+  font-size: 14px;
+}
+
+.image-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.image-facts__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 24px;
+  font-size: 13px;
+}
+
+.image-facts__row dt {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.image-facts__row dd {
+  min-width: 0;
+  margin: 0;
+  text-align: right;
+}
+
+.image-facts__id {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.image-facts__id .mono {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .image-panel {
+    overflow: visible;
+  }
+
+  .image-panel__section {
+    padding: 16px;
+  }
+}
