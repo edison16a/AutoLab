@@ -1,6 +1,7 @@
 "use client";
 import "@/styles/data-library.css";
 import "@/styles/data-card.css";
+import "@/styles/data-select.css";
 import Link from "next/link";
 import { useMemo } from "react";
 import { Images, SearchX } from "lucide-react";

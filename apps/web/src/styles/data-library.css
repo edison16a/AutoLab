@@ -71,58 +71,6 @@
   margin-left: auto;
 }
 
-/* A select with its name printed inside the box, in muted text. */
-.data-select {
-  display: inline-flex;
-  align-items: center;
-  height: 38px;
-  padding-left: 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg);
-  font-size: 13px;
-  cursor: pointer;
-  transition: border-color 120ms ease;
-}
-
-.data-select:hover {
-  border-color: var(--border-strong);
-}
-
-.data-select:focus-within {
-  border-color: var(--accent);
-}
-
-.data-select__label {
-  color: var(--text-muted);
-}
-
-.data-select__control {
-  height: 100%;
-  padding: 0 30px 0 8px;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
-    no-repeat right 10px center;
-  font-weight: 500;
-  cursor: pointer;
-  outline: none;
-  appearance: none;
-}
-
-.data-select__control option {
-  background: var(--bg);
-  color: var(--text);
-}
-
-.data-select-toggle--on,
-.data-select-toggle--on:hover:not(:disabled) {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent-text);
-}
-
 .data-days {
   display: flex;
   flex-direction: column;
