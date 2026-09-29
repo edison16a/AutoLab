@@ -29,7 +29,9 @@ const CARRIAGE_BOLTS: Vec3[] = [-0.2, 0.2].flatMap((dx) => [-1, 1].map((side) =>
 /**
  * The X axis: the 2040 beam between the Z carriages, the motor behind its
  * left end, a GT2 belt above it to the tensioned idler on the right, and
- * the wheeled carriage the pipette tool hangs from.
+ * the wheeled carriage the pipette tool hangs from. The plates and the
+ * tensioner are the Ender's own, black anodised; the pulleys are bare
+ * aluminium.
  */
 export function XAxis() {
   const motorZ = BEAM_BACK - 0.02 - MOTOR_HALF;
@@ -40,16 +42,16 @@ export function XAxis() {
         <StepperMotorModel />
       </group>
       {/* Motor plate bolted to the back of the beam. */}
-      <Block position={[DRIVE[0], (BEAM_Y + DRIVE[1] + 0.3) / 2, BEAM_BACK - 0.01]} size={[0.6, DRIVE[1] + 0.3 - BEAM_Y, 0.02]} material="aluminium" />
+      <Block position={[DRIVE[0], (BEAM_Y + DRIVE[1] + 0.3) / 2, BEAM_BACK - 0.01]} size={[0.6, DRIVE[1] + 0.3 - BEAM_Y, 0.02]} material="blackAnodised" />
       <Pulley position={DRIVE} rotation={[Math.PI / 2, 0, 0]} />
       <Pulley position={IDLER} rotation={[Math.PI / 2, 0, 0]} />
       {/* Tensioner: a block on the beam with two cheeks either side of the idler. */}
-      <Block position={[IDLER[0] + 0.05, BEAM_TOP + 0.05, BEAM_Z]} size={[0.3, 0.1, 0.2]} radius={0.015} material="aluminium" />
+      <Block position={[IDLER[0] + 0.05, BEAM_TOP + 0.05, BEAM_Z]} size={[0.3, 0.1, 0.2]} radius={0.015} material="blackAnodised" />
       {[-1, 1].map((side) => (
-        <Block key={side} position={[IDLER[0], (BEAM_TOP + IDLER[1]) / 2 + 0.05, BEAM_Z + side * 0.07]} size={[0.2, IDLER[1] - BEAM_TOP + 0.1, 0.02]} radius={0.008} material="aluminium" />
+        <Block key={side} position={[IDLER[0], (BEAM_TOP + IDLER[1]) / 2 + 0.05, BEAM_Z + side * 0.07]} size={[0.2, IDLER[1] - BEAM_TOP + 0.1, 0.02]} radius={0.008} material="blackAnodised" />
       ))}
       <Belt from={DRIVE} to={IDLER} axle="z" />
-      <Block position={[TOOL.x, BEAM_Y, CARRIAGE.z]} size={[CARRIAGE.width, CARRIAGE.height, 0.03]} material="aluminium" />
+      <Block position={[TOOL.x, BEAM_Y, CARRIAGE.z]} size={[CARRIAGE.width, CARRIAGE.height, 0.03]} material="blackAnodised" />
       <VWheels items={WHEELS} />
       {CARRIAGE_BOLTS.map((position) => (
         <group key={position.join()} position={position} rotation={[Math.PI / 2, 0, 0]}>
@@ -57,7 +59,7 @@ export function XAxis() {
         </group>
       ))}
       {/* Belt clamp on the carriage's top edge, gripping the lower run. */}
-      <Block position={[TOOL.x, MOTION.beltY - 0.056, BEAM_Z + 0.04]} size={[0.3, 0.06, 0.16]} radius={0.012} material="plasticGrey" />
+      <Block position={[TOOL.x, MOTION.beltY - 0.056, BEAM_Z + 0.04]} size={[0.3, 0.06, 0.16]} radius={0.012} material="plasticBlack" />
     </group>
   );
 }
