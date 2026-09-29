@@ -1,0 +1,134 @@
+/*
+  One image in the Data library grid: a 4:3 thumbnail over a row with the
+  time and analysis badge. In select mode a round check sits on the corner.
+*/
+
+.photo-card {
+  position: relative;
+  min-width: 0;
+}
+
+.photo-card__link {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+
+.photo-card__link:hover {
+  border-color: var(--border-strong);
+}
+
+.photo-card__thumb {
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--bg-muted);
+}
+
+.photo-card--skeleton .photo-card__thumb {
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.photo-card--skeleton {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.photo-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+}
+
+.photo-card__time {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Hidden until the card is hovered or focused, so the grid stays calm. */
+.photo-card__delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease, background-color 120ms ease;
+}
+
+.photo-card:hover .photo-card__delete,
+.photo-card:focus-within .photo-card__delete {
+  opacity: 1;
+}
+
+.photo-card__delete:hover {
+  background: var(--bg-muted);
+}
+
+/* Touch screens have no hover, so the button is always there. */
+@media (hover: none) {
+  .photo-card__delete {
+    opacity: 1;
+  }
+}
+
+/* The real checkbox stays in the page for keyboards and screen readers. */
+.photo-card__checkbox {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.photo-card__check {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--bg);
+  color: transparent;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.photo-card__checkbox:focus-visible + .photo-card__check {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.photo-card.is-selected .photo-card__check {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.photo-card.is-selected .photo-card__link {
+  border-color: var(--accent);
+  outline: 1px solid var(--accent);
+}
