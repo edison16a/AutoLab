@@ -130,7 +130,8 @@ const creasedList = new Set<BufferGeometry>();
 export function creasedGeometry(source: BufferGeometry) {
   let geometry = creased.get(source);
   if (!geometry) {
-    const built = toCreasedNormals(source, Math.PI);
+    // Without an index, toCreasedNormals edits the geometry in place, which would reshade the shared original.
+    const built = toCreasedNormals(source.index ? source : source.clone(), Math.PI);
     creased.set(source, built);
     creasedList.add(built);
     source.addEventListener("dispose", () => {
