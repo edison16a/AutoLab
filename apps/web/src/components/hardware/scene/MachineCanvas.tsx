@@ -1,0 +1,86 @@
+"use client";
+import { useCallback, useEffect, useState } from "react";
+import { FocusControls } from "@/components/three/camera/FocusControls";
+import { Stage } from "@/components/three/Stage";
+import { useShadowRefresh } from "@/components/three/stage/StageShadows";
+import { partById } from "@/data/hardware-parts";
+import { usePartStates } from "../use-part-states";
+import { inspectFocus, MACHINE_BOUNDS, overviewFocus, partFocus } from "./camera-focus";
+import { InspectScene, type InspectMeasure } from "./InspectScene";
+import { MachineScene } from "./MachineScene";
+import type { MachineViewProps } from "./machine-view-props";
+
+/** Redraws the frozen shadows whenever what's on stage changes shape. */
+function ShadowSync({ signature }: { signature: string }) {
+  const refresh = useShadowRefresh();
+  useEffect(() => refresh(), [signature, refresh]);
+  return null;
+}
+
+/**
+ * The machine on the 3D stage, with camera flights between the whole
+ * machine, a focused part in context and the isolated inspect view.
+ * Loaded on demand by MachineView so three.js stays out of the first bundle.
+ */
+export default function MachineCanvas({
+  selected = null,
+  hovered,
+  onHover,
+  onSelect,
+  inspecting = false,
+  exploded = false,
+  connections = false,
+  flight = 0,
+  insetRight = 0,
+  className,
+}: MachineViewProps) {
+  const states = usePartStates();
+  const [ownHover, setOwnHover] = useState<string | null>(null);
+  const [measure, setMeasure] = useState<InspectMeasure | null>(null);
+  const hoverId = hovered === undefined ? ownHover : hovered;
+  const setHover = onHover ?? setOwnHover;
+  const onMeasured = useCallback((next: InspectMeasure) => setMeasure(next), []);
+
+  const part = selected ? partById[selected] ?? null : null;
+  const inspectPart = inspecting ? part : null;
+  const measured = inspectPart && measure?.id === inspectPart.id ? measure : null;
+
+  // The key decides when to fly; the focus says where. Until the inspected
+  // part is measured, keep the in-context key so the camera waits for it.
+  let focus = overviewFocus(exploded);
+  let focusKey = `machine:${exploded}:${flight}`;
+  if (part && measured) {
+    focus = inspectFocus(part, measured.center, measured.radius);
+    focusKey = `inspect:${part.id}:${flight}`;
+  } else if (part) {
+    focus = partFocus(part, exploded);
+    focusKey = `part:${part.id}:${exploded}:${inspecting ? "waiting" : flight}`;
+  }
+
+  return (
+    <Stage label="3D model of the Autolab" className={className} shadowRadius={inspectPart ? 2.2 : 5.5}>
+      <FocusControls
+        focus={focus}
+        focusKey={focusKey}
+        minDistance={measured ? measured.radius * 1.2 : 0.8}
+        maxDistance={measured ? measured.radius * 12 : 24}
+        bounds={measured ? undefined : MACHINE_BOUNDS}
+        insetRight={insetRight}
+      />
+      {inspectPart ? (
+        <InspectScene part={inspectPart} live={states[inspectPart.id]?.live ?? false} onMeasured={onMeasured} />
+      ) : (
+        <MachineScene
+          states={states}
+          selected={selected}
+          hovered={hoverId}
+          exploded={exploded}
+          connections={connections}
+          onHover={setHover}
+          onSelect={onSelect}
+        />
+      )}
+      <ShadowSync signature={`${inspectPart?.id ?? ""}:${exploded}`} />
+    </Stage>
+  );
+}
