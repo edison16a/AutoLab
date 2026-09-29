@@ -25,7 +25,7 @@ export interface WireRun {
 const WIRE_RADIUS = 0.009;
 const SIDES = 6;
 const CABLE_SIDES = 10;
-const STEP = 0.035;
+const STEP = 0.05;
 
 const up = new Vector3(0, 1, 0);
 
