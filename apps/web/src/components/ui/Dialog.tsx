@@ -16,6 +16,10 @@ interface DialogProps {
  */
 export function Dialog({ open, title, onClose, children, actions }: DialogProps) {
   const panel = useRef<HTMLDivElement>(null);
+  // Callers often pass an inline onClose. Reading it through a ref keeps focus
+  // from jumping back to the first button on every render while open.
+  const close = useRef(onClose);
+  close.current = onClose;
 
   useEffect(() => {
     if (!open) return;
@@ -23,13 +27,13 @@ export function Dialog({ open, title, onClose, children, actions }: DialogProps)
     // The last button is the main action by convention, so it gets focus.
     const buttons = panel.current?.querySelectorAll<HTMLElement>("button, input");
     (buttons?.[buttons.length - 1] ?? panel.current)?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close.current();
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
       opener?.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
   return (
