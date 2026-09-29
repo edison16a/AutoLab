@@ -86,16 +86,17 @@ export function DotTimeChart({ points, window, summary, tick, describe, day, ref
             <ValueAxis scale={scale} format={tick} left={left} right={width - RIGHT} y={y} />
             {activeX !== null ? <line className="stats-chart__cross" x1={activeX} x2={activeX} y1={TOP - 6} y2={bottom} /> : null}
             {reference ? (
-              <g>
-                <line className="stats-chart__ref" x1={left} x2={width - RIGHT} y1={y(reference.value)} y2={y(reference.value)} />
-                <text className="stats-chart__ref-label" x={width - RIGHT} y={y(reference.value) - 5} textAnchor="end">
-                  {reference.label}
-                </text>
-              </g>
+              <line className="stats-chart__ref" x1={left} x2={width - RIGHT} y1={y(reference.value)} y2={y(reference.value)} />
             ) : null}
             {points.map((p) => (
               <circle key={p.key} className="stats-chart__dot" cx={x(p.time)} cy={y(p.value)} r={4} />
             ))}
+            {/* The label goes over the dots. Its halo keeps it readable where they cross. */}
+            {reference ? (
+              <text className="stats-chart__ref-label" x={width - RIGHT} y={y(reference.value) - 5} textAnchor="end">
+                {reference.label}
+              </text>
+            ) : null}
             {/* Drawn again on top so a crowded point is never hidden under its neighbours. */}
             {active !== null ? (
               <circle className="stats-chart__dot" cx={x(points[active].time)} cy={y(points[active].value)} r={5.5} />
