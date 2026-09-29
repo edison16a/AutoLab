@@ -154,6 +154,7 @@
   }
 
   .data-toolbar__selects {
+    flex: 1 1 100%;
     margin-left: 0;
   }
 

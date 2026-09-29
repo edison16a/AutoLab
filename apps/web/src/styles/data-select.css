@@ -37,9 +37,15 @@
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
     no-repeat right 10px center;
   font-weight: 500;
+  text-overflow: ellipsis;
   cursor: pointer;
   outline: none;
   appearance: none;
+}
+
+/* A native select is as wide as its longest option, so a long device name is capped. */
+.data-select__control {
+  max-width: 200px;
 }
 
 .data-select__control option {
@@ -52,4 +58,20 @@
   border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--accent-text);
+}
+
+/*
+  Phones: the selects share each row and stretch to fill it, so a long
+  device name can't leave a ragged stack of boxes in different widths.
+*/
+@media (max-width: 860px) {
+  .data-select {
+    flex: 1 1 auto;
+  }
+
+  .data-select__control {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+  }
 }
