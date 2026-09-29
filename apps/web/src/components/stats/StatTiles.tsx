@@ -4,34 +4,40 @@ import type { Summary } from "@/lib/stats/types";
 
 interface Tile {
   label: string;
-  /** Null means there's nothing to measure yet, which reads differently from zero. */
-  value: string | null;
-  /** Shown in place of a null value. */
-  missing?: string;
+  value: string;
+  /** Nothing counted or measured yet. The value is drawn faint so a zero reads as a resting state. */
+  zero: boolean;
   sub: string;
 }
 
 /** Six headline numbers, each with one short line that is true for the current filter. */
 function tiles(s: Summary): Tile[] {
-  const unsizedOnly = s.captures > 0 && s.unsized === s.captures;
   return [
-    { label: "Captures", value: formatCount(s.captures), sub: `${formatCount(s.today)} today` },
-    { label: "Analyzed", value: formatCount(s.analyzed), sub: s.captures ? `${s.analyzedPercent}% of captures` : "No captures" },
-    { label: "Objects detected", value: formatCount(s.detections), sub: plural(s.labels, "label") },
+    { label: "Captures", value: formatCount(s.captures), zero: !s.captures, sub: `${formatCount(s.today)} today` },
+    {
+      label: "Analyzed",
+      value: formatCount(s.analyzed),
+      zero: !s.analyzed,
+      sub: s.captures ? `${s.analyzedPercent}% of captures` : "No captures",
+    },
+    { label: "Objects detected", value: formatCount(s.detections), zero: !s.detections, sub: plural(s.labels, "label") },
     {
       label: "Objects per image",
-      value: s.perImage === null ? null : formatDecimal(s.perImage),
+      value: formatDecimal(s.perImage ?? 0),
+      zero: !s.perImage,
       sub: s.analyzed ? `${plural(s.analyzed, "image")} analyzed` : "Nothing analyzed",
     },
     {
       label: "Median inference",
-      value: s.medianMs === null ? null : formatMs(s.medianMs),
+      value: formatMs(s.medianMs ?? 0),
+      zero: s.medianMs === null,
       sub: s.meanMs === null ? "No timings yet" : `Average ${formatMs(s.meanMs)}`,
     },
     {
+      // Cloud images take no room in this browser, so an all cloud library honestly uses 0 B here.
       label: "Storage used",
-      value: unsizedOnly ? null : formatBytes(s.bytes),
-      missing: "Unknown",
+      value: formatBytes(s.bytes),
+      zero: !s.bytes,
       sub: s.unsized ? `${plural(s.unsized, "cloud image")} not counted` : "In this browser",
     },
   ];
@@ -49,10 +55,10 @@ export function StatTiles({ summary, loading }: StatTilesProps) {
       {tiles(summary).map((tile) => (
         <div key={tile.label} className="stats-tile">
           <dt className="stats-tile__label">{tile.label}</dt>
-          <dd className={`stats-tile__value ${tile.value === null ? "stats-tile__value--none" : ""}`}>
-            {loading ? <span className="skeleton stats-tile__skeleton" /> : (tile.value ?? tile.missing ?? "None")}
+          <dd className={`stats-tile__value ${tile.zero && !loading ? "stats-tile__value--zero" : ""}`}>
+            {loading ? <span className="skeleton stats-tile__skeleton" /> : tile.value}
           </dd>
-          <dd className="stats-tile__sub">{loading ? " " : tile.sub}</dd>
+          <dd className="stats-tile__sub">{loading ? "\u00a0" : tile.sub}</dd>
         </div>
       ))}
     </dl>

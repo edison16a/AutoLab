@@ -44,7 +44,7 @@
   text-overflow: ellipsis;
 }
 
-.stats-tile__value--none {
+.stats-tile__value--zero {
   color: var(--text-faint);
 }
 
