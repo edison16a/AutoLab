@@ -1,6 +1,6 @@
 "use client";
 import { useState, type FormEvent } from "react";
-import { LoaderCircle } from "lucide-react";
+import { ChevronRight, LoaderCircle } from "lucide-react";
 import { DeviceNameField, WaitingRow } from "./DeviceParts";
 import { StepFrame } from "./StepFrame";
 
@@ -84,7 +84,10 @@ export function ManualForm({ mode, gateway, busy, waiting, message, onSubmit, on
           )}
         </div>
         <details className="onboarding-details">
-          <summary>Pi agent command</summary>
+          <summary>
+            <ChevronRight className="onboarding-details__chevron" size={16} strokeWidth={1.8} aria-hidden="true" />
+            Pi agent command
+          </summary>
           <pre className="onboarding-code">{agentCommand(gateway)}</pre>
           <p className="onboarding-details__text">Set up Wi-Fi first with Raspberry Pi Imager, or over SSH with sudo nmtui.</p>
         </details>

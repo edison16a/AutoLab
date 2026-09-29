@@ -24,12 +24,35 @@
   border-radius: var(--radius-sm);
 }
 
+/* A drawn chevron instead of the browser's triangle, to match the other disclosures in the app. */
 .onboarding-details summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   padding: 9px 12px;
   color: var(--text-muted);
   font-size: 13px;
+  list-style: none;
   cursor: pointer;
   transition: color 120ms ease;
+}
+
+/* The box clips anything outside it, so the focus ring is drawn inside. */
+.onboarding-details summary:focus-visible {
+  border-radius: var(--radius-sm);
+  outline-offset: -2px;
+}
+
+.onboarding-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.onboarding-details__chevron {
+  flex-shrink: 0;
+}
+
+.onboarding-details[open] .onboarding-details__chevron {
+  transform: rotate(90deg);
 }
 
 .onboarding-details summary:hover,

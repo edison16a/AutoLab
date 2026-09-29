@@ -1,5 +1,5 @@
 "use client";
-import { Bluetooth, Info, LoaderCircle } from "lucide-react";
+import { Bluetooth, ChevronRight, Info, LoaderCircle } from "lucide-react";
 import { StepFrame } from "./StepFrame";
 
 interface DiscoverStepProps {
@@ -51,7 +51,10 @@ export function DiscoverStep({ supported, busy, message, onFind, onManual }: Dis
         <li>Select Find Autolab, then pick your Autolab.</li>
       </ol>
       <details className="onboarding-details">
-        <summary>Setup service command</summary>
+        <summary>
+          <ChevronRight className="onboarding-details__chevron" size={16} strokeWidth={1.8} aria-hidden="true" />
+          Setup service command
+        </summary>
         <pre className="onboarding-code">{SERVICE_COMMAND}</pre>
       </details>
       {supported === false ? (
