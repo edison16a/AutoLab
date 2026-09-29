@@ -39,8 +39,8 @@ const CARRIAGE_BOLTS: Vec3[] = [-0.2, 0.2].flatMap((dx) => [-1, 1].map((side) =>
 /**
  * The X axis: the 2040 beam between the Z carriages, the motor behind its
  * left end, a GT2 belt above it to the tensioned idler on the right, and
- * the wheeled carriage the pipette tool hangs from. The plates and the
- * tensioner are the Ender's own, black anodised; the pulleys are bare
+ * the wheeled carriage the pipette tool hangs from. The tensioner is the
+ * Ender's own, black anodised; the motor plate and pulleys are bare
  * aluminium.
  */
 export function XAxis() {
@@ -52,11 +52,11 @@ export function XAxis() {
         <group position={[DRIVE[0], DRIVE[1], motorZ]} rotation={[Math.PI / 2, 0, 0]}>
           <StepperMotorModel shaft={xPulleyAngle} />
         </group>
-        {/* Motor plate bolted to the back of the beam. */}
+        {/* Bare aluminium motor plate bolted to the back of the beam. */}
         <Block
           position={[DRIVE[0], (BEAM_Y + DRIVE[1] + 0.3) / 2, PLATE.front - PLATE.thickness / 2]}
           size={[0.6, DRIVE[1] + 0.3 - BEAM_Y, PLATE.thickness]}
-          material="blackAnodised"
+          material="aluminiumBlasted"
         />
         {[DRIVE, IDLER].map((at) => (
           <group key={at[0]} position={at} rotation={[Math.PI / 2, 0, 0]}>
