@@ -44,6 +44,11 @@
   line-height: 1.35;
 }
 
+.live-controls__detect:has(.switch:disabled) {
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
 .live-controls__status {
   color: var(--text-muted);
   font-size: 12px;
@@ -118,7 +123,14 @@
     display: none;
   }
 
+  /* A full width settings row: words on the left, switch on the right. */
   .live-controls__detect {
+    flex: 1 1 100%;
+    justify-content: space-between;
     margin-left: 0;
+  }
+
+  .live-controls__detect-text {
+    align-items: flex-start;
   }
 }
