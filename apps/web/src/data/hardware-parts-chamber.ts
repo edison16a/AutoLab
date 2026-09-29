@@ -95,12 +95,13 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     connection: "Fan output from the Pi",
     model: "fan",
     liveNow: false,
-    position: [2.01, 3.0, -0.9],
+    // On the back half of the right wall, behind the gantry upright.
+    position: [2.01, 3.45, -1.15],
     rotation: [0, -Math.PI / 2, 0],
     size: [0.24, 0.82, 0.82],
     exploded: [0.9, 0.2, 0],
-    // From above the X motor, looking down at the intake side.
-    view: [-0.55, 0.5, 0.7],
+    // From inside the chamber toward the wall: from the front the gantry stands in the way.
+    view: [-1, 0.2, -0.15],
     inspectRotation: [0, -Math.PI / 5, 0],
   },
   {
