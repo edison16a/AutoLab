@@ -44,30 +44,32 @@ export interface ChainPath {
 /**
  * Links laid along the chain's path: the lower run from the fixed end to
  * the bend, half a turn up and over, then the upper run back to the
- * carriage. Each link is turned about Z to follow the path.
+ * carriage. The bend may sit on either side of the ends. Each link is
+ * turned about Z to follow the path.
  */
 export function linkPlacements({ fixed, moving, loop, y, radius, z }: ChainPath): RepeatItem[] {
-  const lower = fixed - loop;
+  // Which way the lower run heads from the fixed end: toward -X when the bend is on the left.
+  const dir = Math.sign(fixed - loop);
+  const lower = Math.abs(fixed - loop);
   const bend = Math.PI * radius;
-  const upper = moving - loop;
-  const total = lower + bend + upper;
-  const count = Math.floor(total / LINK.pitch);
+  const upper = Math.abs(moving - loop);
+  const count = Math.floor((lower + bend + upper) / LINK.pitch);
   const items: RepeatItem[] = [];
   for (let i = 0; i < count; i++) {
     const s = (i + 0.5) * LINK.pitch;
     let position: Vec3;
     let angle: number;
     if (s < lower) {
-      position = [fixed - s, y, z];
-      angle = Math.PI;
+      position = [fixed - dir * s, y, z];
+      angle = dir > 0 ? Math.PI : 0;
     } else if (s < lower + bend) {
-      // Round the bend from the bottom, through the far side, to the top.
-      const a = -Math.PI / 2 - (s - lower) / radius;
+      // Round the far side of the bend, from the bottom to the top.
+      const a = -Math.PI / 2 - (dir * (s - lower)) / radius;
       position = [loop + Math.cos(a) * radius, y + radius + Math.sin(a) * radius, z];
-      angle = a - Math.PI / 2;
+      angle = a - (dir * Math.PI) / 2;
     } else {
-      position = [loop + (s - lower - bend), y + radius * 2, z];
-      angle = 0;
+      position = [loop + dir * (s - lower - bend), y + radius * 2, z];
+      angle = dir > 0 ? 0 : Math.PI;
     }
     items.push({ position, rotation: [0, 0, angle] });
   }

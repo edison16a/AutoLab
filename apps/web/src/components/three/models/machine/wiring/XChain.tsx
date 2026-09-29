@@ -5,15 +5,17 @@ import { GANTRY, PROFILE } from "../layout";
 import { linkGeometry, linkPlacements, LINK, type ChainPath } from "./chain-geometry";
 
 const BEAM_BACK = GANTRY.beamZ - PROFILE / 2;
-/** The tray rides on the beam, just above the belt and behind it, clear of the X motor on the left. */
-const TRAY = { from: -0.56, to: 1.32, top: 3.49, thickness: 0.012, lip: 0.03 } as const;
+/** The tray rides on the beam, just above the belt and behind it, stopping short of the X motor plate on the left. */
+const TRAY = { from: -0.62, to: 0.52, top: 3.49, thickness: 0.012, lip: 0.03 } as const;
 /**
- * The chain at rest: fixed on the tray to the right, looping back over
- * itself on the left, and its moving end on a printed arm off the back of
- * the pipette drive. Exported so the wiring can start and end in it.
+ * The chain at rest: fixed on the tray at the left, running right to its
+ * bend and back over itself to the moving end, on a printed arm off the
+ * back of the pipette drive. The cables leave the fixed end toward the
+ * left upright, well clear of the fan on the right wall. Exported so the
+ * wiring can start and end in it.
  */
-export const X_CHAIN: ChainPath = { fixed: 1.12, moving: -0.15, loop: -0.42, y: TRAY.top + LINK.height / 2, radius: 0.1, z: -0.52 };
-const BRACKETS = [-0.3, 0.45, 1.2];
+export const X_CHAIN: ChainPath = { fixed: -0.5, moving: -0.15, loop: 0.3, y: TRAY.top + LINK.height / 2, radius: 0.1, z: -0.52 };
+const BRACKETS = [-0.45, 0.4];
 /** Back edge and underside of the pipette motor's printed shelf, which the moving end's arm is fixed to. */
 const DRIVE_BACK = -0.38;
 const SHELF_Y = 3.485;
@@ -54,10 +56,10 @@ export function XChain() {
       ))}
       <Repeat items={links} geometry={linkGeometry()} material="chainOrange" />
       {/* End mounts: one screwed to the tray, one on a printed arm off the back of the pipette drive. */}
-      <Block position={[fixed + 0.05, y, z]} size={[0.1, LINK.height + 0.01, LINK.width + 0.012]} radius={0.01} material="chainOrange" />
-      <Block position={[moving + 0.05, upper, z]} size={[0.1, LINK.height + 0.01, LINK.width + 0.012]} radius={0.01} material="chainOrange" />
-      <Block position={[moving + 0.05, upper, (z + LINK.width / 2 + DRIVE_BACK) / 2]} size={[0.09, 0.05, DRIVE_BACK - z - LINK.width / 2]} radius={0.01} material={PLA} />
-      <Block position={[moving + 0.05, (upper + SHELF_Y) / 2, DRIVE_BACK - 0.015]} size={[0.09, upper - SHELF_Y + 0.025, 0.03]} radius={0.01} material={PLA} />
+      <Block position={[fixed - 0.05, y, z]} size={[0.1, LINK.height + 0.01, LINK.width + 0.012]} radius={0.01} material="chainOrange" />
+      <Block position={[moving - 0.05, upper, z]} size={[0.1, LINK.height + 0.01, LINK.width + 0.012]} radius={0.01} material="chainOrange" />
+      <Block position={[moving - 0.05, upper, (z + LINK.width / 2 + DRIVE_BACK) / 2]} size={[0.09, 0.05, DRIVE_BACK - z - LINK.width / 2]} radius={0.01} material={PLA} />
+      <Block position={[moving - 0.05, (upper + SHELF_Y) / 2, DRIVE_BACK - 0.015]} size={[0.09, upper - SHELF_Y + 0.025, 0.03]} radius={0.01} material={PLA} />
     </group>
   );
 }
