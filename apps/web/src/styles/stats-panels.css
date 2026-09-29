@@ -1,6 +1,5 @@
 /*
-  Statistics panels: the card around each chart, its "View table" twin and
-  the live device strip at the bottom.
+  Statistics panels: the card around each chart and its "View table" twin.
 */
 
 .stats-panel {
@@ -41,7 +40,9 @@
 
 /* Every chart gets the same height, so side by side panels line up without stretching. */
 .stats-panel__body {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-width: 0;
   min-height: 220px;
 }
@@ -50,7 +51,9 @@
   min-height: 0;
 }
 
-.stats-panel__body .empty {
+/* Centred in whatever height the row gives the panel. */
+.stats-panel__body > .empty {
+  flex: 1;
   min-height: 200px;
 }
 
@@ -131,68 +134,8 @@
   border-bottom: 0;
 }
 
-/* Live device strip. */
-.stats-live {
-  padding: 18px 20px;
-}
-
-.stats-live__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.stats-live__name {
-  margin-left: auto;
-  overflow: hidden;
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.stats-live__facts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin: 16px 0 0;
-}
-
-.stats-live__fact {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.stats-live__fact dt {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.stats-live__fact dd {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 500;
-}
-
 @media (max-width: 560px) {
-  .stats-panel,
-  .stats-live {
+  .stats-panel {
     padding: 16px;
-  }
-
-  /* On phones each fact becomes a label and value row, which stays short. */
-  .stats-live__facts {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
-  }
-
-  .stats-live__fact {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
   }
 }
