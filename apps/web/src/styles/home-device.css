@@ -1,0 +1,94 @@
+/*
+  The card beside the machine: device facts as rows when a device is
+  selected, or the connect prompt when there isn't one yet.
+*/
+
+.home-device {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.home-device__title {
+  font-size: 14px;
+}
+
+/* Rows share any spare height evenly, so a tall column never leaves a gap under them. */
+.home-device__rows {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  margin: 0;
+  padding: 4px 16px;
+}
+
+.home-device__row {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  border-bottom: 1px solid var(--border);
+}
+
+.home-device__row:last-child {
+  border-bottom: 0;
+}
+
+.home-device__row dt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--text-muted);
+}
+
+.home-device__row dt svg {
+  flex-shrink: 0;
+  color: var(--text-faint);
+}
+
+.home-device__row dd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.home-connect {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 24px;
+}
+
+.home-connect__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 10px;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.home-connect__title {
+  font-size: 16px;
+}
+
+.home-connect__text {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.home-connect .btn {
+  align-self: flex-start;
+  margin-top: 14px;
+}
