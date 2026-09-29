@@ -1,7 +1,9 @@
 "use client";
 import "@/styles/stats.css";
+import "@/styles/stats-tiles.css";
 import "@/styles/stats-panels.css";
 import "@/styles/stats-charts.css";
+import "@/styles/stats-live.css";
 import Link from "next/link";
 import { ChartNoAxesColumn } from "lucide-react";
 import { formatDay, plural } from "@/lib/stats/format";
