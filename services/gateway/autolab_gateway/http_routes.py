@@ -1,4 +1,8 @@
-"""HTTP routes. Everything except /health needs cloud mode, and most need an owner."""
+"""HTTP routes. Everything except /health needs cloud mode, and most need an owner.
+
+Route notes are comments, not docstrings, because FastAPI publishes route
+docstrings in the OpenAPI schema.
+"""
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
@@ -27,7 +31,7 @@ async def health():
 
 @router.post("/devices/register")
 async def register(body: Registration, request: Request):
-    """Called by the Pi itself, so it is limited per client address, not per user."""
+    # Called by the Pi itself, so the limit is per client address, not per user.
     if not state.cloud:
         raise HTTPException(404, "Cloud mode is disabled")
     rate(("register", request.client.host), 10)
@@ -36,7 +40,7 @@ async def register(body: Registration, request: Request):
 
 @router.post("/devices/claim")
 async def claim(body: Claim, request: Request):
-    """Six-digit codes are guessable in bulk, so claims get a tight per-user limit."""
+    # Six-digit codes are guessable in bulk, so claims get a tight per-user limit.
     owner = await user(request)
     rate(("claim", owner), 5)
     result = await state.cloud.call(
