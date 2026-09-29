@@ -15,6 +15,6 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: pip install -r services/gateway/requirements.txt -r devices/raspberry-pi/requirements.txt
-      - run: pytest tests/test_gateway.py tests/test_provisioning.py -q
+      - run: pytest tests -q
       - run: npx playwright install --with-deps chromium
       - run: python tests/run_e2e.py
