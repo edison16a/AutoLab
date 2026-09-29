@@ -19,6 +19,8 @@ export interface HeaderProps {
   board?: number;
   /** Female sockets instead of male pins: a taller black housing with holes. */
   female?: boolean;
+  /** Hobby headers come gold flashed or tinned. Gold unless the board says otherwise. */
+  plating?: "gold" | "tin";
 }
 
 const PIN = mm(0.64);
@@ -29,7 +31,17 @@ const SOCKET = mm(8.5);
  * A 0.1 inch header: the black moulded spacer and the square posts above
  * it, plus tails under the board, in two instanced draws.
  */
-export function Header({ position, count, rows = 1, along = "x", pinLength = mm(6), tailLength = mm(2.5), board = mm(1.6), female = false }: HeaderProps) {
+export function Header({
+  position,
+  count,
+  rows = 1,
+  along = "x",
+  pinLength = mm(6),
+  tailLength = mm(2.5),
+  board = mm(1.6),
+  female = false,
+  plating = "gold",
+}: HeaderProps) {
   const { pins, tails } = useMemo(() => {
     const spots: [number, number][] = [];
     for (let row = 0; row < rows; row++)
@@ -51,8 +63,8 @@ export function Header({ position, count, rows = 1, along = "x", pinLength = mm(
   return (
     <group position={position}>
       <Block position={[0, height / 2, 0]} size={size} material="plasticBlack" />
-      {pins.length ? <Repeat items={pins} material="steel" /> : null}
-      {tails.length ? <Repeat items={tails} material="steel" /> : null}
+      {pins.length ? <Repeat items={pins} material={plating} /> : null}
+      {tails.length ? <Repeat items={tails} material={plating} /> : null}
     </group>
   );
 }
