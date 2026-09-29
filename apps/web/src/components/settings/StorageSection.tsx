@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { LoaderCircle, Trash2 } from "lucide-react";
 import { errorText } from "@/lib/errors";
 import { formatBytes } from "@/lib/format";
@@ -24,6 +24,9 @@ export function StorageSection() {
   const { mode, photos, photosReady, clearLocalData, notify } = useAutolab();
   const [confirming, setConfirming] = useState(false);
   const [clearing, setClearing] = useState(false);
+  // The Clear button is disabled once there's nothing left, which drops focus to the page.
+  // The usage line takes it instead, so keyboard and screen reader users stay in place.
+  const usageLine = useRef<HTMLSpanElement>(null);
 
   // Cloud rows don't report a size, and they aren't in this browser anyway.
   const local = useMemo(() => {
@@ -40,6 +43,7 @@ export function StorageSection() {
     try {
       await clearLocalData();
       notify("Local images cleared", "success");
+      usageLine.current?.focus();
     } catch (error) {
       notify(errorText(error), "error");
     } finally {
@@ -58,7 +62,11 @@ export function StorageSection() {
     <SettingsSection title="Storage">
       <SettingsRow
         label="Images in this browser"
-        hint={photosReady ? usage(local.count, local.bytes) : "Counting"}
+        hint={
+          <span ref={usageLine} tabIndex={-1} className="settings-row__focus">
+            {photosReady ? usage(local.count, local.bytes) : "Counting"}
+          </span>
+        }
       >
         <button
           type="button"
