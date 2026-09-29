@@ -39,10 +39,10 @@ function Side({ side }: { side: 1 | -1 }) {
       <Block position={[screwX, TOP - 0.035, Z]} size={[0.24, 0.07, 0.14]} radius={0.015} material="aluminium" />
       <Cylinder position={[screwX, TOP - 0.08, Z]} radius={0.045} height={0.03} material="steel" />
       {/* Carriage plate, with the nut arm reaching back to the screw. */}
-      <Block position={[plateX, BEAM_Y, (PLATE.back + PLATE.front) / 2]} size={[PLATE.thickness, PLATE.height, plateDepth]} material="aluminium" />
-      <Block position={[(plateX + screwX) / 2, nutY, Z]} size={[Math.abs(plateX - screwX) + 0.04, 0.08, 0.2]} radius={0.015} material="plasticGrey" />
-      <Cylinder position={[screwX, nutY, Z]} radius={0.05} height={0.14} material="steel" />
-      <Cylinder position={[screwX, nutY + 0.075, Z]} radius={0.075} height={0.02} material="steel" />
+      <Block position={[plateX, BEAM_Y, (PLATE.back + PLATE.front) / 2]} size={[PLATE.thickness, PLATE.height, plateDepth]} material="blackAnodised" />
+      <Block position={[(plateX + screwX) / 2, nutY, Z]} size={[Math.abs(plateX - screwX) + 0.04, 0.08, 0.2]} radius={0.015} material="blackAnodised" />
+      <Cylinder position={[screwX, nutY, Z]} radius={0.05} height={0.14} material="brass" />
+      <Cylinder position={[screwX, nutY + 0.075, Z]} radius={0.075} height={0.02} material="brass" />
     </group>
   );
 }
@@ -50,7 +50,8 @@ function Side({ side }: { side: 1 | -1 }) {
 /**
  * The Z axis, doubled like the Ender-3 V3 SE: a motor on each foot plate
  * turns a lead screw that lifts a carriage plate riding the upright on
- * V-wheels. The X beam spans between the two plates.
+ * V-wheels. The X beam spans between the two plates. As on the Ender, the
+ * plates and nut arms are black anodised and the lead screw nuts are brass.
  */
 export function ZAxis() {
   return (
