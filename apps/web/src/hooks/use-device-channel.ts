@@ -86,6 +86,8 @@ export function useDeviceChannel(deviceId: string | null, gateway: string, urls:
         if (!next.online) clearFrames();
         setStatus(next);
       } else if (m.type === "preview") {
+        // Follow the gateway, so a preview it stopped on its own can be started again.
+        wantsPreview.current = Boolean(m.active);
         setPreview(Boolean(m.active));
         if (!m.active) clearFrames();
       } else if (m.type === "error") {
