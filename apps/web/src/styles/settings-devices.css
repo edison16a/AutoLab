@@ -1,0 +1,124 @@
+/*
+  Settings: device rows with their inline rename, and the gateway form.
+*/
+
+.settings-device {
+  flex-wrap: nowrap;
+  gap: 12px;
+}
+
+/*
+  Keeps names lined up whether or not a row has a status dot. The dot sits
+  on the name's line (21px tall), not in the middle of the two line row.
+*/
+.settings-device__dot {
+  display: inline-flex;
+  align-self: flex-start;
+  flex-shrink: 0;
+  align-items: center;
+  width: 8px;
+  height: 21px;
+}
+
+.settings-device:has(.settings-device__rename) .settings-device__dot {
+  align-self: center;
+}
+
+.settings-device__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-device__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 10px;
+  min-width: 0;
+}
+
+.settings-device__label {
+  overflow: hidden;
+  max-width: 100%;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.settings-device__id {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+}
+
+.settings-device__copy {
+  width: 26px;
+  height: 26px;
+  color: var(--text-muted);
+}
+
+.settings-device__copy:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.settings-device__rename {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.settings-device__rename .input {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+}
+
+.settings-gateway {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.settings-gateway__line {
+  display: flex;
+  gap: 8px;
+}
+
+.settings-gateway__input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  font-size: 13px;
+}
+
+.settings-gateway__input[aria-invalid="true"] {
+  border-color: var(--text-muted);
+}
+
+.settings-gateway__problem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+@media (max-width: 860px) {
+  .settings-device {
+    flex-wrap: wrap;
+  }
+
+  .settings-device__text {
+    flex-basis: calc(100% - 20px);
+  }
+
+  .settings-device .settings-row__control {
+    padding-left: 20px;
+  }
+}
