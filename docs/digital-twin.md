@@ -1,25 +1,40 @@
-# Autolab digital twin
+# The 3D model
 
-The browser renders the machine with Three.js, React Three Fiber and Drei. The Pi does not render 3D. The model is a simplified conceptual layout based on the supplied Autolab frame, enclosed culture area, fixed plate, moving pipette carriage, reservoirs, and electronic subsystems. It is not dimensionally accurate CAD or a wiring diagram.
+The web app draws the whole Autolab in 3D with Three.js, React Three Fiber and Drei. The Pi never renders anything. Every part is modelled in code from the design sketches and real part dimensions, in real world colours. It's a faithful picture of the machine, not manufacturing CAD or a wiring diagram.
 
-## Workspace
+## Where it shows up
 
-Components is the default screen, showing the full assembly and searchable component list before a device is connected. Connected devices use `/autolab/{deviceId}/components`. The persistent workspace layout keeps captures and the WebSocket alive while navigating. A device UUID in a direct components URL selects that device; cloud mode still verifies its ownership at the gateway. Selection isolates and frames a part, and Reset view restores the assembly. Invisible, stable hit meshes handle hover independently from visual highlights.
+- **Home** shows the whole machine running a demo loop (see below). Clicking a part opens it on the Hardware screen.
+- **Hardware** is the full workspace. The machine stands still here so every part can be inspected.
+- The **Connect device** wizard reuses the same models to show where the camera ribbon goes, how the Pi is powered and, at the end, the assembled machine.
 
-- Orbit with drag, zoom with the wheel or pinch, pan with right-drag or two fingers.
-- Click a modeled part or its searchable list row to isolate and inspect it. The camera fits the selected part, and the HQ camera opens from below so the lens is visible. Toggle Isolate part to see it in the assembly again.
-- Reset view returns to the full machine.
-- Exploded view separates electronic components; connection lines identify physical or planned links.
-- Select the camera to start live view beside the machine or take a photo.
-- Select the Pi to view device ID, real heartbeat, reported network interface and agent version.
+## Using the Hardware screen
 
-The physical context includes the printer frame, enclosure, camera mount, pipette, well plate, media and waste containers. Electronics have unique IDs. Sixteen selectable nodes cover the supplied list, counting X, Y and Z endstops individually and including the FPC cable and pH probe.
+1. Click a part in the model or in the list on the left. The camera flies in close to it, and the rest of the machine stays visible around it.
+2. The panel on the right shows what the part is, how it connects and its live state.
+3. **Inspect item** shows the part on its own, centred, so you can turn it over. **Back to machine** returns to it in place.
+4. **Exploded view** opens the enclosure and moves each part out along the way it's mounted. **Connections** draws the links between parts. **Reset view** flies back to the whole machine.
 
-## Data truthfulness
+Drag to orbit and right drag (or two fingers) to pan. The scroll wheel and trackpad pinch zoom toward the pointer, so whatever is under the cursor stays under it. `/hardware?part=<id>` opens with that part selected, which is how Home links in.
 
-Only Pi and camera functionality is connected by default. Unknown sensors show Not installed and no values. The FPC link is inferred only when a real camera is detected, and is marked unused for the simulator. Pi memory is a hardware specification, not a measured RAM-use value. Network type appears only if the agent can identify its current default-route interface. A labeled simulator remains labeled in the twin.
+## What the Home demo does
 
-The gateway's `status` event includes `last_seen`, optional `agent_version` and `network`, and optional validated `components`. Last seen reflects the actual last device message, not a browser rendering timestamp. A future device heartbeat can report a component like:
+Home runs a looping media change, the same one the real machine is built for:
+
+1. The tool travels to the tip rack, lowers slowly and presses onto a tip.
+2. It visits three wells, draws off spent media (the tip fills amber) and empties it into the tip chute, then ejects that tip.
+3. It takes a fresh tip, draws warm media from the reservoir (the tip fills pink) and gives each well its share back.
+4. It parks, the camera's LED blinks for a picture, and the loop starts again with other wells.
+
+Z always lifts to a safe height before any X or Y travel. Travel is quick with eased starts and stops, and moves onto a tip or into liquid are slow. Lead screws, pulleys and motor shafts turn with their axes, the drag chain rolls, the cables bend across the moving joints and the circulation fan spins.
+
+The demo pauses when the model is scrolled out of view or the tab is hidden, and it's off entirely when the system asks for reduced motion. The Hardware screen never runs it.
+
+## Telling the truth about parts
+
+Only the Raspberry Pi and its camera are wired into the software today. Their state comes from the device itself: heartbeat, agent version, network and whether a camera was found. The simulator is labelled as a simulator everywhere. Every other part shows **Not installed** and no readings, rather than made up numbers.
+
+When a driver for another part exists, the Pi can report it in its heartbeat and the details panel picks it up with no app changes:
 
 ```json
 {
@@ -31,35 +46,40 @@ The gateway's `status` event includes `last_seen`, optional `agent_version` and 
       "installed": true,
       "online": true,
       "status": "Online",
-      "telemetry": {"temperature_c": 37.1, "humidity_percent": 91.4},
+      "telemetry": { "temperature_c": 37.1, "humidity_percent": 91.4 },
       "lastUpdated": "2026-09-28T00:00:00Z"
     }
   ]
 }
 ```
 
-This is a protocol example only. No such sample readings are injected by the app or agent. New sensor drivers must acquire and validate real measurements before sending them. These values then appear automatically in the component details panel.
+That's an example of the format only. Nothing in the app or the agent sends sample readings.
 
-## Files and replacement points
+## How the code is organised
 
-- `registry/componentRegistry.ts`: IDs, names, purpose, positions, bounds and planned links.
-- `state/useAutolab3DState.ts`: the single mapping from the existing device channel to all components.
-- `models/*Model.tsx`: reusable, recognizable procedural models. Replace a module's implementation with a GLTF/GLB loader while retaining its local origin and scale.
-- `AutolabModel.tsx`: selection, hover, highlight and exploded positioning.
-- `SceneCamera.tsx`: focus transitions, OrbitControls and view limits.
-- `DigitalTwin.tsx`: shared scene/list selection and the details panel.
-- `onboarding/`: assembly animations and connection wizard.
+| Where | What's in it |
+| --- | --- |
+| `src/data/hardware-parts-*.ts` | The parts registry. Each part has an id, a name, what it's for, how it connects, its model, where it sits, its exploded offset, its hit boxes and the camera angle it's framed from. |
+| `src/data/hardware-connections.ts` | The links the Connections overlay draws. |
+| `src/components/hardware` | The Hardware screen: the list, the details panel, the toolbar and `MachineView`, the one component every screen embeds. |
+| `src/components/hardware/scene` | The canvas, the scene, each selectable part node, camera framing and the Connections overlay. |
+| `src/components/three` | The shared 3D kit: the stage, lighting and shadows, materials and colours, primitives, camera controls and picking. |
+| `src/components/three/models` | One model per part, with shared board details (chips, headers, connectors), the machine body, labware, and the wiring under `machine/wiring`. |
+| `src/components/three/motion` | The demo. `script.ts` and `cycle.ts` write the loop as a robot program, `timeline.ts` turns a time into a machine pose, and the moving parts read that pose each frame. |
 
-The models share basic geometry, cached board geometry and materials. Boards have rounded outlines and mounting holes. The Pi includes open USB/Ethernet sockets, 40 GPIO pins, chip leads and locally generated silkscreen. The camera has a metal mount, knurled lens barrel and coated front glass. The frame includes slotted extrusions, drive motors, paired rails, a lead screw, connected pipette mount, plate nest and capped reservoirs. These details improve identification, but the models remain conceptual references rather than manufacturing CAD.
+To change where a part sits, edit its registry entry. The model, its hit boxes, the camera framing, the exploded view and the demo's reach all follow from it. To swap a hand built model for a GLB file, keep the model's origin and scale and replace its body.
 
-Heavy scene code is dynamically imported, rendering is demand-based, device-pixel ratio is capped at 1.5, shadows use a 2048 map, and there is no postprocessing stack or external font/HDR download. Board geometry and generated marking textures are disposed when their owners unmount. Animation invalidates frames only while moving. Tutorial animations respect reduced motion and can be replayed. Unsupported WebGL or a lost context displays text guidance while the searchable component list and device actions remain usable.
+Materials live in `materials.ts` and their colours in `material-colors.ts`. The UI uses only the accent blue plus black and white, and the 3D models use real colours: a green Pi on a white platform, pink foam walls, a blue powder coated base with the team logo engraved in white, and colour coded wiring.
 
-## Onboarding
+## Performance
 
-The wizard shows camera-ribbon installation while powered off, USB-C wall power, optional Bluetooth discovery, network setup, then the full machine. A completed animation is never treated as hardware verification. Ready requires a heartbeat and detected camera for the selected device. Manual setup remains available without Bluetooth.
+- three.js loads only when a 3D view mounts, and never on the server.
+- The canvas renders on demand. It draws while something moves and otherwise sits idle.
+- Shadows are frozen until geometry moves. The demo redraws them five times a second instead of every frame.
+- Repeated pieces (pins, screws, chain links, cable ties) are instanced, and each wire colour is one mesh.
+- Only one full machine renders at a time. Home drops its canvas while the Connect device wizard draws its own.
+- When WebGL is missing or lost, the view says so, and the parts list and device actions keep working.
 
-The USB-C illustration is a power connection. It does not connect the Pi to the user's computer. Read [Bluetooth provisioning](bluetooth-provisioning.md) before using the optional Bluetooth path.
+## Checks
 
-## Validation boundary
-
-Browser checks cover the manual wizard, component selection and filtering, future-sensor empty states, reported agent version, route/session continuity, capture and analysis, small-screen overflow and refresh reset. Protocol tests cover real metadata forwarding and provisioning validation. Physical Bluetooth radio pairing, NetworkManager activation and CSI hardware still need a smoke test on the target Raspberry Pi.
+The end to end suite selects parts, inspects one, goes back, searches the list and checks the no-WebGL fallback, all with reduced motion on, so the demo stays still in tests. The Pi's Bluetooth radio pairing, NetworkManager activation and the real CSI camera still need a check on the target Raspberry Pi.
