@@ -1,0 +1,102 @@
+/*
+  The four number tiles on Home. Each tile opens Statistics. A 1px gap
+  over a border coloured background draws the dividers, the same trick the
+  Statistics tiles use.
+*/
+
+.home-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--border);
+  list-style: none;
+}
+
+.home-tiles > li {
+  display: flex;
+  min-width: 0;
+}
+
+.home-tile {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 16px;
+  background: var(--bg);
+  transition: background-color 120ms ease;
+}
+
+.home-tile:hover {
+  background: var(--bg-elevated);
+}
+
+/* The list clips its corners, so the ring goes inside the tile. */
+.home-tile:focus-visible {
+  outline-offset: -2px;
+}
+
+.home-tile__label {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-tile__value {
+  margin-top: 4px;
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.home-tile__value--none {
+  color: var(--text-faint);
+}
+
+.home-tile__skeleton {
+  display: block;
+  width: 56px;
+  height: 34px;
+}
+
+/* Reserves the line even when empty, so the tiles in a row stay the same height. */
+.home-tile__sub {
+  min-height: 18px;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .home-tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .home-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-tile {
+    padding: 14px;
+  }
+
+  .home-tile__value {
+    font-size: 24px;
+  }
+}
