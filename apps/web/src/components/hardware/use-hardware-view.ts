@@ -13,6 +13,8 @@ interface ViewState {
   inspecting: boolean;
   exploded: boolean;
   connections: boolean;
+  /** Live view: the machine runs the Home demo here too. */
+  live: boolean;
   flight: number;
 }
 
@@ -24,9 +26,10 @@ type ViewAction =
   | { type: "reset" }
   | { type: "escape" }
   | { type: "explode" }
-  | { type: "connections" };
+  | { type: "connections" }
+  | { type: "live" };
 
-const INITIAL: ViewState = { selected: null, inspecting: false, exploded: false, connections: false, flight: 0 };
+const INITIAL: ViewState = { selected: null, inspecting: false, exploded: false, connections: false, live: false, flight: 0 };
 
 function reduce(state: ViewState, action: ViewAction): ViewState {
   const fly = state.flight + 1;
@@ -46,8 +49,13 @@ function reduce(state: ViewState, action: ViewAction): ViewState {
       if (state.inspecting) return { ...state, inspecting: false, flight: fly };
       if (state.selected) return { ...state, selected: null, flight: fly };
       return state;
+    // Parts can't be spread apart and running at once, so each of these switches the other off.
     case "explode":
-      return { ...state, exploded: !state.exploded, flight: fly };
+      return { ...state, exploded: !state.exploded, live: false, flight: fly };
+    case "live":
+      return state.live
+        ? { ...state, live: false }
+        : { ...state, live: true, exploded: false, flight: state.exploded ? fly : state.flight };
     case "connections":
       return { ...state, connections: !state.connections };
   }
@@ -103,8 +111,9 @@ export function useHardwareView() {
   const reset = useCallback(() => dispatch({ type: "reset" }), []);
   const toggleExploded = useCallback(() => dispatch({ type: "explode" }), []);
   const toggleConnections = useCallback(() => dispatch({ type: "connections" }), []);
+  const toggleLive = useCallback(() => dispatch({ type: "live" }), []);
 
-  return { ...state, hovered, setHovered, select, clear, inspect, back, reset, toggleExploded, toggleConnections };
+  return { ...state, hovered, setHovered, select, clear, inspect, back, reset, toggleExploded, toggleConnections, toggleLive };
 }
 
 export type HardwareView = ReturnType<typeof useHardwareView>;

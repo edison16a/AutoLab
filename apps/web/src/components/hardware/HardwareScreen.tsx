@@ -53,15 +53,18 @@ function HardwareWorkspace() {
             inspecting={view.inspecting}
             exploded={view.exploded}
             connections={view.connections}
+            play={view.live}
             flight={view.flight}
             insetRight={part && wide ? DETAILS_INSET : 0}
           />
           <ViewToolbar
             exploded={view.exploded}
             connections={view.connections}
+            live={view.live}
             inspecting={view.inspecting}
             onReset={view.reset}
             onToggleExploded={view.toggleExploded}
+            onToggleLive={view.toggleLive}
             onToggleConnections={view.toggleConnections}
           />
         </section>
