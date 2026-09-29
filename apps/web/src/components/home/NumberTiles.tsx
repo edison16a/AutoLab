@@ -22,9 +22,7 @@ export function NumberTiles() {
           <Link href="/statistics" className="home-tile">
             <span className="home-tile__label">{tile.label}</span>
             {photosReady ? (
-              <span className={`home-tile__value ${tile.value === null ? "home-tile__value--none" : ""}`}>
-                {tile.value ?? "None"}
-              </span>
+              <span className={`home-tile__value ${tile.zero ? "home-tile__value--zero" : ""}`}>{tile.value}</span>
             ) : (
               <span className="home-tile__value">
                 <span className="skeleton home-tile__skeleton" />

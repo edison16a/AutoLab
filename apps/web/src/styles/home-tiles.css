@@ -61,7 +61,7 @@
   white-space: nowrap;
 }
 
-.home-tile__value--none {
+.home-tile__value--zero {
   color: var(--text-faint);
 }
 

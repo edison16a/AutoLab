@@ -11,8 +11,9 @@ import type { Photo } from "@/model/types";
 
 export interface HomeTile {
   label: string;
-  /** Null when there is nothing to measure yet, which reads differently from zero. */
-  value: string | null;
+  value: string;
+  /** Nothing counted yet. Drawn faint, the same way Statistics shows a resting zero. */
+  zero: boolean;
   /** One short line of context, or null when there's nothing true to add. */
   sub: string | null;
 }
@@ -43,22 +44,26 @@ export function homeTiles(photos: Photo[], now: number): HomeTile[] {
     {
       label: "Captures",
       value: formatCount(summary.captures),
+      zero: !summary.captures,
       sub: summary.today ? `${formatCount(summary.today)} today` : null,
     },
     {
       label: "This week",
       value: formatCount(week),
+      zero: !week,
       // Only worth saying when there's a week to compare against.
       sub: prior ? `${formatCount(prior)} the week before` : null,
     },
     {
       label: "Objects detected",
       value: formatCount(summary.detections),
+      zero: !summary.detections,
       sub: top && !top.other ? `Most common: ${top.label}` : null,
     },
     {
       label: "Analyzed",
-      value: summary.captures ? `${summary.analyzedPercent}%` : null,
+      value: summary.captures ? `${summary.analyzedPercent}%` : "0",
+      zero: !summary.analyzed,
       sub: summary.captures ? `${formatCount(summary.analyzed)} of ${formatCount(summary.captures)}` : null,
     },
   ];
