@@ -1,6 +1,8 @@
 "use client";
 import { Block, Cylinder, Ring } from "../../primitives";
 import { Rig } from "../../motion/Rig";
+import { Spin } from "../../motion/Spin";
+import { plungerScrewAngle } from "../../motion/turns";
 import { LeadScrew } from "./motion-parts";
 import { GANTRY, PROFILE, TOOL } from "./layout";
 
@@ -39,11 +41,16 @@ function DriveFrame() {
   return (
     <group>
       <Block position={[X, MOTOR_FACE - 0.02, DRIVE_Z]} size={[0.58, 0.04, 0.56]} material="plaGrey" />
-      <Cylinder position={[X, MOTOR_FACE - 0.19, DRIVE_Z]} radius={0.055} height={0.17} material="aluminium" />
-      {[-0.04, 0.04].map((dy) => (
-        <Ring key={dy} position={[X, MOTOR_FACE - 0.19 + dy, DRIVE_Z]} radius={0.056} thin material="plasticBlack" />
-      ))}
-      <LeadScrew base={[X, 2.92, DRIVE_Z]} length={MOTOR_FACE - 0.28 - 2.92} radius={0.024} />
+      {/* Coupler and screw turn together as the motor presses the plunger. */}
+      <group position={[X, 0, DRIVE_Z]}>
+        <Spin axis="y" angle={plungerScrewAngle}>
+          <Cylinder position={[0, MOTOR_FACE - 0.19, 0]} radius={0.055} height={0.17} material="aluminium" />
+          {[-0.04, 0.04].map((dy) => (
+            <Ring key={dy} position={[0, MOTOR_FACE - 0.19 + dy, 0]} radius={0.056} thin material="plasticBlack" />
+          ))}
+          <LeadScrew base={[0, 2.92, 0]} length={MOTOR_FACE - 0.28 - 2.92} radius={0.024} />
+        </Spin>
+      </group>
       <Block position={[GUIDE_X, 3.18, PLATE_FRONT + 0.02]} size={[0.05, 0.66, 0.04]} material="steel" />
     </group>
   );

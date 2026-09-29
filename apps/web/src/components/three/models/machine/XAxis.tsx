@@ -2,6 +2,8 @@
 import { Block, Bolt, type RepeatItem } from "../../primitives";
 import type { Vec3 } from "../../types";
 import { Rig } from "../../motion/Rig";
+import { Spin } from "../../motion/Spin";
+import { xPulleyAngle } from "../../motion/turns";
 import { StepperMotorModel } from "../StepperMotorModel";
 import { ExtrusionBars, type Bar } from "./ExtrusionBars";
 import { GANTRY, MOTION, PROFILE, TOOL } from "./layout";
@@ -41,12 +43,17 @@ export function XAxis() {
       <Rig rig="beam">
         <ExtrusionBars bars={BEAM} profile="2040" />
         <group position={[DRIVE[0], DRIVE[1], motorZ]} rotation={[Math.PI / 2, 0, 0]}>
-          <StepperMotorModel />
+          <StepperMotorModel shaft={xPulleyAngle} />
         </group>
         {/* Motor plate bolted to the back of the beam. */}
         <Block position={[DRIVE[0], (BEAM_Y + DRIVE[1] + 0.3) / 2, BEAM_BACK - 0.01]} size={[0.6, DRIVE[1] + 0.3 - BEAM_Y, 0.02]} material="blackAnodised" />
-        <Pulley position={DRIVE} rotation={[Math.PI / 2, 0, 0]} />
-        <Pulley position={IDLER} rotation={[Math.PI / 2, 0, 0]} />
+        {[DRIVE, IDLER].map((at) => (
+          <group key={at[0]} position={at} rotation={[Math.PI / 2, 0, 0]}>
+            <Spin axis="y" angle={xPulleyAngle}>
+              <Pulley position={[0, 0, 0]} />
+            </Spin>
+          </group>
+        ))}
         {/* Tensioner: a block on the beam with two cheeks either side of the idler. */}
         <Block position={[IDLER[0] + 0.05, BEAM_TOP + 0.05, BEAM_Z]} size={[0.3, 0.1, 0.2]} radius={0.015} material="blackAnodised" />
         {[-1, 1].map((side) => (

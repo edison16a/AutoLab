@@ -1,6 +1,8 @@
 "use client";
 import { Block, Cylinder } from "../../primitives";
 import { Rig } from "../../motion/Rig";
+import { Spin } from "../../motion/Spin";
+import { yPulleyAngle } from "../../motion/turns";
 import { StepperMotorModel } from "../StepperMotorModel";
 import { CHAMBER_FLOOR, GANTRY, MOTION, Y_RAIL_Y } from "./layout";
 import { Belt, Pulley } from "./motion-parts";
@@ -67,13 +69,21 @@ export function YAxis() {
       <Rail side={-1} />
       <Rail side={1} />
       <group position={[BELT.x, motorY, BELT.back]} rotation={[Math.PI, 0, 0]}>
-        <StepperMotorModel />
+        <StepperMotorModel shaft={yPulleyAngle} />
       </group>
       {/* Printed bracket that holds the motor up off the floor. */}
       <Block position={[BELT.x, (CHAMBER_FLOOR + motorY - 0.245) / 2, BELT.back - 0.29]} size={[0.5, motorY - 0.245 - CHAMBER_FLOOR, 0.04]} radius={0.01} material="plaGrey" />
       <Block position={[BELT.x, motorY - 0.265, BELT.back - 0.03]} size={[0.56, 0.04, 0.56]} radius={0.01} material="plaGrey" />
-      <Pulley position={[BELT.x, BELT.y, BELT.back]} rotation={[Math.PI, 0, 0]} />
-      <Pulley position={[BELT.x, BELT.y, BELT.front]} />
+      <group position={[BELT.x, BELT.y, BELT.back]} rotation={[Math.PI, 0, 0]}>
+        <Spin axis="y" angle={yPulleyAngle}>
+          <Pulley position={[0, 0, 0]} />
+        </Spin>
+      </group>
+      <group position={[BELT.x, BELT.y, BELT.front]}>
+        <Spin axis="y" angle={yPulleyAngle}>
+          <Pulley position={[0, 0, 0]} />
+        </Spin>
+      </group>
       <Block position={[BELT.x, CHAMBER_FLOOR + (BELT.y - CHAMBER_FLOOR) / 2 - 0.03, BELT.front]} size={[0.12, BELT.y - CHAMBER_FLOOR - 0.06, 0.12]} radius={0.01} material="plaGrey" />
       <Belt from={[BELT.x, BELT.y, BELT.back]} to={[BELT.x, BELT.y, BELT.front]} axle="y" />
       <Rig rig="gantry">

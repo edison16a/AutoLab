@@ -2,6 +2,8 @@
 import { Block, Cylinder, type RepeatItem } from "../../primitives";
 import type { Vec3 } from "../../types";
 import { Rig } from "../../motion/Rig";
+import { Spin } from "../../motion/Spin";
+import { zScrewAngle } from "../../motion/turns";
 import { StepperMotorModel } from "../StepperMotorModel";
 import { GANTRY, MOTION, PROFILE } from "./layout";
 import { LeadScrew, VWheels } from "./motion-parts";
@@ -29,10 +31,15 @@ function Drive({ side }: { side: 1 | -1 }) {
   return (
     <group>
       <group position={[screwX, MOTION.footTop + MOTOR_HALF, Z]} rotation={[0, side === 1 ? Math.PI : 0, 0]}>
-        <StepperMotorModel />
+        <StepperMotorModel shaft={zScrewAngle} />
       </group>
-      <Cylinder position={[screwX, SCREW_BASE - 0.05, Z]} radius={0.06} height={0.16} material="aluminium" />
-      <LeadScrew base={[screwX, SCREW_BASE, Z]} length={SCREW_TOP - SCREW_BASE} />
+      {/* Coupler and screw turn together about the screw's axis. */}
+      <group position={[screwX, 0, Z]}>
+        <Spin axis="y" angle={zScrewAngle}>
+          <Cylinder position={[0, SCREW_BASE - 0.05, 0]} radius={0.06} height={0.16} material="aluminium" />
+          <LeadScrew base={[0, SCREW_BASE, 0]} length={SCREW_TOP - SCREW_BASE} />
+        </Spin>
+      </group>
       {/* Flange bearing hung under the crossbar. */}
       <Block position={[screwX, TOP - 0.035, Z]} size={[0.24, 0.07, 0.14]} radius={0.015} material="aluminium" />
       <Cylinder position={[screwX, TOP - 0.08, Z]} radius={0.045} height={0.03} material="steel" />

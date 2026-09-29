@@ -1,6 +1,9 @@
 "use client";
 import { castsShadow, getMaterial, type MaterialKey } from "../materials";
 import { Block, Cylinder, Repeat, type RepeatItem } from "../primitives";
+import type { MachinePose } from "../motion/pose";
+import type { PartModelProps } from "./model-props";
+import { Spin } from "../motion/Spin";
 import type { Vec3 } from "../types";
 import { chamferedPrism } from "./geometry/shapes";
 import { StepperLabel } from "./stepper/StepperLabel";
@@ -46,9 +49,10 @@ function Housing({ y, height, inset = 0, material }: { y: number; height: number
  * label, the centring boss and D-cut shaft on +Y, four long screws through
  * the back, and the six pin socket on the side with the red, blue, green
  * and black leads plugged in. Origin at the middle of the body. Drives the
- * pipette plunger and all three axes.
+ * pipette plunger and all three axes; `shaft` turns the shaft in the Home
+ * demo.
  */
-export function StepperMotorModel() {
+export function StepperMotorModel({ shaft }: PartModelProps & { shaft?: (pose: MachinePose) => number }) {
   const ridge = chamferedPrism(FACE - 0.012, 0.012, FACE - 0.012, CHAMFER - 0.006);
   return (
     <group>
@@ -61,9 +65,11 @@ export function StepperMotorModel() {
       <Cylinder position={[0, BODY / 2 + 0.01, 0]} radius={0.137} height={0.02} material="aluminiumBlasted" />
       <Repeat items={FACE_HOLES} shape="cylinderLow" material="plasticBlack" scale={HOLE_SCALE} />
       <Repeat items={REAR_SCREWS} shape="cylinderLow" material="steel" scale={SCREW_SCALE} />
-      {/* The shaft, with the flat of the D ground along one side. */}
-      <Cylinder position={[0, BODY / 2 + 0.15, 0]} radius={0.031} height={0.26} material="tin" />
-      <Block position={[0.022, BODY / 2 + 0.19, 0]} size={[0.02, 0.18, 0.05]} material="tin" />
+      {/* The shaft, with the flat of the D ground along one side. It turns with its axis in the Home demo. */}
+      <Spin axis="y" angle={shaft}>
+        <Cylinder position={[0, BODY / 2 + 0.15, 0]} radius={0.031} height={0.26} material="tin" />
+        <Block position={[0.022, BODY / 2 + 0.19, 0]} size={[0.02, 0.18, 0.05]} material="tin" />
+      </Spin>
       <Block position={SOCKET} size={[0.06, 0.07, 0.2]} radius={0.008} material="plasticWhite" />
       <StepperLeads socket={MOUTH} />
     </group>
