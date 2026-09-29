@@ -22,23 +22,25 @@ const TIPS = SOCKETS.filter((_, i) => !USED.has(i));
 /** Each tip hangs in the box from its collar; only the collar shows above the deck. */
 const COLLARS: RepeatItem[] = TIPS.map(({ x, z }) => ({ position: [x, DECK_Y + 0.03, z] as Vec3 }));
 const COLLAR_SCALE: Vec3 = [0.04, 0.05, 0.04];
-const BORES: RepeatItem[] = TIPS.map(({ x, z }) => ({ position: [x, DECK_Y + 0.056, z] as Vec3 }));
-const BORE_SCALE: Vec3 = [0.03, 0.004, 0.03];
+/** The white filter plug inside each tip, which shows through its open top. */
+const FILTERS: RepeatItem[] = TIPS.map(({ x, z }) => ({ position: [x, DECK_Y + 0.045, z] as Vec3 }));
+const FILTER_SCALE: Vec3 = [0.03, 0.012, 0.03];
 
 /**
- * A rack of sterile filtered P1000 tips: a grey box, the white deck with
- * its sockets, and the collars of the tips hanging in them. Two sockets
+ * A rack of sterile filtered P1000 tips: the blue box that marks a 1000 µL
+ * rack, its white tip plate, and the see through blue collars of the tips
+ * hanging in the sockets, each with its white filter showing. Two sockets
  * are already empty. Origin at the base.
  */
 export function TipRackModel() {
   const { width: w, depth: d, height: h, wall } = BOX;
   return (
     <group>
-      <Block position={[0, 0.01, 0]} size={[w, 0.02, d]} material="plasticGrey" />
+      <Block position={[0, 0.01, 0]} size={[w, 0.02, d]} material="tipRackBlue" />
       {[-1, 1].map((side) => (
         <group key={side}>
-          <Block position={[side * (w / 2 - wall / 2), h / 2, 0]} size={[wall, h, d]} material="plasticGrey" />
-          <Block position={[0, h / 2, side * (d / 2 - wall / 2)]} size={[w - wall * 2, h, wall]} material="plasticGrey" />
+          <Block position={[side * (w / 2 - wall / 2), h / 2, 0]} size={[wall, h, d]} material="tipRackBlue" />
+          <Block position={[0, h / 2, side * (d / 2 - wall / 2)]} size={[w - wall * 2, h, wall]} material="tipRackBlue" />
         </group>
       ))}
       <mesh
@@ -49,8 +51,8 @@ export function TipRackModel() {
         receiveShadow
         dispose={null}
       />
-      <Repeat items={COLLARS} shape="cylinder" material="plasticWhite" scale={COLLAR_SCALE} />
-      <Repeat items={BORES} shape="cylinderLow" material="graphite" scale={BORE_SCALE} />
+      <Repeat items={FILTERS} shape="cylinderLow" material="plasticWhite" scale={FILTER_SCALE} />
+      <Repeat items={COLLARS} shape="cylinder" material="tipBlue" scale={COLLAR_SCALE} />
     </group>
   );
 }
