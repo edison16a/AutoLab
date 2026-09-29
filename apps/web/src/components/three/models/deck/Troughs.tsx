@@ -1,25 +1,7 @@
 "use client";
 import { Block } from "../../primitives";
 import type { MaterialKey } from "../../materials";
-
-/**
- * The two troughs on the heated plate's left margin, beside the plate nest
- * and inside the pipette's reach. Positions are in the heated platform's
- * own space, whose origin sits 0.15 above the chamber floor; `top` is the
- * plate's top face they stand on.
- */
-export const TROUGHS = {
-  x: -0.99,
-  top: 0.1665,
-  width: 0.18,
-  height: 0.12,
-  wall: 0.01,
-  reservoir: { z: -0.25, length: 0.44 },
-  chute: { z: 0.2, length: 0.34 },
-} as const;
-
-/** Fresh media fills the reservoir this deep when it is topped up. */
-export const RESERVOIR_DEPTH = 0.085;
+import { RESERVOIR_DEPTH, TROUGHS } from "./labware-layout";
 
 /** An open topped box: a floor and four walls, all one material. */
 function Tray({ z, length, material }: { z: number; length: number; material: MaterialKey }) {

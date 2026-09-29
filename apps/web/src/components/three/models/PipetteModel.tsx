@@ -1,10 +1,11 @@
 "use client";
 import { Block, Cylinder, TextDecal } from "../primitives";
+import { PIPETTE_TIP } from "./deck/labware-layout";
 
 /** Heights along the pipette's axis, from the tip up to the plunger button. */
 const Y = {
-  tipEnd: -0.42,
-  tipTop: -0.1,
+  tipEnd: PIPETTE_TIP.end,
+  tipTop: PIPETTE_TIP.top - 0.01,
   nose: -0.05,
   sleeve: 0.02,
   shaft: 0.2,

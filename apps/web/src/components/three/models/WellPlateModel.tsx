@@ -2,26 +2,25 @@
 import { castsShadow, getMaterial } from "../materials";
 import { Block, Repeat, TextDecal, type RepeatItem } from "../primitives";
 import type { Vec3 } from "../types";
+import { WELL_PLATE, wellCentre } from "./deck/labware-layout";
 import { mm } from "./details/units";
 import { perforatedPlate, type PlateHole } from "./geometry/shapes";
 
-/** ANSI/SLAS footprint: 127.76 x 85.48 mm, 20 mm tall. */
-const PLATE = { width: mm(127.76), depth: mm(85.48), height: mm(20) } as const;
-/** 24 wells, 4 rows by 6, on a 19.3 mm pitch, 15.6 mm across. */
-const PITCH = mm(19.3);
-const WELL_RADIUS = mm(7.8);
-const SKIRT = mm(4);
+const PLATE = WELL_PLATE;
+const PITCH = WELL_PLATE.pitch;
+const WELL_RADIUS = WELL_PLATE.wellRadius;
+const SKIRT = WELL_PLATE.skirt;
 const DECK = { inset: mm(1.4), height: PLATE.height - SKIRT } as const;
 const COLUMNS = ["1", "2", "3", "4", "5", "6"];
 const ROWS = ["A", "B", "C", "D"];
-const WELLS: PlateHole[] = ROWS.flatMap((_, row) =>
-  COLUMNS.map((__, column) => ({ x: (column - 2.5) * PITCH, z: (row - 1.5) * PITCH, radius: WELL_RADIUS })),
-);
+const WELLS: PlateHole[] = Array.from({ length: ROWS.length * COLUMNS.length }, (_, index) => {
+  const [x, z] = wellCentre(index);
+  return { x, z, radius: WELL_RADIUS };
+});
 /** Outer edges of the well grid, so the labels sit centred in the margins. */
 const GRID = { x: 2.5 * PITCH + WELL_RADIUS, z: 1.5 * PITCH + WELL_RADIUS } as const;
 const BOTTOM = -PLATE.height / 2;
-/** About 1 mL of media in every well, which fills a 15.6 mm well to 5 mm. */
-const MEDIA_DEPTH = mm(5);
+const MEDIA_DEPTH = WELL_PLATE.mediaDepth;
 const MEDIA: RepeatItem[] = WELLS.map(({ x, z }) => ({ position: [x, BOTTOM + SKIRT + MEDIA_DEPTH / 2, z] as Vec3 }));
 const MEDIA_SCALE: Vec3 = [WELL_RADIUS - mm(0.2), MEDIA_DEPTH, WELL_RADIUS - mm(0.2)];
 const LABEL = { size: mm(3.4), weight: 500 } as const;

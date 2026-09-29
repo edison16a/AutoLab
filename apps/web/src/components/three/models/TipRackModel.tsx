@@ -2,28 +2,15 @@
 import { castsShadow, getMaterial } from "../materials";
 import { Block, Repeat, type RepeatItem } from "../primitives";
 import type { Vec3 } from "../types";
+import { TIP_RACK, USED_TIPS, tipSocket } from "./deck/labware-layout";
 import { perforatedPlate, type PlateHole } from "./geometry/shapes";
 
-/** 4 x 6 sockets on a 0.12 unit pitch, a compact rack sized to the space beside the platform. */
-const PITCH = 0.12;
-const COLS = 4;
-const ROWS = 6;
-/** Tall enough that a tip on the pipette, carried at full height, lifts clear of the collars. */
-const BOX = { width: 0.56, depth: 0.78, height: 0.6, wall: 0.02 } as const;
-const DECK_Y = BOX.height + 0.015;
+const BOX = TIP_RACK.box;
+const DECK_Y = TIP_RACK.deckY;
 const SOCKET_RADIUS = 0.041;
-/** The first column, at the back left, is already used, so its two back sockets stand empty. */
-const USED = new Set([0, 4]);
+const USED = new Set(USED_TIPS);
 
-/** Socket `index` counted from the back left, row by row: its centre across the rack, in rack space. */
-export function tipSocket(index: number): [number, number] {
-  return [((index % COLS) - (COLS - 1) / 2) * PITCH, (Math.floor(index / COLS) - (ROWS - 1) / 2) * PITCH];
-}
-
-/** Height of a waiting tip's top edge above the rack's base, where the pipette's nose seats in it. */
-export const TIP_TOP = DECK_Y + 0.055;
-
-const SOCKETS: PlateHole[] = Array.from({ length: COLS * ROWS }, (_, i) => {
+const SOCKETS: PlateHole[] = Array.from({ length: TIP_RACK.cols * TIP_RACK.rows }, (_, i) => {
   const [x, z] = tipSocket(i);
   return { x, z, radius: SOCKET_RADIUS };
 });
