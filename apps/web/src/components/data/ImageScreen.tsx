@@ -4,7 +4,7 @@ import "@/styles/data-panel.css";
 import "@/styles/data-detections.css";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ImageOff } from "lucide-react";
 import { errorText } from "@/lib/errors";
 import { useAutolab } from "@/providers/autolab-context";
@@ -30,6 +30,13 @@ function ImageSkeleton() {
   );
 }
 
+/**
+ * The image a delete moves on to. Each image is its own route, so the screen
+ * remounts and focus would fall to the page body. The next screen reads
+ * this and puts focus back on its Delete button, where the person left it.
+ */
+let focusDeleteOn: string | null = null;
+
 /** One image, large, with its analysis and details beside it. */
 export function ImageScreen() {
   const { imageId } = useParams<{ imageId: string }>();
@@ -43,6 +50,12 @@ export function ImageScreen() {
   const [overlays, setOverlays] = useState(true);
   const nav = useImageNavigation(order, imageId, !confirming);
   const photo = photos.find((p) => p.id === imageId);
+
+  useEffect(() => {
+    if (!photo || focusDeleteOn !== photo.id) return;
+    focusDeleteOn = null;
+    document.querySelector<HTMLElement>(".image-panel__delete")?.focus();
+  }, [photo]);
 
   if (!photosReady || (leaving === imageId && !photo)) return <ImageSkeleton />;
 
@@ -68,6 +81,7 @@ export function ImageScreen() {
     setLeaving(photo.id);
     try {
       await removePhotos([photo.id]);
+      focusDeleteOn = target?.id ?? null;
       router.replace(target ? `/data/${target.id}` : "/data");
     } catch (error) {
       setLeaving(null);

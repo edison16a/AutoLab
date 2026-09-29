@@ -26,7 +26,7 @@ export function ImagePanel({ photo, overlays, onOverlays, onDelete }: ImagePanel
             <Download size={16} strokeWidth={1.8} aria-hidden="true" />
             Download
           </button>
-          <button type="button" className="btn" onClick={onDelete}>
+          <button type="button" className="btn image-panel__delete" onClick={onDelete}>
             <Trash2 size={16} strokeWidth={1.8} aria-hidden="true" />
             Delete
           </button>
