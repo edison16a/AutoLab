@@ -4,16 +4,15 @@ import asyncio
 import io
 import json
 import logging
-import os
-import struct
 import time
 import uuid
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass, field
 
-from autolab_gateway.cloud import Cloud, digest, now
-from dotenv import load_dotenv
+from autolab_gateway.cloud import Cloud, digest
+from autolab_gateway.config import MODE, ORIGINS
+from autolab_gateway.protocol import now, pack, uid, unpack
 from fastapi import (
     FastAPI,
     HTTPException,
@@ -26,38 +25,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from pydantic import BaseModel, Field, ConfigDict
 
-load_dotenv()
-MODE = os.getenv("AUTOLAB_MODE", "demo")
-if MODE not in ("demo", "cloud"):
-    raise RuntimeError("AUTOLAB_MODE must be demo or cloud")
 cloud = Cloud() if MODE == "cloud" else None
-MAX_BYTES = 16 * 1024 * 1024
 log = logging.getLogger("autolab")
-
-
-def uid(value):
-    try:
-        return str(uuid.UUID(str(value)))
-    except (ValueError, TypeError):
-        raise HTTPException(400, "Expected UUID")
-
-
-def unpack(data):
-    if len(data) < 5 or len(data) > MAX_BYTES:
-        raise ValueError("Invalid packet size")
-    n = struct.unpack("!I", data[:4])[0]
-    if n > 8192 or n + 4 >= len(data):
-        raise ValueError("Invalid packet header")
-    h = json.loads(data[4 : 4 + n])
-    jpeg = data[4 + n :]
-    if not isinstance(h, dict) or not jpeg.startswith(b"\xff\xd8"):
-        raise ValueError("Expected JPEG packet")
-    return h, jpeg
-
-
-def pack(h, jpeg):
-    b = json.dumps(h, separators=(",", ":")).encode()
-    return struct.pack("!I", len(b)) + b + jpeg
 
 
 class ComponentReport(BaseModel):
@@ -222,13 +191,9 @@ async def lifespan(app):
 
 
 app = FastAPI(title="Autolab gateway", lifespan=lifespan)
-origins = [
-    origin.strip()
-    for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
-]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=ORIGINS,
     allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
@@ -323,7 +288,7 @@ async def socket(ws: WebSocket, role: str, device_id: str):
     except HTTPException:
         await ws.close(code=1008)
         return
-    if ws.headers.get("origin") and ws.headers["origin"] not in origins:
+    if ws.headers.get("origin") and ws.headers["origin"] not in ORIGINS:
         await ws.close(code=1008)
         return
     await ws.accept()

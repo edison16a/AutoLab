@@ -22,10 +22,6 @@ def digest(value: str) -> str:
     return hashlib.sha256(value.encode()).hexdigest()
 
 
-def now() -> str:
-    return datetime.now(timezone.utc).isoformat()
-
-
 class Cloud:
     """Thin REST client for PostgREST, Storage and Auth with the service role key."""
 
