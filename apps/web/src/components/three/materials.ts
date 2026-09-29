@@ -20,6 +20,7 @@ export type MaterialKey =
   | "graphite"
   | "pcbGraphite"
   | "pcbWhite"
+  | "ribbon"
   | "aluminium"
   | "steel"
   | "rubber"
@@ -62,6 +63,8 @@ const RECIPES: Record<MaterialKey, () => Material> = {
   graphite: () => standard("#2e2f33", 0.36, 0.55),
   pcbGraphite: () => standard("#2a2b2f", 0.58, 0.08),
   pcbWhite: () => standard("#e7e7e5", 0.55),
+  // Flat cables are a single sheet, so both faces must render.
+  ribbon: () => new MeshStandardMaterial({ color: "#e4e4e2", roughness: 0.5, side: DoubleSide }),
   aluminium: () => standard("#c9cbcf", 0.3, 1),
   steel: () => standard("#a2a5aa", 0.2, 1),
   rubber: () => standard("#151516", 0.9),
