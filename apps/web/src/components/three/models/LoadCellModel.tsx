@@ -11,8 +11,8 @@ const LENGTH = 0.6;
 const HOLE = { radius: mm(4.6), offset: mm(4.8), slot: mm(1.1) } as const;
 /** Two tapped holes at each end, through the side faces. */
 const BOLTS = [-1, 1].flatMap((end) => [0.2, 0.25].map((d) => end * d));
-/** The four bridge leads, drawn in greys rather than the usual red, black, white and green. */
-const LEADS = ["plasticWhite", "plasticBlack", "plasticGrey", "graphite"] as const;
+/** The four bridge leads in the standard colours: red E+, black E-, white A- and green A+. */
+const LEADS = ["wireRed", "wireBlack", "wireWhite", "wireGreen"] as const;
 
 /**
  * A lead leaving the potting on the +X face and running down to the
@@ -32,17 +32,18 @@ function leadPath(index: number): Vec3[] {
 
 /**
  * The 1 kg straight bar load cell in line between the nut block and the
- * plunger: an aluminium bar with the binocular cut through its front, the
- * strain gauges under white potting on both sides, tapped holes at each
- * end, a capacity label and the four bridge leads. Origin at its centre.
+ * plunger: a bead blasted aluminium bar with the binocular cut through its front,
+ * the strain gauges under white potting on both sides, tapped holes at
+ * each end, the capacity printed on the face and the four coloured bridge
+ * leads. Origin at its centre.
  */
 export function LoadCellModel() {
   return (
     <group>
       <mesh
         geometry={binocularBar(SIDE, LENGTH, SIDE, HOLE.radius, HOLE.offset, HOLE.slot)}
-        material={getMaterial("aluminium")}
-        castShadow={castsShadow("aluminium")}
+        material={getMaterial("aluminiumBlasted")}
+        castShadow={castsShadow("aluminiumBlasted")}
         receiveShadow
         dispose={null}
       />
@@ -54,10 +55,7 @@ export function LoadCellModel() {
           ))}
         </group>
       ))}
-      <group position={[0, 0.19, SIDE / 2 + 0.0006]}>
-        <Block size={[SIDE * 0.86, 0.05, 0.001]} material="plasticWhite" />
-        <TextDecal text="1 kg" position={[0, 0, 0.0008]} rotation={[0, 0, 0]} width={SIDE * 0.7} height={0.03} ink="dark" weight={700} />
-      </group>
+      <TextDecal text="1 kg" position={[0, 0.19, SIDE / 2 + 0.0006]} rotation={[0, 0, 0]} width={SIDE * 0.7} height={0.03} ink="dark" weight={700} />
       {LEADS.map((material, i) => (
         <Tube key={material} points={leadPath(i)} radius={mm(0.6)} material={material} segments={24} />
       ))}
