@@ -37,6 +37,8 @@
   min-width: 0;
   min-height: 0;
   overflow-y: auto;
+  /* Scrolling past the end of a step never scrolls the page behind the modal. */
+  overscroll-behavior: contain;
   padding: 20px 28px 24px;
 }
 
