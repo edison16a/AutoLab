@@ -33,9 +33,7 @@ export function Gantry() {
       <YAxis />
       <ZAxis />
       <XAxis />
-      <Rig rig="beam">
-        <XChain />
-      </Rig>
+      <XChain />
     </group>
   );
 }

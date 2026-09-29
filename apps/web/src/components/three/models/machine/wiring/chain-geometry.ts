@@ -6,8 +6,6 @@
 import { BoxGeometry, type BufferGeometry } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { cachedGeometry } from "../../../geometries";
-import type { RepeatItem } from "../../../primitives";
-import type { Vec3 } from "../../../types";
 
 /** A 10 x 15 mm chain, drawn a little slimmer to sit with the shrunk frame. */
 export const LINK = { pitch: 0.066, height: 0.08, width: 0.12, plate: 0.012 } as const;
@@ -41,37 +39,55 @@ export interface ChainPath {
   z: number;
 }
 
+/** Where one link sits: its centre in the chain's plane and its turn about Z. */
+export interface LinkPlace {
+  x: number;
+  y: number;
+  angle: number;
+}
+
+/** How many links make up the chain. Rolling the bend along never changes it. */
+export function linkCount({ fixed, moving, loop, radius }: ChainPath) {
+  return Math.floor((Math.abs(fixed - loop) + Math.PI * radius + Math.abs(moving - loop)) / LINK.pitch);
+}
+
 /**
- * Links laid along the chain's path: the lower run from the fixed end to
- * the bend, half a turn up and over, then the upper run back to the
- * carriage. The bend may sit on either side of the ends. Each link is
- * turned about Z to follow the path.
+ * Link `index` laid along the chain's path: the lower run from the fixed
+ * end to the bend, half a turn up and over, then the upper run back to the
+ * carriage. The bend may sit on either side of the ends. Writes into `out`
+ * so a chain rolling every frame allocates nothing.
  */
-export function linkPlacements({ fixed, moving, loop, y, radius, z }: ChainPath): RepeatItem[] {
+export function placeLink({ fixed, loop, y, radius }: ChainPath, index: number, out: LinkPlace) {
   // Which way the lower run heads from the fixed end: toward -X when the bend is on the left.
   const dir = Math.sign(fixed - loop);
   const lower = Math.abs(fixed - loop);
   const bend = Math.PI * radius;
-  const upper = Math.abs(moving - loop);
-  const count = Math.floor((lower + bend + upper) / LINK.pitch);
-  const items: RepeatItem[] = [];
-  for (let i = 0; i < count; i++) {
-    const s = (i + 0.5) * LINK.pitch;
-    let position: Vec3;
-    let angle: number;
-    if (s < lower) {
-      position = [fixed - dir * s, y, z];
-      angle = dir > 0 ? Math.PI : 0;
-    } else if (s < lower + bend) {
-      // Round the far side of the bend, from the bottom to the top.
-      const a = -Math.PI / 2 - (dir * (s - lower)) / radius;
-      position = [loop + Math.cos(a) * radius, y + radius + Math.sin(a) * radius, z];
-      angle = a - (dir * Math.PI) / 2;
-    } else {
-      position = [loop + dir * (s - lower - bend), y + radius * 2, z];
-      angle = dir > 0 ? 0 : Math.PI;
-    }
-    items.push({ position, rotation: [0, 0, angle] });
+  const s = (index + 0.5) * LINK.pitch;
+  if (s < lower) {
+    out.x = fixed - dir * s;
+    out.y = y;
+    out.angle = dir > 0 ? Math.PI : 0;
+  } else if (s < lower + bend) {
+    // Round the far side of the bend, from the bottom to the top.
+    const a = -Math.PI / 2 - (dir * (s - lower)) / radius;
+    out.x = loop + Math.cos(a) * radius;
+    out.y = y + radius + Math.sin(a) * radius;
+    out.angle = a - (dir * Math.PI) / 2;
+  } else {
+    out.x = loop + dir * (s - lower - bend);
+    out.y = y + radius * 2;
+    out.angle = dir > 0 ? 0 : Math.PI;
   }
-  return items;
+  return out;
+}
+
+/**
+ * The same chain with its moving end carried `dx` along. The bend rolls
+ * half as far, which is what keeps a real chain's length the same.
+ */
+export function rolled(path: ChainPath, dx: number, out: ChainPath) {
+  Object.assign(out, path);
+  out.moving = path.moving + dx;
+  out.loop = path.loop + dx / 2;
+  return out;
 }
