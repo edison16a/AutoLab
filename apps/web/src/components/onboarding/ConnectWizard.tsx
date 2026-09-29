@@ -1,94 +1,50 @@
 "use client";
-import { useState, type FormEvent } from "react";
-import { Check, LoaderCircle } from "lucide-react";
-import { api, cloudEnabled } from "@/lib/cloud";
-import { errorText } from "@/lib/errors";
-import { UUID_PATTERN } from "@/model/types";
-import { useAutolab } from "@/providers/autolab-context";
-import { Dialog } from "../ui/Dialog";
+import "@/styles/onboarding.css";
+import "@/styles/onboarding-stage.css";
+import "@/styles/onboarding-steps.css";
+import "@/styles/onboarding-forms.css";
+import { useRef } from "react";
+import { ArrowLeft, X } from "lucide-react";
+import { StepContent } from "./StepContent";
+import { StepIndicator } from "./StepIndicator";
+import { useConnectFlow } from "./use-connect-flow";
+import { useModalFocus } from "./use-modal-focus";
+import { WizardStage } from "./WizardStage";
+import { STEP } from "./wizard-steps";
 
 /**
- * Links an Autolab to this account. Demo mode takes the Device ID the Pi agent
- * prints. Cloud mode takes the six digit claim code, which the gateway trades
- * for the device ID once. The dialog only says "ready" after a real heartbeat
- * and a detected camera.
+ * Connect an Autolab: seat the camera, power the Pi, find it over
+ * Bluetooth (or set it up by hand), then wait for proof it works. A 3D
+ * illustration of each step sits on the left, the step itself on the
+ * right. Escape closes it, and focus stays inside while it's open.
  */
 export default function ConnectWizard({ onClose }: { onClose: () => void }) {
-  const { gateway, addDevice, device, status } = useAutolab();
-  const [name, setName] = useState("My Autolab");
-  const [code, setCode] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [waitingFor, setWaitingFor] = useState<string | null>(null);
-  const ready = waitingFor !== null && device?.id === waitingFor && status.online && status.camera_online;
+  const dialog = useRef<HTMLDivElement>(null);
+  const flow = useConnectFlow();
+  useModalFocus(dialog, onClose);
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setBusy(true);
-    setError("");
-    try {
-      let id = code.trim();
-      if (cloudEnabled) {
-        if (!/^\d{6}$/.test(id)) throw new Error("Enter the six digit code from the Pi agent.");
-        id = (await api(gateway, "/devices/claim", "POST", { code: id, name })).device_id;
-      } else if (!UUID_PATTERN.test(id)) throw new Error("Paste the full Device ID printed by the Pi agent.");
-      addDevice(id, name);
-      setWaitingFor(id);
-    } catch (err) {
-      setError(errorText(err));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  if (ready)
-    return (
-      <Dialog
-        open
-        title="Your Autolab is ready"
-        onClose={onClose}
-        actions={
-          <button type="button" className="btn btn--primary" onClick={onClose}>
-            Open Autolab
-          </button>
-        }
-      >
-        <p className="row muted">
-          <Check size={16} aria-hidden="true" /> Heartbeat received and camera detected.
-        </p>
-      </Dialog>
-    );
+  const canGoBack = flow.step > STEP.camera && flow.step < STEP.ready && !flow.busy && !flow.waiting;
 
   return (
-    <Dialog open title="Connect device" onClose={onClose}>
-      <form className="stack" onSubmit={submit}>
-        <label className="field">
-          <span className="field__label">Device name</span>
-          <input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} required />
-        </label>
-        <label className="field">
-          <span className="field__label">{cloudEnabled ? "Six-digit claim code" : "Device ID"}</span>
-          <input
-            className="input mono"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            inputMode={cloudEnabled ? "numeric" : undefined}
-            placeholder={cloudEnabled ? "123456" : "Printed by the Pi agent"}
-            required
-          />
-        </label>
-        {error ? <p role="alert" className="small">{error}</p> : null}
-        {waitingFor ? <p className="small muted">Waiting for the Pi and its camera.</p> : null}
-        <div className="dialog__actions">
-          <button type="button" className="btn" onClick={onClose} aria-label="Close setup">
-            Cancel
-          </button>
-          <button className="btn btn--primary" disabled={busy || waitingFor !== null}>
-            {busy || waitingFor ? <LoaderCircle size={16} className="spin" aria-hidden="true" /> : null}
-            Connect device
-          </button>
+    <div className="onboarding">
+      <div ref={dialog} className="onboarding__dialog" role="dialog" aria-modal="true" aria-label="Connect device" tabIndex={-1}>
+        <WizardStage step={flow.step} wifi={flow.wifiLinked} gateway={flow.gatewayLinked} />
+        <div className="onboarding__panel">
+          <div className="onboarding__head">
+            <StepIndicator step={flow.step} />
+            <button type="button" className="icon-btn" aria-label="Close setup" title="Close" onClick={onClose}>
+              <X size={20} strokeWidth={1.8} aria-hidden="true" />
+            </button>
+          </div>
+          <StepContent key={`${flow.step}:${flow.path}`} flow={flow} onClose={onClose} />
+          {canGoBack ? (
+            <button type="button" className="btn btn--ghost btn--sm onboarding__back" onClick={flow.back}>
+              <ArrowLeft size={16} strokeWidth={1.8} aria-hidden="true" />
+              Back
+            </button>
+          ) : null}
         </div>
-      </form>
-    </Dialog>
+      </div>
+    </div>
   );
 }
