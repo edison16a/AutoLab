@@ -1,0 +1,176 @@
+/*
+  Buttons, inputs and switches. Flat, with a short colour change on hover.
+*/
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--bg-muted);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.btn--ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn--sm {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.btn--lg {
+  height: 44px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: var(--bg-muted);
+}
+
+.icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.icon-btn--active {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.icon-btn--sm {
+  width: 30px;
+  height: 30px;
+}
+
+.input,
+.select {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  outline: none;
+  transition: border-color 120ms ease;
+}
+
+.input::placeholder {
+  color: var(--text-faint);
+}
+
+.input:focus,
+.select:focus {
+  border-color: var(--accent);
+}
+
+.select {
+  appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field__label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* An on/off switch. The knob slides; that's the only motion. */
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--border-strong);
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 150ms ease;
+}
+
+.switch[aria-checked="true"] {
+  background: var(--accent);
+}
+
+.switch[aria-checked="true"]::after {
+  transform: translateX(16px);
+}
+
+.switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
