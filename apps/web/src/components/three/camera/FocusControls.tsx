@@ -5,6 +5,7 @@ import { CameraControls } from "@react-three/drei";
 import { Box3, Vector3, type PerspectiveCamera } from "three";
 import type { Vec3 } from "../types";
 import { eyeFor, type CameraFocus } from "./focus-math";
+import { useWheelDolly } from "./use-wheel-dolly";
 
 export interface FocusControlsProps {
   focus: CameraFocus;
@@ -32,7 +33,7 @@ export interface FocusControlsProps {
 const SMOOTH_TIME = 0.25;
 /** Stops the camera sliding below the floor. */
 const MAX_POLAR = Math.PI / 2 - 0.04;
-/** A touch faster than the library default, so a few wheel notches reach a part. */
+/** A touch faster than the library default for two finger pinch on touch screens. */
 const DOLLY_SPEED = 1.4;
 
 /** Film offset (three.js skew, in mm) that moves the image centre left by `fraction` of the canvas width. */
@@ -62,6 +63,7 @@ export function FocusControls({ focus, focusKey, minDistance = 0.4, maxDistance 
   const latest = useRef({ focus, aspect });
   latest.current = { focus, aspect };
   const shift = useRef({ current: 0, aspect: 0 });
+  useWheelDolly(controls);
 
   useEffect(() => {
     const control = controls.current;
@@ -103,7 +105,7 @@ export function FocusControls({ focus, focusKey, minDistance = 0.4, maxDistance 
       minDistance={minDistance}
       maxDistance={maxDistance}
       maxPolarAngle={MAX_POLAR}
-      // Zoom toward whatever is under the pointer, so scrolling into a part just works.
+      // Touch pinch zooms toward the fingers. Wheel and trackpad zoom are handled by useWheelDolly.
       dollyToCursor
       dollySpeed={DOLLY_SPEED}
       onControlStart={() => controls.current?.stop()}
