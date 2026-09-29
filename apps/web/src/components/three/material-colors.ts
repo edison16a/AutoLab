@@ -51,6 +51,12 @@ export const COLOR_RECIPES = {
   ledAmber: () => lit("#ffb020"),
   ledRedOff: () => standard("#6b2320", 0.3),
   ledGreenOff: () => standard("#1f4a2a", 0.3),
+  ledAmberOff: () => standard("#6a4a18", 0.3),
+  // Ceramic chip capacitors are a dusty tan, which is what makes a board look populated up close.
+  ceramicTan: () => standard("#b39a78", 0.62),
+  // Multicoated lens glass: dark, glossy and tinted, so it reads as optics without real transmission.
+  lensCoated: () =>
+    new MeshPhysicalMaterial({ color: "#1b1a2a", roughness: 0.05, metalness: 0.2, clearcoat: 1, clearcoatRoughness: 0.03, iridescence: 0.7, iridescenceIOR: 1.6 }),
   // Wires
   wireRed: () => standard("#c62828", 0.5),
   wireBlack: () => standard("#1b1b1d", 0.5),
