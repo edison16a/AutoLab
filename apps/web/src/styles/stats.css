@@ -1,0 +1,202 @@
+/*
+  Statistics screen layout: the filter row, the number tiles and the chart
+  grid. Panels and charts have their own files.
+*/
+
+.stats__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  margin-bottom: 20px;
+}
+
+.stats__range {
+  flex-shrink: 0;
+}
+
+.stats__partial {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: -8px 0 16px;
+}
+
+/*
+  Panels keep their own height, so opening one table doesn't stretch its
+  neighbour. The last row stretches instead: the stack and the timing chart
+  are built to come out about the same height.
+*/
+.stats__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.stats__grid > :nth-last-child(-n + 2) {
+  align-self: stretch;
+}
+
+.stats__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.stats__stack > .stats-panel {
+  flex: 1;
+}
+
+.stats__empty {
+  margin-bottom: 16px;
+}
+
+/* Device filter: the name sits inside the box so the row stays one line. */
+.stats-select {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  height: 38px;
+  padding-left: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+
+.stats-select:hover {
+  border-color: var(--border-strong);
+}
+
+.stats-select:focus-within {
+  border-color: var(--accent);
+}
+
+.stats-select__label {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.stats-select__control {
+  min-width: 0;
+  height: 100%;
+  padding: 0 30px 0 8px;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+}
+
+.stats-select__control option {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/*
+  Number tiles. The 1px gap over a border coloured background draws the
+  dividers, so they stay hairlines at any column count.
+*/
+.stats-tiles {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--border);
+}
+
+.stats-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 16px 18px;
+  background: var(--bg);
+}
+
+.stats-tile dd {
+  margin: 0;
+}
+
+.stats-tile__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* Proportional figures: tabular digits look loose at this size. */
+.stats-tile__value {
+  margin-top: 4px;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stats-tile__value--none {
+  color: var(--text-faint);
+}
+
+.stats-tile__skeleton {
+  display: block;
+  width: 64px;
+  height: 30px;
+}
+
+.stats-tile__sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 1100px) {
+  .stats-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .stats__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stats__filters {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  .stats-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stats-tile {
+    padding: 14px;
+  }
+
+  .stats-tile__value {
+    font-size: 21px;
+  }
+}
