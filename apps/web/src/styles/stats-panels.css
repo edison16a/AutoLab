@@ -183,8 +183,16 @@
     padding: 16px;
   }
 
+  /* On phones each fact becomes a label and value row, which stays short. */
   .stats-live__facts {
     grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .stats-live__fact {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     gap: 12px;
   }
 }
