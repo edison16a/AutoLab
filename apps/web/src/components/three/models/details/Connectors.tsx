@@ -1,7 +1,9 @@
 "use client";
 import { useMemo } from "react";
+import { getMaterial } from "../../materials";
 import { Block, Cylinder, Repeat, type RepeatItem } from "../../primitives";
 import type { Vec3 } from "../../types";
+import { wrapBand } from "../geometry/shapes";
 import { mm } from "./units";
 
 export interface JstProps {
@@ -31,16 +33,16 @@ export function Jst({ position, count, kind = "xh", rotation = 0 }: JstProps) {
     <group position={position} rotation={[0, rotation, 0]}>
       <Block position={[0, height / 2, 0]} size={[width, height, depth]} material="plasticWhite" />
       <Block position={[0, height * 0.55, depth / 2 - mm(1.5) + 0.0005]} size={[width - mm(1.4), height * 0.72, mm(3)]} material="plasticGrey" />
-      <Repeat items={pins} material="steel" />
+      <Repeat items={pins} material="tin" />
     </group>
   );
 }
 
-/** A micro USB B socket at a board edge, mouth facing +Z. */
+/** A micro USB B socket at a board edge, mouth facing +Z. The shell is bright nickel. */
 export function MicroUsb({ position, rotation = 0 }: { position: Vec3; rotation?: number }) {
   return (
     <group position={position} rotation={[0, rotation, 0]}>
-      <Block position={[0, mm(1.4), 0]} size={[mm(7.5), mm(2.8), mm(5.5)]} radius={mm(0.4)} material="steel" />
+      <Block position={[0, mm(1.4), 0]} size={[mm(7.5), mm(2.8), mm(5.5)]} radius={mm(0.4)} material="tin" />
       <Block position={[0, mm(1.4), mm(2.76)]} size={[mm(6), mm(1.6), mm(0.1)]} material="plasticBlack" />
     </group>
   );
@@ -54,9 +56,8 @@ export interface ScrewTerminalProps {
 }
 
 /**
- * A 5 mm pitch screw terminal block: moulded body, a screw on top of each
- * way and the square wire entries on the front. Drawn in the grey of the
- * palette rather than the usual green.
+ * A 5 mm pitch screw terminal block: the green moulded body, a nickel
+ * screw on top of each way and the square wire entries on the front.
  */
 export function ScrewTerminal({ position, count, rotation = 0 }: ScrewTerminalProps) {
   const pitch = mm(5);
@@ -69,18 +70,31 @@ export function ScrewTerminal({ position, count, rotation = 0 }: ScrewTerminalPr
   }, [count, pitch]);
   return (
     <group position={position} rotation={[0, rotation, 0]}>
-      <Block position={[0, mm(5), 0]} size={[pitch * count, mm(10), mm(7.6)]} material="plasticGrey" />
-      <Repeat items={screws} shape="cylinderLow" material="steel" />
+      <Block position={[0, mm(5), 0]} size={[pitch * count, mm(10), mm(7.6)]} material="terminalGreen" />
+      <Repeat items={screws} shape="cylinderLow" material="tin" />
       <Repeat items={mouths} material="plasticBlack" />
     </group>
   );
 }
 
-/** An aluminium electrolytic capacitor standing on the board, with its dark sleeve and scored top. */
-export function Electrolytic({ position, radius = mm(4), height = mm(10) }: { position: Vec3; radius?: number; height?: number }) {
+export interface ElectrolyticProps {
+  position: Vec3;
+  radius?: number;
+  height?: number;
+  /** Sleeve colour. Mainboards mix black and blue ones. */
+  sleeve?: "black" | "blue";
+}
+
+/**
+ * An aluminium electrolytic capacitor standing on the board: its printed
+ * sleeve with the grey stripe over the negative lead, and the bare
+ * aluminium top with its scored vent.
+ */
+export function Electrolytic({ position, radius = mm(4), height = mm(10), sleeve = "black" }: ElectrolyticProps) {
   return (
     <group position={position}>
-      <Cylinder position={[0, height / 2, 0]} radius={radius} height={height} material="plasticBlack" />
+      <Cylinder position={[0, height / 2, 0]} radius={radius} height={height} material={sleeve === "blue" ? "capBlue" : "plasticBlack"} />
+      <mesh geometry={wrapBand(radius * 1.01, height * 0.94, 0.8)} material={getMaterial("plasticGrey")} position={[0, height / 2, 0]} dispose={null} />
       <Cylinder position={[0, height + 0.0005, 0]} radius={radius * 0.92} height={0.001} material="aluminium" />
       <Block position={[0, height + 0.0012, 0]} size={[radius * 1.2, 0.0006, mm(0.3)]} material="graphite" />
     </group>
