@@ -1,0 +1,111 @@
+/*
+  The wizard's forms and inline states: fields, the collapsible command
+  blocks, the Bluetooth support note, errors, the Pi's reported state and
+  the waiting row. Errors stay neutral, marked by an icon and words.
+*/
+
+.onboarding-form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.onboarding-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.onboarding-details {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.onboarding-details summary {
+  padding: 9px 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.onboarding-details summary:hover,
+.onboarding-details[open] summary {
+  color: var(--text);
+}
+
+.onboarding-code {
+  margin: 0;
+  padding: 12px;
+  overflow-x: auto;
+  border-top: 1px solid var(--border);
+  background: var(--bg-elevated);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+.onboarding-details__text {
+  padding: 0 12px 12px;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.onboarding-note,
+.onboarding-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.onboarding-note svg,
+.onboarding-message svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.onboarding-note {
+  background: var(--bg-muted);
+}
+
+.onboarding-note svg {
+  color: var(--text-muted);
+}
+
+.onboarding-message {
+  border: 1px solid var(--border-strong);
+}
+
+.onboarding-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.onboarding-state--on {
+  color: var(--accent-text);
+}
+
+.onboarding-waiting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+  font-size: 13px;
+}
+
+.onboarding-waiting svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
