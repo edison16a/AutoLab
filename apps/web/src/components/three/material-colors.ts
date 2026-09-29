@@ -39,6 +39,8 @@ export const COLOR_RECIPES = {
   brass: () => standard("#c8a045", 0.3, 1),
   tin: () => standard("#d3d6da", 0.35, 1),
   blackAnodised: () => standard("#1f2023", 0.4, 0.6),
+  // Bead blasted aluminium (stepper end caps, load cells): a bright satin silver, not a mirror.
+  aluminiumBlasted: () => standard("#d4d7db", 0.5, 0.75),
   // Connector plastics
   connectorCream: () => standard("#eee4c8", 0.5),
   latchBrown: () => standard("#4b3122", 0.5),
