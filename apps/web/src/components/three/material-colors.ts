@@ -110,6 +110,8 @@ export const COLOR_RECIPES = {
   stainless: () => standard("#c8cbcf", 0.34, 0.9),
   // Clean water with the faint blue it takes on in a steel pan.
   water: () => tinted("#6fbbe6", 0.5, 0.04),
+  // Moulded nylon drag chain in the bright orange cable carriers are known for.
+  chainOrange: () => standard("#e8742b", 0.46),
   // The base in the Autolab blue, a shade deeper than the UI accent as powder coat reads lighter under light.
   powderBlue: () => powderCoat("#1b62d0"),
 } satisfies Record<string, () => Material>;
