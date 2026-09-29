@@ -71,7 +71,9 @@ const RECIPES: Record<MaterialKey, () => Material> = {
   aluminium: () => standard("#c9cbcf", 0.3, 1),
   steel: () => standard("#a2a5aa", 0.2, 1),
   rubber: () => standard("#151516", 0.9),
-  acrylic: () => clear("#ffffff", 0.07, 0.04),
+  // A dark body colour, so the sheet dims what is behind it a touch, like real acrylic, instead of
+  // laying a lit grey haze over it. That haze read as a grey sheet in dark mode. Reflections still show.
+  acrylic: () => clear("#1c2023", 0.08, 0.04),
   glass: () => clear("#f4f5f6", 0.2, 0.06),
   liquid: () => clear("#dadbdf", 0.55, 0.2),
   silkscreen: () => standard("#f4f4f4", 0.7),
