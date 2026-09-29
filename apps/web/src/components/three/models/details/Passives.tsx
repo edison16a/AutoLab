@@ -9,7 +9,7 @@ export interface PassiveRun {
   from: [number, number];
   step: [number, number];
   count: number;
-  /** Capacitors are grey, resistors black. */
+  /** Ceramic capacitors are a dusty tan, resistors black. */
   kind: "cap" | "res";
   /** Turn the parts to lie along Z instead of X. */
   turned?: boolean;
@@ -46,9 +46,9 @@ export function Passives({ runs, top }: { runs: PassiveRun[]; top: number }) {
   }, [runs, top]);
   return (
     <>
-      {caps.length ? <Repeat items={caps} material="plasticGrey" /> : null}
+      {caps.length ? <Repeat items={caps} material="ceramicTan" /> : null}
       {resistors.length ? <Repeat items={resistors} material="plasticBlack" /> : null}
-      {ends.length ? <Repeat items={ends} material="steel" /> : null}
+      {ends.length ? <Repeat items={ends} material="tin" /> : null}
     </>
   );
 }
