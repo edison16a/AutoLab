@@ -1,7 +1,8 @@
 "use client";
+import { ExplodeShift } from "../../explode/ExplodeContext";
 import { Block, Cylinder } from "../../primitives";
 import { DrawLatch, Hinge } from "./DoorHardware";
-import { ENCLOSURE, PROFILE } from "./layout";
+import { ENCLOSURE, PROFILE, WALL_EXPLODE } from "./layout";
 
 const { halfX: X, halfZ: Z, floor: FLOOR, top: TOP } = ENCLOSURE;
 const MID = (TOP + FLOOR) / 2;
@@ -28,7 +29,7 @@ export function Door() {
   const bars = [-1, 1];
   const handleX = X - RIM / 2;
   return (
-    <group>
+    <ExplodeShift offset={[0, 0, WALL_EXPLODE.door]}>
       <Block position={[0, MID, Z_DOOR]} size={[WIDTH - RIM, HEIGHT - RIM, 0.016]} material="acrylic" />
       {bars.map((side) => (
         <group key={side}>
@@ -49,6 +50,6 @@ export function Door() {
       {[-0.45, 0.45].map((dy) => (
         <Cylinder key={dy} position={[handleX, MID + dy, Z_DOOR + 0.07]} rotation={[Math.PI / 2, 0, 0]} radius={0.022} height={0.11} low material="aluminium" />
       ))}
-    </group>
+    </ExplodeShift>
   );
 }

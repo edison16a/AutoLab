@@ -64,3 +64,10 @@ export const CHAMBER_FLOOR = ENCLOSURE.floor + 0.02;
 
 /** Height of the Y rail centre line above the chamber floor. */
 export const Y_RAIL_Y = CHAMBER_FLOOR + 0.1;
+
+/**
+ * How far each enclosure wall moves out in the exploded view, along its own
+ * normal, so the chamber opens up around the parts. The right panel goes
+ * furthest, past the boards lifting off the Pi platform beside it.
+ */
+export const WALL_EXPLODE = { left: 1, back: 1, roof: 1, door: 1, right: 1.6 } as const;

@@ -1,9 +1,10 @@
 "use client";
 import { Block, Ring } from "../../primitives";
+import { ExplodeShift } from "../../explode/ExplodeContext";
 import { Rig } from "../../motion/Rig";
 import { ExtrusionBars, type Bar } from "./ExtrusionBars";
 import { GasLines } from "./GasLines";
-import { ENCLOSURE, GANTRY, PROFILE, SENSOR_RAIL_Y } from "./layout";
+import { ENCLOSURE, GANTRY, PROFILE, SENSOR_RAIL_Y, WALL_EXPLODE } from "./layout";
 import { WaterTray } from "./WaterTray";
 
 const { halfX: X, halfZ: Z, top: TOP } = ENCLOSURE;
@@ -65,8 +66,10 @@ export function ChamberFixtures() {
       <Rig rig="gantry">
         <CameraDock />
       </Rig>
-      {/* The valve plate spans the roof's front left corner, resting on both top rails. */}
-      <Block position={[-X + 0.24, TOP + 0.005, Z - 0.26]} size={[0.64, 0.01, 0.6]} material="aluminium" />
+      {/* The valve plate spans the roof's front left corner, resting on both top rails. It lifts with the roof when exploded. */}
+      <ExplodeShift offset={[0, WALL_EXPLODE.roof, 0]}>
+        <Block position={[-X + 0.24, TOP + 0.005, Z - 0.26]} size={[0.64, 0.01, 0.6]} material="aluminium" />
+      </ExplodeShift>
       <GasLines />
       <WaterTray />
     </group>

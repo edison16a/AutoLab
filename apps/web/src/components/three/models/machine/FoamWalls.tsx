@@ -1,7 +1,8 @@
 "use client";
+import { ExplodeShift } from "../../explode/ExplodeContext";
 import { Block } from "../../primitives";
 import { Grommet } from "./Grommet";
-import { ENCLOSURE, FOAM, PROFILE, SENSOR_RAIL_Y } from "./layout";
+import { ENCLOSURE, FOAM, PROFILE, SENSOR_RAIL_Y, WALL_EXPLODE } from "./layout";
 import { Roof } from "./Roof";
 
 const { halfX: X, halfZ: Z, floor: FLOOR, top: TOP } = ENCLOSURE;
@@ -27,11 +28,18 @@ const PROBE_PORT = { y: 2.65, z: -1.55 } as const;
 export function FoamWalls() {
   return (
     <group>
-      <Block position={[0, (LOW + RAIL_LOW) / 2, -Z]} size={[SPAN_X, RAIL_LOW - LOW, FOAM]} material="foamPink" />
-      <Block position={[0, (RAIL_HIGH + HIGH) / 2, -Z]} size={[SPAN_X, HIGH - RAIL_HIGH, FOAM]} material="foamPink" />
-      <Block position={[-X, (LOW + HIGH) / 2, 0]} size={[FOAM, HIGH - LOW, SPAN_Z]} material="foamPink" />
-      <Grommet position={[-X, PROBE_PORT.y, PROBE_PORT.z]} axis="x" wall={FOAM} radius={0.03} />
-      <Roof />
+      {/* In the exploded view each board moves straight out from its opening. */}
+      <ExplodeShift offset={[0, 0, -WALL_EXPLODE.back]}>
+        <Block position={[0, (LOW + RAIL_LOW) / 2, -Z]} size={[SPAN_X, RAIL_LOW - LOW, FOAM]} material="foamPink" />
+        <Block position={[0, (RAIL_HIGH + HIGH) / 2, -Z]} size={[SPAN_X, HIGH - RAIL_HIGH, FOAM]} material="foamPink" />
+      </ExplodeShift>
+      <ExplodeShift offset={[-WALL_EXPLODE.left, 0, 0]}>
+        <Block position={[-X, (LOW + HIGH) / 2, 0]} size={[FOAM, HIGH - LOW, SPAN_Z]} material="foamPink" />
+        <Grommet position={[-X, PROBE_PORT.y, PROBE_PORT.z]} axis="x" wall={FOAM} radius={0.03} />
+      </ExplodeShift>
+      <ExplodeShift offset={[0, WALL_EXPLODE.roof, 0]}>
+        <Roof />
+      </ExplodeShift>
     </group>
   );
 }
