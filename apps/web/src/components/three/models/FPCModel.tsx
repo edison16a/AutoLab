@@ -24,8 +24,9 @@ const END = add(PI_CSI_ENTRY, PI_OFFSET);
 /**
  * The default run: straight out of the camera's edge socket, over and
  * down the right wall inside the chamber, out through the wall above the
- * floor, across the electronics box and straight down into the Pi's CSI
- * slot. Both ends run straight for a while, as they do in a real socket.
+ * floor, in a loose arc over the Pi platform and straight down into the
+ * Pi's CSI slot. Both ends run straight for a while, as they do in a real
+ * socket.
  */
 const ROUTE: Vec3[] = [
   START,

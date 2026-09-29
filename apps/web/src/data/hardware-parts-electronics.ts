@@ -1,7 +1,7 @@
 /**
  * The computer, camera and controller boards. The Pi, Pico and pH module
- * live in the small electronics box outside the enclosure at the bottom
- * right, as in the system design sketch. The camera sits in its dock on
+ * sit bare on a white platform outside the enclosure at the bottom right,
+ * as in the system design sketch. The camera sits in its dock on
  * the right of the gantry and its ribbon runs down the right wall and out
  * to the Pi.
  */

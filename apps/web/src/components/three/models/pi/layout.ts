@@ -8,8 +8,8 @@
  * faces +Z (toward the enclosure door), so y = 0 maps to the front edge.
  *
  * The board is drawn at 1.05 x 0.72 units instead of a strict 85 x 56 mm
- * so it fills the electronics box and the registry hit box the way it
- * always has. That stretches depth by about 4 percent, which nobody can see.
+ * so it lines up with its standoffs on the platform and the registry hit
+ * box. That stretches depth by about 4 percent, which nobody can see.
  */
 import type { Vec3 } from "../../types";
 
