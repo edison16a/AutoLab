@@ -62,7 +62,7 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     name: "Heated platform",
     shortName: "Heated platform",
     category: "Environment",
-    purpose: "Holds the plate nest and keeps the culture plate at 37 °C.",
+    purpose: "Holds the plate nest, the media reservoir and the tip chute, and keeps them at 37 °C.",
     connection: "Heater output from the Pi",
     model: "heated_platform",
     liveNow: false,

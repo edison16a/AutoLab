@@ -1,6 +1,7 @@
 "use client";
 import { Block, Bolt, Cylinder, Repeat, Tube, type RepeatItem } from "../primitives";
 import type { Vec3 } from "../types";
+import { Troughs } from "./deck/Troughs";
 import { mm } from "./details/units";
 
 /** Chamber floor and the top of the heated plate, relative to the platform's origin. */
@@ -64,9 +65,10 @@ function Nest() {
 /**
  * The heated platform: an aluminium plate on four standoffs with the
  * orange silicone heater pad and its thermistor underneath, the Ender's
- * black textured sheet on top, and the fixed nest that holds the 24-well
- * plate at 37 °C. Origin at the platform's centre, 0.15 above the chamber
- * floor.
+ * black textured sheet on top, the fixed nest that holds the 24-well
+ * plate at 37 °C, and on its left margin the media reservoir and the tip
+ * chute the pipette works from. Origin at the platform's centre, 0.15
+ * above the chamber floor.
  */
 export function HeatedPlatformModel() {
   return (
@@ -83,6 +85,7 @@ export function HeatedPlatformModel() {
         <Bolt key={position.join()} position={position} radius={0.03} />
       ))}
       <Nest />
+      <Troughs />
       {(["wireRed", "wireBlack"] as const).map((wire, i) => (
         <Tube key={wire} points={LEADS.map(([x, y, z]) => [x + i * 0.035, y, z] as Vec3)} radius={0.012} material={wire} segments={24} />
       ))}
