@@ -31,7 +31,7 @@ export function ImageFacts({ photo }: { photo: Photo }) {
         <div className="image-facts__row">
           <dt>Resolution</dt>
           <dd className="num">
-            {photo.width} x {photo.height}
+            {photo.width} × {photo.height}
           </dd>
         </div>
         {photo.bytes ? (
