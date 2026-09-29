@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Plus, Router } from "lucide-react";
 import type { Device } from "@/model/types";
 import { useAutolab } from "@/providers/autolab-context";
@@ -14,14 +14,27 @@ export function DevicesSection() {
   const [forgetting, setForgetting] = useState<Device | null>(null);
   // The dialog's effect depends on onCancel, so it has to be stable while it's open.
   const cancel = useCallback(() => setForgetting(null), []);
+  // The dialog hands focus back to the Forget button, which is gone with its row.
+  // Connect device is always here, in the header or the empty state, so it takes focus instead.
+  const connectButton = useRef<HTMLButtonElement>(null);
+  const refocus = useRef(false);
+
+  useEffect(() => {
+    if (!refocus.current) return;
+    refocus.current = false;
+    connectButton.current?.focus();
+  }, [devices]);
 
   function forget() {
-    if (forgetting) forgetDevice(forgetting.id);
+    if (forgetting) {
+      refocus.current = true;
+      forgetDevice(forgetting.id);
+    }
     setForgetting(null);
   }
 
   const connect = (
-    <button type="button" className="btn btn--sm" onClick={openConnect}>
+    <button ref={connectButton} type="button" className="btn btn--sm" onClick={openConnect}>
       <Plus size={16} strokeWidth={1.8} aria-hidden="true" />
       Connect device
     </button>
@@ -44,7 +57,7 @@ export function DevicesSection() {
           icon={Router}
           title="No devices"
           action={
-            <button type="button" className="btn btn--primary" onClick={openConnect}>
+            <button ref={connectButton} type="button" className="btn btn--primary" onClick={openConnect}>
               <Plus size={16} strokeWidth={1.8} aria-hidden="true" />
               Connect device
             </button>
