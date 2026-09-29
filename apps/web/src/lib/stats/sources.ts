@@ -2,16 +2,16 @@
  * Where images came from and how fast the detector ran on them.
  */
 import type { Photo, PhotoSource } from "@/model/types";
-import { percent } from "./math";
+import { shares } from "./math";
 import type { InferenceSample, SourceCount } from "./types";
 
 /** Only sources that have images, largest first. */
 export function sourceBreakdown(photos: Photo[]): SourceCount[] {
   const counts = new Map<PhotoSource, number>();
   for (const p of photos) counts.set(p.source, (counts.get(p.source) ?? 0) + 1);
-  return [...counts]
-    .map(([source, count]) => ({ source, count, share: percent(count, photos.length) }))
-    .sort((a, b) => b.count - a.count);
+  const sorted = [...counts].sort((a, b) => b[1] - a[1]);
+  const percents = shares(sorted.map(([, count]) => count));
+  return sorted.map(([source, count], i) => ({ source, count, share: percents[i] }));
 }
 
 /**
