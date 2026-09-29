@@ -2,7 +2,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { Vector3, type Group } from "three";
 import { Block } from "../../primitives";
-import { ChipMarking } from "../pi/ChipMarking";
+import { ChipMarking } from "../details/ChipMarking";
 
 const LINES = [
   { text: "STEPPING MOTOR", size: 0.8 },

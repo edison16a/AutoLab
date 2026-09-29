@@ -2,7 +2,7 @@
 import { Block, Cylinder, Repeat, type RepeatItem } from "../primitives";
 import type { Vec3 } from "../types";
 import { mm } from "./details/units";
-import { ChipMarking } from "./pi/ChipMarking";
+import { ChipMarking } from "./details/ChipMarking";
 
 /** A KW11 lever switch: 20 x 10 x 6.4 mm, broad faces toward ±Z, lever on +Y. */
 export const SWITCH = { length: mm(20), height: mm(10), depth: mm(6.4) } as const;

@@ -2,7 +2,7 @@
 import type { MaterialKey } from "../../materials";
 import { Block, Cylinder } from "../../primitives";
 import type { Vec3 } from "../../types";
-import { ChipMarking, type MarkingLine } from "./ChipMarking";
+import { ChipMarking, type MarkingLine } from "../details/ChipMarking";
 import { at, mmX, mmZ, onTop, PI_PARTS, TOP } from "./layout";
 import { RaspberryLogo } from "./RaspberryLogo";
 

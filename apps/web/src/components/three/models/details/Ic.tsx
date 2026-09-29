@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import type { MaterialKey } from "../../materials";
 import { Block, Repeat, type RepeatItem } from "../../primitives";
 import type { Vec3 } from "../../types";
-import { ChipMarking, type MarkingLine } from "../pi/ChipMarking";
+import { ChipMarking, type MarkingLine } from "./ChipMarking";
 import { mm } from "./units";
 
 export interface IcProps {

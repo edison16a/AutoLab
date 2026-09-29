@@ -4,7 +4,7 @@ import type { Vec3 } from "../types";
 import { Jst } from "./details/Connectors";
 import { Pcb } from "./details/Pcb";
 import { mm } from "./details/units";
-import { ChipMarking } from "./pi/ChipMarking";
+import { ChipMarking } from "./details/ChipMarking";
 
 /** The carrier is a 20 x 22 mm board standing in the XY plane, facing +Z. */
 const CARRIER = { width: mm(20), height: mm(22), thickness: mm(1.6) } as const;
