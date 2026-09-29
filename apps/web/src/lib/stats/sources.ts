@@ -23,12 +23,10 @@ export function inferenceSamples(photos: Photo[]): InferenceSample[] {
   for (const p of photos) {
     const ms = p.analysis?.inference_ms;
     if (typeof ms !== "number" || !Number.isFinite(ms) || ms < 0) continue;
-    samples.push({
-      id: p.id,
-      time: new Date(p.analyzed_at ?? p.captured_at).getTime(),
-      ms,
-      backend: p.analysis?.backend,
-    });
+    // An unreadable analysis time would print "Invalid Date" in the table, so it falls back too.
+    const analyzed = new Date(p.analyzed_at ?? "").getTime();
+    const time = Number.isFinite(analyzed) ? analyzed : new Date(p.captured_at).getTime();
+    samples.push({ id: p.id, time, ms, backend: p.analysis?.backend });
   }
   return samples.sort((a, b) => a.time - b.time);
 }

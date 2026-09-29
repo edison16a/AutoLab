@@ -39,11 +39,16 @@ export function byDevice(photos: Photo[], deviceId: string) {
 /**
  * The window for a range. "7 days" is today plus the six before it. "All
  * time" starts on the day of the oldest image, or today when there are none.
+ * An image with an unreadable time is skipped here: one NaN would make the
+ * whole window NaN and empty every chart.
  */
 export function rangeWindow(range: StatsRange, photos: Photo[], now: number): Window {
   const today = startOfDay(now);
   if (range !== "all") return { start: addDays(today, 1 - RANGE_DAYS[range]), end: now };
-  const oldest = photos.reduce((min, p) => Math.min(min, captureTime(p)), now);
+  const oldest = photos.reduce((min, p) => {
+    const time = captureTime(p);
+    return Number.isFinite(time) ? Math.min(min, time) : min;
+  }, now);
   return { start: startOfDay(oldest), end: now };
 }
 
