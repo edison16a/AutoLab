@@ -1,0 +1,138 @@
+/*
+  Statistics charts. Marks use the accent, context marks use grey, and all
+  text uses the text tokens. Grid and axes are hairlines one step off the
+  surface so the data is the only loud thing.
+*/
+
+.stats-chart {
+  position: relative;
+}
+
+.stats-chart__plot {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  outline-offset: 4px;
+  /* Vertical swipes still scroll the page. Sideways drags scrub the chart. */
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.stats-chart__plot svg {
+  display: block;
+  overflow: visible;
+}
+
+.stats-chart__grid,
+.stats-chart__baseline,
+.stats-chart__cross,
+.stats-chart__ref {
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.stats-chart__grid {
+  stroke: var(--border);
+}
+
+.stats-chart__baseline {
+  stroke: var(--border-strong);
+}
+
+.stats-chart__cross {
+  stroke: var(--text-faint);
+}
+
+.stats-chart__ref {
+  stroke: var(--text-muted);
+}
+
+.stats-chart__tick,
+.stats-chart__ref-label {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A halo in the surface colour keeps the label readable over dots. */
+.stats-chart__ref-label {
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.stats-chart__bar {
+  fill: var(--accent);
+  transition: fill-opacity 120ms ease;
+}
+
+.stats-chart__bar--other {
+  fill: var(--text-faint);
+}
+
+.stats-chart__bar--dim {
+  fill-opacity: 0.35;
+}
+
+.stats-chart__cap {
+  fill: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-chart__label {
+  fill: var(--text);
+  font-size: 12px;
+}
+
+.stats-chart__value {
+  fill: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-chart__note {
+  fill: var(--text-muted);
+  font-weight: 400;
+}
+
+/* The ring in the surface colour separates dots that overlap. */
+.stats-chart__dot {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.stats-tip {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(12px, -50%);
+}
+
+.stats-tip--left {
+  transform: translate(calc(-100% - 12px), -50%);
+}
+
+.stats-tip__value {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-tip__label {
+  color: var(--text-muted);
+}
