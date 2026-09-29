@@ -86,9 +86,10 @@
     gap: 12px;
   }
 
+  /* The machine is wider than tall, so a square-ish stage wastes less space on a phone. */
   .hardware__stage {
-    height: 58vh;
-    min-height: 320px;
+    height: clamp(300px, 100vw, 58vh);
+    scroll-margin-top: 12px;
   }
 
   .hardware-toolbar {

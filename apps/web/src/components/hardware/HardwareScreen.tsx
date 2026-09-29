@@ -1,7 +1,7 @@
 "use client";
 import "@/styles/hardware.css";
 import "@/styles/hardware-panels.css";
-import { Suspense } from "react";
+import { Suspense, useCallback, useRef } from "react";
 import { partById } from "@/data/hardware-parts";
 import { MachineView } from "./MachineView";
 import { PartDetails } from "./PartDetails";
@@ -24,12 +24,25 @@ function HardwareWorkspace() {
   const states = usePartStates();
   const part = view.selected ? partById[view.selected] ?? null : null;
   const wide = useWideLayout();
+  const stageRef = useRef<HTMLElement>(null);
+  const { select } = view;
+
+  // On phones the list sits below the model, so bring the model back into view to show the pick.
+  const selectFromList = useCallback(
+    (id: string) => {
+      select(id);
+      if (wide) return;
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      stageRef.current?.scrollIntoView({ block: "start", behavior: still ? "auto" : "smooth" });
+    },
+    [select, wide],
+  );
 
   return (
     <div className="workspace">
       <div className="hardware">
-        <PartsList states={states} selected={view.selected} hovered={view.hovered} onSelect={view.select} onHover={view.setHovered} />
-        <section className="hardware__stage" aria-label="3D view">
+        <PartsList states={states} selected={view.selected} hovered={view.hovered} onSelect={selectFromList} onHover={view.setHovered} />
+        <section ref={stageRef} className="hardware__stage" aria-label="3D view">
           <MachineView
             className="hardware__canvas"
             selected={view.selected}
