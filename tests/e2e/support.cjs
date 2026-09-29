@@ -27,9 +27,14 @@ async function launch() {
   });
 }
 
-/** A page that records uncaught errors so the run can fail on any of them. */
+/**
+ * A page that records uncaught errors so the run can fail on any of them.
+ * Reduced motion makes camera flights and setup animations jump to their end,
+ * so a slow CI runner rendering WebGL in software isn't busy animating while
+ * the test clicks.
+ */
 async function newPage(browser, errors, viewport = { width: 1440, height: 950 }) {
-  const page = await browser.newPage({ viewport });
+  const page = await browser.newPage({ viewport, reducedMotion: "reduce" });
   page.on("pageerror", (error) => {
     console.error(error.stack);
     errors.push(error.message);
@@ -51,8 +56,16 @@ async function assertNoSideScroll(page, where) {
   assert(fits, `No horizontal scroll on ${where}`);
 }
 
+/**
+ * Saves a picture for debugging a failed run. It's not a check, so a slow
+ * software renderer that misses the deadline only logs a note.
+ */
 async function shot(page, name) {
-  await page.screenshot({ path: `/tmp/autolab-${name}.png` });
+  try {
+    await page.screenshot({ path: `/tmp/autolab-${name}.png`, timeout: 60000 });
+  } catch (error) {
+    console.warn(`screenshot ${name} skipped: ${error.message.split("\n")[0]}`);
+  }
 }
 
 module.exports = { BASE, SKIP_DETECTION, launch, newPage, openSection, assertNoSideScroll, shot, assert };
