@@ -15,7 +15,10 @@ import { ImagePanel } from "./detail/ImagePanel";
 import { ImageStage } from "./detail/ImageStage";
 import { useImageNavigation, useLibraryOrder } from "./detail/use-image-navigation";
 
-/** Grey stand ins for the stage and panel while the library loads. */
+/**
+ * The stage and panel as empty frames while the library loads, so the image
+ * drops into place without the layout jumping.
+ */
 function ImageSkeleton() {
   return (
     <div className="workspace image-screen" aria-busy="true" aria-label="Loading image">
