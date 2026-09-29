@@ -24,6 +24,8 @@ const SETTLE_MS = 300;
  * parts still get a defined shadow.
  */
 interface StageShadowsProps {
+  /** False draws no shadows at all, for software renderers where each shadow pass costs seconds. */
+  enabled?: boolean;
   /** Contact shadow strength. */
   opacity: number;
   /** Strength of the key light's shadow on the floor. */
@@ -32,7 +34,7 @@ interface StageShadowsProps {
   children: ReactNode;
 }
 
-export function StageShadows({ opacity, castOpacity, scale, children }: StageShadowsProps) {
+export function StageShadows({ enabled = true, opacity, castOpacity, scale, children }: StageShadowsProps) {
   const gl = useThree((state) => state.gl);
   const invalidate = useThree((state) => state.invalidate);
   const [live, setLive] = useState(true);
@@ -40,6 +42,10 @@ export function StageShadows({ opacity, castOpacity, scale, children }: StageSha
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const refresh = useCallback(() => {
+    if (!enabled) {
+      invalidate();
+      return;
+    }
     gl.shadowMap.needsUpdate = true;
     if (!liveRef.current) {
       liveRef.current = true;
@@ -53,7 +59,7 @@ export function StageShadows({ opacity, castOpacity, scale, children }: StageSha
       invalidate();
     }, SETTLE_MS);
     invalidate();
-  }, [gl, invalidate]);
+  }, [enabled, gl, invalidate]);
 
   useEffect(() => {
     refresh();
@@ -61,6 +67,8 @@ export function StageShadows({ opacity, castOpacity, scale, children }: StageSha
       if (timer.current) clearTimeout(timer.current);
     };
   }, [refresh]);
+
+  if (!enabled) return <ShadowRefresh.Provider value={refresh}>{children}</ShadowRefresh.Provider>;
 
   return (
     <ShadowRefresh.Provider value={refresh}>

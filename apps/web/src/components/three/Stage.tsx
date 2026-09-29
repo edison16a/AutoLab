@@ -32,6 +32,9 @@ const GL = { antialias: true, alpha: true, stencil: true, powerPreference: "high
 // The shadow map only redraws when told to (see StageShadows).
 const SHADOWS = { enabled: true, type: PCFShadowMap, autoUpdate: false } as const;
 const DPR: [number, number] = [1, 1.75];
+// Software rendering: no multisampling and one pixel per CSS pixel, since both multiply the CPU cost.
+const SOFTWARE_GL = { ...GL, antialias: false } as const;
+const SOFTWARE_DPR = 1;
 
 function createEvents(store: Parameters<typeof pointerEvents>[0]) {
   return { ...pointerEvents(store), filter: preferInnerHits };
@@ -42,10 +45,13 @@ function createEvents(store: Parameters<typeof pointerEvents>[0]) {
  * light and dark theme, lights the scene as a softbox studio with a soft
  * floor shadow, and falls back to one plain sentence when WebGL is missing
  * or the context is lost. The canvas background is transparent, so the
- * surrounding CSS (tokens) decides the backdrop colour.
+ * surrounding CSS (tokens) decides the backdrop colour. On a software
+ * renderer it skips shadows and multisampling so the page stays usable.
  */
 export function Stage({ children, label, className = "", cameraPosition = [8, 6, 10], fov = 32, shadowRadius = 5.5, onPointerMissed }: StageProps) {
-  const supported = useWebGLSupport();
+  const webgl = useWebGLSupport();
+  const supported = webgl?.supported ?? null;
+  const software = !!webgl?.software;
   const [lost, setLost] = useState(false);
   const { theme } = useTheme();
 
@@ -78,9 +84,9 @@ export function Stage({ children, label, className = "", cameraPosition = [8, 6,
       <StageBoundary>
         <Canvas
           frameloop="demand"
-          dpr={DPR}
-          gl={GL}
-          shadows={SHADOWS}
+          dpr={software ? SOFTWARE_DPR : DPR}
+          gl={software ? SOFTWARE_GL : GL}
+          shadows={software ? false : SHADOWS}
           camera={{ position: cameraPosition, fov, near: 0.05, far: 150 }}
           events={createEvents}
           onCreated={onCreated}
@@ -89,7 +95,12 @@ export function Stage({ children, label, className = "", cameraPosition = [8, 6,
           fallback={<StageFallback />}
         >
           <StageLighting theme={theme} shadowRadius={shadowRadius} />
-          <StageShadows opacity={STAGE_LOOKS[theme].shadowOpacity} castOpacity={STAGE_LOOKS[theme].castShadowOpacity} scale={shadowRadius * 3.6}>
+          <StageShadows
+            enabled={!software}
+            opacity={STAGE_LOOKS[theme].shadowOpacity}
+            castOpacity={STAGE_LOOKS[theme].castShadowOpacity}
+            scale={shadowRadius * 3.6}
+          >
             <Suspense fallback={null}>{children}</Suspense>
           </StageShadows>
         </Canvas>
