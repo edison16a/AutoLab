@@ -38,6 +38,26 @@ export function niceScale(max: number, target = 4, integer = false): Scale {
   return { max: top, ticks };
 }
 
+/**
+ * Whole number percents for parts of one whole that add up to exactly 100.
+ * Rounding each part alone can print 73% and 28% side by side, so the
+ * leftover points go to the parts that lost the most in rounding.
+ */
+export function shares(counts: number[]) {
+  const total = counts.reduce((sum, c) => sum + c, 0);
+  if (!total) return counts.map(() => 0);
+  const exact = counts.map((c) => (c / total) * 100);
+  const floors = exact.map(Math.floor);
+  let left = 100 - floors.reduce((sum, f) => sum + f, 0);
+  const order = exact.map((e, i) => ({ i, rest: e - floors[i] })).sort((a, b) => b.rest - a.rest);
+  for (const { i } of order) {
+    if (left <= 0) break;
+    floors[i]++;
+    left--;
+  }
+  return floors;
+}
+
 /** Share of a whole as a whole number percent. Zero when the whole is empty. */
 export function percent(part: number, whole: number) {
   return whole ? Math.round((part / whole) * 100) : 0;
