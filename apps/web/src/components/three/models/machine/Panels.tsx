@@ -23,8 +23,7 @@ const RIBBON_SLOT = { y: 0.72, z: -0.05 } as const;
 /**
  * The clear acrylic viewing panel on the right side, held in the slots of
  * the frame around it, with the ribbon slot and the cable grommets let into
- * it. With the door it is the way into the chamber for the eye; the other
- * walls are insulation board (FoamWalls).
+ * it. With the door it is the only panel; the back, left and top are open.
  */
 export function Panels() {
   return (

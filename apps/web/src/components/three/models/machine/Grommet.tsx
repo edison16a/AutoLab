@@ -17,9 +17,9 @@ const RING_TURN: Record<GrommetProps["axis"], Vec3> = { x: [0, Math.PI / 2, 0], 
 const TUBE_TURN: Record<GrommetProps["axis"], Vec3> = { x: [0, 0, Math.PI / 2], y: [0, 0, 0], z: [Math.PI / 2, 0, 0] };
 
 /**
- * A black rubber grommet where a cable passes through a wall: a rolled lip
- * on each face and a sleeve lining the hole, so the cut foam never shows
- * and the cable never chafes on it.
+ * A black rubber grommet where a cable passes through a panel: a rolled lip
+ * on each face and a sleeve lining the hole, so the cable never chafes on
+ * the cut edge.
  */
 export function Grommet({ position, axis, wall, radius = 0.032 }: GrommetProps) {
   const i = axis === "x" ? 0 : axis === "y" ? 1 : 2;

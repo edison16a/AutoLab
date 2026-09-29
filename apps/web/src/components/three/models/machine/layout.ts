@@ -47,17 +47,8 @@ export const TOOL = { x: -0.35, z: 0.05, driveZ: -0.1 } as const;
  */
 export const PROFILE = 0.16;
 
-/**
- * Height of the 2020 rail across the back wall. The SHT85 and the CO₂
- * board mount on it, and the back foam panel is cut in two around it.
- */
+/** Height of the 2020 rail across the back of the frame. The SHT85 and the CO₂ board mount on it. */
 export const SENSOR_RAIL_Y = 3.45;
-
-/**
- * The foam wall boards: half inch XPS pushed into the frame openings, a
- * hair thinner than the bars so the black faces always sit in front.
- */
-export const FOAM = PROFILE - 0.012;
 
 /** Top of the aluminium floor plate that lines the chamber. */
 export const CHAMBER_FLOOR = ENCLOSURE.floor + 0.02;
@@ -66,8 +57,9 @@ export const CHAMBER_FLOOR = ENCLOSURE.floor + 0.02;
 export const Y_RAIL_Y = CHAMBER_FLOOR + 0.1;
 
 /**
- * How far each enclosure wall moves out in the exploded view, along its own
- * normal, so the chamber opens up around the parts. The right panel goes
- * furthest, past the boards lifting off the Pi platform beside it.
+ * How far the door and the side panel move out in the exploded view, along
+ * their own normals, so the chamber opens up around the parts. The right
+ * panel goes furthest, past the boards lifting off the Pi platform beside
+ * it. The CO₂ valve plate on the top rails lifts by `roof`.
  */
-export const WALL_EXPLODE = { left: 1, back: 1, roof: 1, door: 1, right: 1.6 } as const;
+export const WALL_EXPLODE = { roof: 1, door: 1, right: 1.6 } as const;
