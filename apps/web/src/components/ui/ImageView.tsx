@@ -31,7 +31,7 @@ export function ImageView({
   const showBoxes = overlays && fit === "contain";
 
   useEffect(() => {
-    if (canvas.current) drawDetections(canvas.current, width, height, showBoxes ? analysis : undefined);
+    if (showBoxes && canvas.current) drawDetections(canvas.current, width, height, analysis);
   }, [width, height, analysis, showBoxes]);
 
   return (
@@ -40,7 +40,8 @@ export function ImageView({
       style={{ "--ratio": `${width} / ${height}` } as CSSProperties}
     >
       <img src={url} alt={alt} draggable={false} />
-      <canvas ref={canvas} aria-hidden="true" />
+      {/* Thumbnails skip the canvas: a full resolution canvas per card adds up fast. */}
+      {showBoxes ? <canvas ref={canvas} aria-hidden="true" /> : null}
     </div>
   );
 }
