@@ -22,19 +22,19 @@ interface FlexConnectorProps {
 
 /**
  * A vertical entry flex connector (the CSI camera and DSI display ports):
- * a pale moulded body, the dark pull-up latch across the top, the open
- * slot the ribbon drops into, and metal hold-down tabs at both ends.
+ * the cream moulded body, the dark brown pull-up latch across the top, the
+ * open slot the ribbon drops into, and tinned hold-down tabs at both ends.
  */
 function FlexConnector({ drawing, label, side = 1, emphasis = false }: FlexConnectorProps) {
   const [x, z] = at(drawing[0], drawing[1]);
-  const body: MaterialKey = emphasis ? "accent" : "plasticWhite";
+  const body: MaterialKey = emphasis ? "accent" : "connectorCream";
   const top = TOP + BODY[1];
   return (
     <group position={[x, 0, z]}>
       <Block position={[0, TOP + BODY[1] / 2, 0]} size={BODY} radius={0.003} material={body} />
-      <Block position={[side * 0.017, top + LATCH[1] / 2, 0]} size={LATCH} radius={0.003} material="plasticBlack" />
+      <Block position={[side * 0.017, top + LATCH[1] / 2, 0]} size={LATCH} radius={0.003} material="latchBrown" />
       <Block position={[side * FLEX_SLOT_OFFSET, top + 0.0005, 0]} size={[0.011, 0.002, BODY[2] - 0.05]} material="rubber" />
-      <Repeat items={TABS} material="steel" />
+      <Repeat items={TABS} material="tin" />
       <TextDecal text={label} position={[-side * (BODY[0] / 2 + 0.028), TOP + 0.001, 0]} rotation={ALONG} width={0.12} height={0.022} />
     </group>
   );
