@@ -23,9 +23,9 @@ function ProbeClip() {
     <>
       {[0.24, -0.12].map((dy) => (
         <group key={dy} position={[0, PROBE.y + dy, 0]}>
-          <Block position={[-X + 0.04, 0, armZ]} size={[0.06, 0.05, PROBE.z - RAIL_FRONT + 0.02]} radius={0.012} material="plasticGrey" />
-          <Block position={[(-X + 0.04 + PROBE.x - PROBE.radius) / 2, 0, PROBE.z]} size={[PROBE.x - PROBE.radius - (-X + 0.04) + 0.03, 0.05, 0.06]} radius={0.012} material="plasticGrey" />
-          <Ring position={[PROBE.x, 0, PROBE.z]} radius={PROBE.radius} material="plasticGrey" />
+          <Block position={[-X + 0.04, 0, armZ]} size={[0.06, 0.05, PROBE.z - RAIL_FRONT + 0.02]} radius={0.012} material="plaGrey" />
+          <Block position={[(-X + 0.04 + PROBE.x - PROBE.radius) / 2, 0, PROBE.z]} size={[PROBE.x - PROBE.radius - (-X + 0.04) + 0.03, 0.05, 0.06]} radius={0.012} material="plaGrey" />
+          <Ring position={[PROBE.x, 0, PROBE.z]} radius={PROBE.radius} material="plaGrey" />
         </group>
       ))}
     </>
@@ -51,13 +51,14 @@ function CameraDock() {
  * Brackets inside and on the chamber that hold parts in place: the sensor
  * rail and the CO₂ adapter plate on the back wall, the pH probe clip, the
  * camera dock on the right upright, and the CO₂ valve's plate on the roof
- * with its gas lines.
+ * with its gas lines. The printed ones are light grey PLA, the rest bare
+ * aluminium.
  */
 export function ChamberFixtures() {
   return (
     <group>
       <ExtrusionBars bars={SENSOR_RAIL} />
-      <Block position={[CO2_PLATE.x, CO2_PLATE.y, RAIL_FRONT + CO2_PLATE.thickness / 2]} size={[CO2_PLATE.width, CO2_PLATE.height, CO2_PLATE.thickness]} material="plasticGrey" />
+      <Block position={[CO2_PLATE.x, CO2_PLATE.y, RAIL_FRONT + CO2_PLATE.thickness / 2]} size={[CO2_PLATE.width, CO2_PLATE.height, CO2_PLATE.thickness]} material="plaGrey" />
       <ProbeClip />
       <CameraDock />
       {/* The valve plate spans the roof's front left corner, resting on both top rails. */}
