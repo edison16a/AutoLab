@@ -64,7 +64,13 @@ export function WebcamControls({ camera }: { camera: ComputerCameraModel }) {
         </label>
       </div>
       <div className="live-controls__summary">
-        {snapshot?.analysis ? <DetectionSummary analysis={snapshot.analysis} announce={snapshot.origin === "upload"} /> : null}
+        {snapshot?.analysis ? (
+          <DetectionSummary
+            analysis={snapshot.analysis}
+            showTiming={snapshot.origin === "upload"}
+            announce={snapshot.origin === "upload"}
+          />
+        ) : null}
       </div>
       <label className="live-controls__detect">
         <span className="live-controls__detect-text">

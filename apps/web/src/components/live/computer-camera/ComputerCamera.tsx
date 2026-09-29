@@ -39,7 +39,7 @@ export function ComputerCamera() {
         ) : null}
       </div>
       <aside className="live__side" aria-label="Computer camera details">
-        <CaptureGrid title="Recent captures" photos={recent} emptyText="Photos and uploads from this computer appear here." />
+        <CaptureGrid title="Recent captures" photos={recent} emptyText="Photos and uploads appear here." />
         <FactList
           title="Detector"
           facts={[
