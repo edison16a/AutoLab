@@ -33,8 +33,10 @@
 /*
   Nothing to replay when the stage fell back to its one line of text. Keyed
   on the fallback itself, which also covers a canvas that failed to start.
+  Only a direct child counts: the canvas always carries a copy inside it for
+  browsers without canvas, and that one must not hide the button.
 */
-.onboarding-stage:has(.stage3d__fallback) .onboarding-stage__replay {
+.onboarding-stage:has(.stage3d > .stage3d__fallback) .onboarding-stage__replay {
   display: none;
 }
 
