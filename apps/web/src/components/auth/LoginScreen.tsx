@@ -1,7 +1,7 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { LoaderCircle } from "lucide-react";
+import { CircleAlert, LoaderCircle } from "lucide-react";
 import { errorText } from "@/lib/errors";
 import { useAuth } from "@/providers/AuthProvider";
 import { LogoMark } from "../ui/LogoMark";
@@ -86,6 +86,7 @@ export function LoginScreen() {
         </label>
         {message ? (
           <p className={`auth__message ${message.error ? "auth__message--error" : ""}`} role={message.error ? "alert" : "status"}>
+            {message.error ? <CircleAlert size={16} strokeWidth={1.8} aria-hidden="true" /> : null}
             {message.text}
           </p>
         ) : null}

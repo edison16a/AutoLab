@@ -41,6 +41,9 @@
 }
 
 .auth__message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   padding: 10px 12px;
   border-radius: var(--radius-sm);
   background: var(--bg-muted);
@@ -50,6 +53,12 @@
 .auth__message--error {
   border: 1px solid var(--border-strong);
   background: var(--bg);
+}
+
+/* Nudges the icon onto the first line of text. */
+.auth__message svg {
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .auth__switch {
