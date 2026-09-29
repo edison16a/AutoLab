@@ -1,0 +1,220 @@
+/*
+  Data library: the filter toolbar, day groups, the grid, loading
+  placeholders and the bulk selection bar. Cards live in data-card.css.
+*/
+
+.data-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-bottom: 28px;
+}
+
+.data-search {
+  position: relative;
+  flex: 0 1 280px;
+  min-width: 200px;
+}
+
+.data-search__icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  color: var(--text-faint);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.data-search__input {
+  padding-right: 34px;
+  padding-left: 36px;
+}
+
+/* The search box has its own clear button, so the browser's one is hidden. */
+.data-search__input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.data-search__clear {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background-color 120ms ease;
+}
+
+.data-search__clear:hover {
+  background: var(--bg-muted);
+}
+
+/* Tabs sit inline with the inputs, so they drop the full width rule under them. */
+.data-toolbar__tabs {
+  gap: 20px;
+  border-bottom: 0;
+}
+
+.data-toolbar__selects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* A select with its name printed inside the box, in muted text. */
+.data-select {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding-left: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+
+.data-select:hover {
+  border-color: var(--border-strong);
+}
+
+.data-select:focus-within {
+  border-color: var(--accent);
+}
+
+.data-select__label {
+  color: var(--text-muted);
+}
+
+.data-select__control {
+  height: 100%;
+  padding: 0 30px 0 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+}
+
+.data-select__control option {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.data-select-toggle--on,
+.data-select-toggle--on:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.data-days {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.data-day__title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.data-day__count {
+  color: var(--text-faint);
+  font-weight: 500;
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.data-skeleton__title {
+  display: block;
+  width: 88px;
+  height: 14px;
+  margin-bottom: 14px;
+}
+
+.data-skeleton__line {
+  display: block;
+  width: 64px;
+  height: 12px;
+}
+
+.data__more {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+/* Sticks to the bottom of the scrolling page while select mode is on. */
+.data-selection {
+  position: sticky;
+  bottom: 16px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(560px, 100%);
+  margin: 28px auto 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.data-selection__count {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .data-toolbar {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .data-search {
+    flex: 1 1 100%;
+  }
+
+  .data-toolbar__tabs {
+    flex: 1 1 100%;
+  }
+
+  .data-toolbar__selects {
+    margin-left: 0;
+  }
+
+  .data-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .data-days {
+    gap: 24px;
+  }
+}
