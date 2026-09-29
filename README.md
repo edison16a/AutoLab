@@ -1,43 +1,74 @@
-# Autolab
+<p align="center">
+  <img src="apps/web/app/icon.svg" width="88" alt="Autolab logo" />
+</p>
 
-Remote Raspberry Pi imaging with a Next.js dashboard, persistent Python WebSocket gateway, Pi camera agent, and browser object detection.
+<h1 align="center">Autolab</h1>
 
-**The default is a public, account-free demo.** Captures and analyses live only in the current browser tab. Refreshing clears them, the selected device, and connection settings. There is no browser database or gateway image archive in demo mode. Download images before leaving. A device ID is a routing address, not an authentication credential: anyone with it can control that demo camera.
+Autolab is a low cost automated cell culture system for neuronal cultures, built by the Neurotech wet lab team. A desktop 3D printer gantry sits inside an insulated enclosure that holds 37 °C, 5% CO₂ and 85 to 95% humidity. The gantry carries a motorized P1000 pipette for media changes and a Raspberry Pi HQ camera for checking the culture, all run by a Raspberry Pi 4.
 
-Cloud mode is implemented separately and disabled by default. It adds Supabase email/password accounts, one-time device claiming, ownership enforcement, private image storage, durable image history, and saved analyses.
+This repository is the software. You sign in, connect your Autolab over Bluetooth, and then watch the live camera, take photos, run object detection and browse the results from anywhere. A 3D model of the whole machine shows every part and what state it's in.
 
-## Included
+## Screenshots
 
-- Interactive Three.js digital twin with 16 selectable component nodes, linked details, exploded view, connection lines and an accessible component list.
-- Animated camera/power onboarding with optional Bluetooth Wi-Fi provisioning and manual fallback. See [digital twin](docs/digital-twin.md) and [Bluetooth setup](docs/bluetooth-provisioning.md).
+![Home: the Autolab in 3D running a media change, with device status and headline numbers](docs/screenshots/home.png)
 
-- Neutral, responsive dashboard opening directly into the 3D components workspace, with live camera, capture library, detail viewer, download, delete, device naming, setup guide, and connection settings.
-- 640 × 480 binary JPEG preview at about 4 FPS, enabled only while a viewer requests it.
-- Separate high-resolution still capture, camera locking, reconnect/backoff, and bounded queues.
-- ONNX Runtime object detection on saved images, Pi preview, computer camera and uploads, with WebGPU and CPU fallback. See [browser detection](docs/browser-detection.md).
-- Raspberry Pi Picamera2 agent with camera discovery, persistent credentials and systemd unit.
-- Explicit camera and ML simulators for testing without hardware or model downloads.
-- Supabase migration, RLS, private bucket, gateway-only credentials, atomic expiring claim codes, and cloud activation instructions.
-- Docker gateway deployment, Vercel frontend configuration, protocol tests, browser end-to-end checks and CI.
+![Hardware: a part focused on the 3D machine, with its details on the right](docs/screenshots/hardware.png)
 
-The implementation covers the imaging phase in the supplied spec. Motors, pumps, environmental sensors, heating and CO2 control are not represented as working hardware controls.
+| Live camera | Image library |
+| --- | --- |
+| ![Live camera with capture strip and device panel](docs/screenshots/live.png) | ![Image library grouped by day](docs/screenshots/data.png) |
 
-## Repository
+| Statistics | Connect device |
+| --- | --- |
+| ![Statistics in dark mode](docs/screenshots/statistics.png) | ![Connect device wizard finding the Autolab over Bluetooth](docs/screenshots/connect.png) |
 
-| Path                   | Runs on                                     |
-| ---------------------- | ------------------------------------------- |
-| `apps/web`             | Vercel or local Node.js                     |
-| `services/gateway`     | Persistent Python host                      |
-| `devices/raspberry-pi` | Raspberry Pi 4, 1 GB, or simulator computer |
-| `workers/ml`           | Your computer, optional                     |
-| `supabase/migrations`  | Supabase SQL Editor, cloud mode only        |
-| `tests`                | Developer machine / CI                      |
+The library and statistics shots use sample images, since object detection can't run where the screenshots were taken.
 
-## Fastest local demo
+## What it does
 
-Prerequisites: Node.js 22+, Python 3.11+, Git. Run each component in a separate terminal. All commands below start at the repository root unless a `cd` is shown.
+- **Home** shows the whole machine in 3D, running a demo media change (picking up tips, drawing and dispensing media, ejecting tips), next to the device status, a few numbers and your latest photos.
+- **Live** streams the Pi camera at about 4 frames a second, takes full resolution stills and can run object detection on the stream. It can also use your computer's camera or an uploaded photo.
+- **Data** keeps every image with its detections. Filter, search by label, open an image, analyze it, download or delete.
+- **Statistics** charts captures per day and by hour, detected objects, confidence, inference time and sources.
+- **Hardware** is the 3D model. Click a part to fly to it, then **Inspect item** to see it on its own. **Exploded view** opens the enclosure and spreads the parts out. Parts without a driver yet say so instead of showing made up readings.
+- **Connect device** walks through seating the camera ribbon and powering the Pi, then finds the Pi over Bluetooth and sends it your Wi-Fi details. Manual setup is there as a fallback.
+- Light and dark mode, and it works on a phone.
 
-### 1. Web dashboard
+## How it works
+
+The Pi and the browser never talk to each other directly. Each one opens an outgoing WebSocket to a small Python gateway, which pairs them by device ID. That means the Pi needs no open ports and no port forwarding, and you can reach it from anywhere.
+
+- The **Pi agent** (`devices/raspberry-pi`) runs Picamera2. It sends a heartbeat every 10 seconds, streams 640 by 480 JPEG frames only while someone is watching, and captures full resolution stills on request.
+- The **gateway** (`services/gateway`, FastAPI) routes commands, frames and photos with bounded queues and timeouts. In cloud mode it also checks Supabase logins and device ownership, and it's the only place that holds the Supabase service key.
+- The **web app** (`apps/web`, Next.js) does everything else. Object detection runs in the browser with ONNX Runtime Web and YOLOv10n, on WebGPU when available and WebAssembly otherwise, so no image leaves the browser for analysis. The 3D model is drawn with Three.js and React Three Fiber.
+
+Photos travel as one binary WebSocket message each: a small JSON header followed by the raw JPEG, so a header can never get separated from its image.
+
+There are two modes:
+
+| | Demo (default) | Cloud |
+| --- | --- | --- |
+| Sign in | The fixed demo login `ntabuser` / `ntabuser123` | Supabase email and password |
+| Connecting a Pi | Its Device ID | A one-time six-digit claim code |
+| Where images live | This browser (IndexedDB) | Private Supabase Storage |
+
+## Repository layout
+
+| Path | What it is | Runs on |
+| --- | --- | --- |
+| `apps/web` | The web app. Routes in `app/`, everything else in `src/` by feature | Vercel or any Node host |
+| `services/gateway` | The WebSocket and HTTP gateway | Any always-on host |
+| `devices/raspberry-pi` | The camera agent and the Bluetooth setup service | Raspberry Pi 4 |
+| `workers/ml` | Optional worker that saves analyses in cloud mode | Your computer |
+| `supabase/migrations` | Tables, security rules and the storage bucket | Supabase |
+| `tests` | Python tests and the browser end to end suite | CI |
+| `docs` | Setup and design notes | |
+
+## Getting started
+
+You need Node.js 22 or newer and Python 3.11 or newer. Run each part in its own terminal, starting at the repository root.
+
+**1. Web app**
 
 ```bash
 npm ci
@@ -45,44 +76,38 @@ cp apps/web/.env.example apps/web/.env.local
 npm run dev
 ```
 
-Open http://localhost:3000. Do not set Supabase variables for the demo.
+Open http://localhost:3000 and sign in with `ntabuser` / `ntabuser123`.
 
-### 2. Gateway
+**2. Gateway**
 
 ```bash
 cd services/gateway
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1 --ws-max-size 16777216 --ws-max-queue 4
+uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
 ```
 
-Alternatively, from the root: `docker compose up --build gateway`.
+Or run `docker compose up --build gateway` from the root.
 
-### 3. Camera simulator
+**3. A Pi, or the simulator**
+
+To try it without hardware, run the agent in simulator mode on your computer:
 
 ```bash
 cd devices/raspberry-pi
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python -m autolab_agent.main --simulate --gateway ws://localhost:8000
 ```
 
-Copy the **Device ID** printed in the terminal. Click **Connect device**, advance through the camera and power guide, choose **Use manual Wi-Fi setup**, and paste it. The guide is illustrative when you are using the simulator. Click **Start preview**, then **Take photo**. The simulator is visibly labeled and does not imply a physical camera is connected.
+It prints a Device ID. In the app, click **Connect device**, go through the steps, choose **Use manual Wi-Fi setup** and paste the ID. The simulator sends clearly labeled synthetic images.
 
-### 4. Object detection
+### A real Raspberry Pi
 
-Open an image and click **Analyze image**, or enable **Detect objects** during preview. In **Live camera**, select **Computer camera** to use a webcam or upload a photograph without connecting a Pi. The web build prepares the pinned YOLOv10n model and ONNX Runtime assets automatically. Inference runs in a browser worker with WebGPU or WebAssembly; no Python ML process is needed.
-
-The optional `workers/ml` integration remains available for custom model clients and durable cloud analyses using the gateway protocol. The default dashboard's analysis buttons use the browser detector. See [browser detection](docs/browser-detection.md) for preprocessing, licensing and model details.
-
-## Real Raspberry Pi setup
-
-1. Flash Raspberry Pi OS Lite 64-bit. Configure your username, Wi-Fi, SSH and hostname in Raspberry Pi Imager.
-2. Power off the Pi before attaching the camera ribbon to the **CSI camera** connector. Align exposed cable contacts with connector contacts. Do not assume the sensor model from the label.
-3. Boot, SSH in, then install and test camera support:
+1. Flash Raspberry Pi OS Lite (64-bit) with Raspberry Pi Imager and set the username, Wi-Fi, SSH and hostname there.
+2. With the Pi powered off, connect the camera ribbon to the **CSI camera** connector (not the display connector), contacts facing the connector's contacts.
+3. Boot, SSH in and check the camera:
 
 ```bash
 sudo apt update
@@ -91,58 +116,62 @@ rpicam-hello --list-cameras
 rpicam-still --nopreview -o test.jpg
 ```
 
-4. Clone and run the agent:
+4. Install and run the agent:
 
 ```bash
 git clone https://github.com/edison16a/AutoLab.git
 cd AutoLab/devices/raspberry-pi
-python3 -m venv --system-site-packages .venv
-source .venv/bin/activate
+python3 -m venv --system-site-packages .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-```
-
-Edit `.env`: set `AUTOLAB_GATEWAY` to the public `wss://` gateway URL, `AUTOLAB_MODE=demo`, and replace `YOUR_USER` in `AUTOLAB_CREDENTIALS`. Then:
-
-```bash
 python -m autolab_agent.main
 ```
 
-No Bluetooth, USB connection to your computer, inbound Pi port, or router port forwarding is required for normal operation. Bluetooth is optional for initial Wi-Fi provisioning. Only the gateway needs a public address. Test detection and a capture with the actual camera before enabling boot startup.
-
-### Start on boot
-
-Replace every `YOUR_USER` and, if needed, the repository path in `systemd/autolab-agent.service`. The user must have access to the camera device, normally through the `video` group on Raspberry Pi OS.
+Set `AUTOLAB_GATEWAY` in `.env` to your gateway's `wss://` address and replace `YOUR_USER` in `AUTOLAB_CREDENTIALS`. To start it on boot, fix the user and path in `systemd/autolab-agent.service`, then:
 
 ```bash
 sudo cp systemd/autolab-agent.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now autolab-agent
-sudo journalctl -u autolab-agent -f
 ```
 
-The device identity is created once with file mode `0600`. Keep that file when updating the agent. Never copy a Supabase service key to the Pi.
+For Bluetooth setup from the app, see [Bluetooth setup](docs/bluetooth-provisioning.md). The Pi's identity file is created once with owner-only permissions; keep it when you update. Never put a Supabase key on the Pi.
 
-## Deploy
+### Cloud mode (Supabase)
 
-See [deployment instructions](docs/deployment.md). The web frontend and gateway are separate deployments. Setting only Vercel variables does not deploy the Python gateway.
+[docs/cloud.md](docs/cloud.md) walks through creating the database, turning on sign in, which key goes where and every environment variable. In short:
 
-## Enable Supabase later
+| Where | Variables |
+| --- | --- |
+| Gateway | `AUTOLAB_MODE=cloud`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ALLOWED_ORIGINS` |
+| Web app | `NEXT_PUBLIC_AUTOLAB_MODE=cloud`, `NEXT_PUBLIC_GATEWAY_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| Pi | `AUTOLAB_MODE=cloud`, `AUTOLAB_GATEWAY`, `AUTOLAB_CREDENTIALS` |
 
-See [cloud activation](docs/cloud.md). Apply the SQL migration, configure email confirmation, set the cloud variables on both services, redeploy, then claim the Pi. Environment variables alone cannot create the database or bucket. No cloud UI or Supabase connection is used while mode remains `demo`.
+### Deploying
 
-## Verification
+The web app goes on Vercel with the root directory set to `apps/web`. The gateway needs an always-on host with WebSockets, since Vercel can't run it. See [deployment](docs/deployment.md).
+
+## Tests
 
 ```bash
-npm ci
-npm run build
+npm ci && npm run build
 python3 -m venv .venv
 .venv/bin/pip install -r services/gateway/requirements.txt -r devices/raspberry-pi/requirements.txt
-.venv/bin/pytest tests/test_gateway.py tests/test_provisioning.py -q
+.venv/bin/pytest tests -q -k "not e2e"
 npx playwright install chromium
 .venv/bin/python tests/run_e2e.py
 ```
 
-End-to-end checks start the gateway, production web app and camera simulator. They exercise the real ONNX model on captures and a checksum-verified street photo, computer-camera start/stop, 3D hover and selection, mobile overflow, deletion and refresh reset. The photo fixture is downloaded on the first run. Ports 3000 and 8000 must be free.
+The end to end run starts the gateway, the production web app and the Pi simulator, then drives a real browser through sign in, connecting a device, the live camera, capture, detection on a real street photo, the library, the 3D hardware view, statistics, settings, phone layouts and the no-WebGL fallback. Ports 3000 and 8000 must be free. CI runs all of this on every push.
 
-Real CSI hardware and a live Supabase project must be verified in the target environment. These checks do not claim to validate either. See [architecture and limits](docs/architecture.md) and [wire protocol](docs/protocol.md).
+The real CSI camera, Bluetooth radio pairing and a live Supabase project still need a check on real hardware and accounts.
+
+## More
+
+- [Architecture and limits](docs/architecture.md)
+- [Wire protocol](docs/protocol.md)
+- [The 3D model](docs/digital-twin.md)
+- [Browser object detection](docs/browser-detection.md)
+- [Bluetooth setup](docs/bluetooth-provisioning.md)
+- [Supabase setup](docs/cloud.md)
+- [Deployment](docs/deployment.md)
