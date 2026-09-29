@@ -40,8 +40,8 @@ export function Gantry() {
         <StepperMotorModel />
       </group>
       <Cylinder position={[-X, 2.55, Z - 0.44]} radius={0.028} height={2.9} low material="steel" />
-      {/* X drive at the right end of the beam. */}
-      <group position={[X - 0.35, BEAM_Y, BEAM_Z + 0.34]} rotation={[-Math.PI / 2, 0, 0]}>
+      {/* X drive behind the left end of the beam, shaft forward through it, next to the X endstop. */}
+      <group position={[-X + 0.4, BEAM_Y, BEAM_Z - 0.35]} rotation={[Math.PI / 2, 0, 0]}>
         <StepperMotorModel />
       </group>
     </group>
