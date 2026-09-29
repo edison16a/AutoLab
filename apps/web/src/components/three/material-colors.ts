@@ -100,6 +100,8 @@ export const COLOR_RECIPES = {
   // Enclosure
   // Pink XPS insulation board: a matte, slightly waxy skin, the same colour right through.
   foamPink: () => standard("#f39bb0", 0.84),
+  // High temperature silicone sponge, the usual orange red door seal on ovens and incubators.
+  siliconeGasket: () => standard("#d4532f", 0.78),
   // The base in the Autolab blue, a shade deeper than the UI accent as powder coat reads lighter under light.
   powderBlue: () => powderCoat("#1b62d0"),
 } satisfies Record<string, () => Material>;

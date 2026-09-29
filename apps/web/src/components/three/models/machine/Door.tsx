@@ -9,8 +9,11 @@ const HEIGHT = TOP - FLOOR - 0.04;
 const RIM = 0.085;
 const DEPTH = 0.04;
 /** The door closes against the front of the frame, with the gasket squeezed between. */
-const GASKET = 0.012;
-const Z_DOOR = Z + PROFILE / 2 + GASKET + DEPTH / 2;
+const GASKET = { thickness: 0.02, width: 0.06, proud: 0.02 } as const;
+const Z_DOOR = Z + PROFILE / 2 + GASKET.thickness + DEPTH / 2;
+/** Where each gasket strip runs: down both sides and across the top and bottom, a little proud of the door edge. */
+const GASKET_Z = Z_DOOR - DEPTH / 2 - GASKET.thickness / 2;
+const GASKET_EDGE = GASKET.width / 2 - GASKET.proud;
 const HINGES = [FLOOR + 0.55, TOP - 0.55];
 
 /** Barrel hinge on the left post: a knuckle and a leaf on the door and on the post. */
@@ -27,8 +30,9 @@ function Hinge({ y }: { y: number }) {
 
 /**
  * The gasketed front door: a clear acrylic viewing panel in a slim black
- * frame, hinged on the left, with a bar handle on the right. The rubber
- * gasket runs round the back of the frame.
+ * frame, hinged on the left, with a bar handle on the right. An orange red
+ * silicone gasket runs round the back of the frame and stands a little
+ * proud of its edge, so the seal shows as a thin line round the door.
  */
 export function Door() {
   const bars = [-1, 1];
@@ -40,8 +44,8 @@ export function Door() {
         <group key={side}>
           <Block position={[side * (WIDTH / 2 - RIM / 2), MID, Z_DOOR]} size={[RIM, HEIGHT, DEPTH]} radius={0.012} material="graphite" />
           <Block position={[0, MID + side * (HEIGHT / 2 - RIM / 2), Z_DOOR]} size={[WIDTH - RIM * 2 + 0.02, RIM, DEPTH]} radius={0.012} material="graphite" />
-          <Block position={[side * (WIDTH / 2 - RIM / 2), MID, Z_DOOR - DEPTH / 2 - GASKET / 2]} size={[0.05, HEIGHT - 0.04, GASKET]} material="rubber" />
-          <Block position={[0, MID + side * (HEIGHT / 2 - RIM / 2), Z_DOOR - DEPTH / 2 - GASKET / 2]} size={[WIDTH - 0.04, 0.05, GASKET]} material="rubber" />
+          <Block position={[side * (WIDTH / 2 - GASKET_EDGE), MID, GASKET_Z]} size={[GASKET.width, HEIGHT + GASKET.proud * 2, GASKET.thickness]} radius={0.008} material="siliconeGasket" />
+          <Block position={[0, MID + side * (HEIGHT / 2 - GASKET_EDGE), GASKET_Z]} size={[WIDTH, GASKET.width, GASKET.thickness]} radius={0.008} material="siliconeGasket" />
         </group>
       ))}
       {HINGES.map((y) => (
