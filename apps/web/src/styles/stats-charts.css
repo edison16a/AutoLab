@@ -127,6 +127,14 @@
   transform: translate(calc(-100% - 12px), -50%);
 }
 
+.stats-tip--below {
+  transform: translate(-50%, 4px);
+}
+
+.stats-tip--above {
+  transform: translate(-50%, calc(-100% - 4px));
+}
+
 .stats-tip__value {
   font-size: 13px;
   font-weight: 600;

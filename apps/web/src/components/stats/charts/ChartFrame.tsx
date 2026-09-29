@@ -10,6 +10,11 @@ export interface Tip {
   value: string;
   label: string;
   detail?: string;
+  /**
+   * Above or below the point instead of beside it. Rows of horizontal bars
+   * use this, since a tooltip beside the bar end would sit on the bar.
+   */
+  place?: "above" | "below";
 }
 
 interface ChartFrameProps {
@@ -71,13 +76,16 @@ export function ChartFrame({ summary, height, count, start, hit, draw, tip }: Ch
 
 /**
  * Sits beside the mark, on whichever side has more room, so it never covers
- * the thing being read. Kept inside the chart vertically.
+ * the thing being read. With `place` it sits above or below instead, centred
+ * on the point and pulled in from the edges by about half its width.
  */
 function Tooltip({ tip, width, height }: { tip: Tip; width: number; height: number }) {
-  const side = tip.x > width / 2 ? "left" : "right";
-  const top = Math.min(Math.max(tip.y, 30), height - 30);
+  const style = tip.place
+    ? { left: Math.min(Math.max(tip.x, 70), Math.max(70, width - 70)), top: tip.y }
+    : { left: tip.x, top: Math.min(Math.max(tip.y, 30), height - 30) };
+  const modifier = tip.place ?? (tip.x > width / 2 ? "left" : "right");
   return (
-    <div className={`stats-tip stats-tip--${side}`} style={{ left: tip.x, top }}>
+    <div className={`stats-tip stats-tip--${modifier}`} style={style}>
       <span className="stats-tip__value">{tip.value}</span>
       <span className="stats-tip__label">{tip.label}</span>
       {tip.detail ? <span className="stats-tip__label">{tip.detail}</span> : null}
