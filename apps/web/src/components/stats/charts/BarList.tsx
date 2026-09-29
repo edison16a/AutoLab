@@ -58,13 +58,18 @@ export function BarList({ rows, summary, describe, height: room }: BarListProps)
         const index = Math.floor(y / pitch);
         return index >= 0 && index < rows.length ? index : null;
       }}
-      tip={(i, width) => ({
-        x: layout(width).end(rows[i].value),
-        y: i * pitch + pitch / 2,
-        value: describe(rows[i].value),
-        label: rows[i].label,
-        detail: rows[i].detail,
-      })}
+      tip={(i, width) => {
+        // Upper rows show it below, lower rows above, so it stays inside the panel.
+        const below = i < rows.length / 2;
+        return {
+          x: layout(width).end(rows[i].value),
+          y: below ? (i + 1) * pitch : i * pitch,
+          place: below ? "below" : "above",
+          value: describe(rows[i].value),
+          label: rows[i].label,
+          detail: rows[i].detail,
+        };
+      }}
       draw={(width, active) => {
         const { labelRoom, end } = layout(width);
         return rows.map((row, i) => {
