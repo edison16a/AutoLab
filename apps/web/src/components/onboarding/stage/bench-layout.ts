@@ -6,6 +6,7 @@
  * RaspberryPiModel and CameraModel; move them together if those change.
  */
 import type { Vec3 } from "@/components/three";
+import { at, mmY, mmZ, PI_BOARD, PI_PARTS, TOP } from "@/components/three/models/pi/layout";
 
 /** The Pi's lowest part (the steel block under the board) is 0.067 below its origin. */
 export const PI_POSITION: Vec3 = [0, 0.068, 0];
@@ -39,11 +40,18 @@ export const RIBBON_ROUTE: Vec3[] = [
 /** How far above its seat the camera and ribbon start. */
 export const RIBBON_LIFT = 0.5;
 
-/** The USB-C port's opening faces -X. The plug's tip ends up just inside it. */
-export const PLUG_Y = PI_POSITION[1] + 0.042;
-export const PLUG_Z = 0.21;
-export const PLUG_SEATED_X = -0.44;
-export const PLUG_START_X = -1.15;
+/**
+ * The USB-C socket sits on the Pi's front edge, beside the micro-HDMI ports,
+ * and opens toward +Z. These come straight from the Pi's layout, so the plug
+ * always lines up with the socket the model draws.
+ */
+const SOCKET_FRONT = PI_BOARD.depth / 2 + mmZ(1);
+export const PLUG_X = at(PI_PARTS.usbC[0], 0)[0];
+export const PLUG_Y = PI_POSITION[1] + TOP + mmY(3.26) / 2;
+/** Seated, the metal shell is all the way in and the moulding stops just short of the socket face. */
+export const PLUG_SEATED_Z = SOCKET_FRONT - 0.1;
+/** It starts out in front of the board and slides straight in. */
+export const PLUG_START_Z = PLUG_SEATED_Z + 0.7;
 
 /** Set back and to the right, so the Pi, router and cloud climb the frame together. */
 export const ROUTER_POSITION: Vec3 = [1.45, 0, -0.6];
