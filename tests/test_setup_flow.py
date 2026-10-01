@@ -100,3 +100,42 @@ def test_older_autolab_wifi_profiles_are_forgotten(monkeypatch):
     monkeypatch.setattr(wifi, "proxy", proxy)
     asyncio.run(wifi._forget_older_profiles(None, "/new"))
     assert deleted == ["/old"]
+
+
+def run_lab(monkeypatch, sign_in):
+    monkeypatch.setattr(setup_flow, "sign_in_pi", sign_in)
+    session = ProvisioningSession("id", "123456")
+    session.supabase = ("https://abc.supabase.co", "public-key")
+    asyncio.run(setup_flow.provision(session, None, "lab", "password", OLD, "demo", "c"))
+    return session
+
+
+def test_lab_mode_signs_the_pi_in_and_reports_its_login(network, monkeypatch):
+    async def sign_in(credentials, url, key):
+        assert (credentials, url, key) == ("c", "https://abc.supabase.co", "public-key")
+        return "pi-login"
+
+    session = run_lab(monkeypatch, sign_in)
+    assert session.status == {"state": "gateway_connected", "device_id": "id", "mode": "lab", "agent_id": "pi-login"}
+    assert session.completed and not session.busy
+    # Lab mode never touches a gateway.
+    assert network["hosts"] == [] and network["repointed"] == []
+
+
+def test_supabase_says_why_it_refused_the_pi(network, monkeypatch):
+    from autolab_agent.lab.session import SignInError
+
+    async def sign_in(*args):
+        raise SignInError("Anonymous sign-ins are disabled")
+
+    session = run_lab(monkeypatch, sign_in)
+    assert session.status["state"] == "error"
+    assert session.status["message"] == "Supabase refused the Pi's login: Anonymous sign-ins are disabled"
+
+
+def test_a_network_failure_in_lab_mode_points_at_the_internet(network, monkeypatch):
+    async def sign_in(*args):
+        raise httpx.ConnectError("no route")
+
+    session = run_lab(monkeypatch, sign_in)
+    assert session.status["message"] == setup_flow.LAB_FAILURE

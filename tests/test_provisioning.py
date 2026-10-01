@@ -130,3 +130,46 @@ def test_longest_request_still_fits_the_frame():
     for offset in range(0, len(request), 20):
         result = session.receive("browser", request[offset : offset + 20])
     assert result and session.gateway == gateway
+
+
+ANON_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiJ9.c2lnbmF0dXJl"
+
+
+def test_lab_mode_hands_over_the_supabase_project():
+    session = ProvisioningSession("id", "123456")
+    assert session.receive("browser", framed(supabase_url="https://abc.supabase.co/", supabase_key=ANON_KEY))
+    assert session.supabase == ("https://abc.supabase.co", ANON_KEY)
+
+
+@pytest.mark.parametrize(
+    "url, key",
+    [
+        ("http://abc.supabase.co", ANON_KEY),  # plain http across the internet
+        ("https://abc.supabase.co/rest/v1", ANON_KEY),  # a path
+        ("https://user:pw@abc.supabase.co", ANON_KEY),  # a login
+        ("https://abc.supabase.co", "has spaces in it, not a key"),
+        ("https://abc.supabase.co", None),  # half the settings
+        (None, ANON_KEY),
+    ],
+)
+def test_bad_supabase_settings_are_rejected(url, key):
+    session = ProvisioningSession("id", "123456")
+    with pytest.raises(ValueError, match="Supabase settings"):
+        session.receive("browser", framed(supabase_url=url, supabase_key=key))
+    assert session.supabase is None
+
+
+def test_a_local_test_project_may_use_plain_http():
+    session = ProvisioningSession("id", "123456")
+    assert session.receive("browser", framed(supabase_url="http://192.168.1.20:54321", supabase_key=ANON_KEY))
+
+
+def test_a_lab_request_still_fits_the_frame():
+    session = ProvisioningSession("id", "123456")
+    url = "https://" + "a" * 40 + ".supabase.co"
+    request = framed(ssid="é" * 16, password="é" * 63, supabase_url=url, supabase_key="k" * 900)
+    assert len(request) <= 2048
+    result = None
+    for offset in range(0, len(request), 20):
+        result = session.receive("browser", request[offset : offset + 20])
+    assert result and session.supabase == (url, "k" * 900)
