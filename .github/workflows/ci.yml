@@ -3,6 +3,14 @@ on: [push, pull_request]
 jobs:
   verify:
     runs-on: ubuntu-latest
+    # For the row level security checks on the lab mode database.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -12,6 +20,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - run: bash supabase/tests/rls.sh
+        env:
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
       - run: npm ci
       - run: npm run build
       - run: pip install -r services/gateway/requirements.txt -r devices/raspberry-pi/requirements.txt
