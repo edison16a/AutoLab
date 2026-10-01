@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 
 from . import state
 from .cloud import digest
-from .config import MODE
+from .config import LAN_URLS, MODE
 from .lan import lan_addresses
 from .limits import rate
 from .models import Claim, Registration, Rename
@@ -35,6 +35,8 @@ def lan(request: Request):
     # Open in every mode. The lab station's web app reads this computer's LAN
     # address here and hands it to a Pi over Bluetooth. A plain def, so FastAPI
     # runs the address lookups in a worker thread.
+    if LAN_URLS:
+        return {"urls": LAN_URLS}
     port = request.url.port or 8000
     return {"urls": [f"ws://{ip}:{port}" for ip in lan_addresses()]}
 

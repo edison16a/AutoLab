@@ -51,3 +51,10 @@ def test_offline_computer_gets_an_empty_list(monkeypatch):
     monkeypatch.setattr(socket, "gethostbyname_ex", offline)
     monkeypatch.setattr(socket, "if_nameindex", offline)
     assert lan.lan_addresses() == []
+
+
+def test_lan_urls_setting_replaces_detection(client, monkeypatch):
+    # Inside Docker the gateway only sees the container's own address.
+    monkeypatch.setattr(http_routes, "LAN_URLS", ["ws://lab-computer.local:8000"])
+    monkeypatch.setattr(http_routes, "lan_addresses", lambda: ["172.18.0.2"])
+    assert client.get("/lan").json() == {"urls": ["ws://lab-computer.local:8000"]}

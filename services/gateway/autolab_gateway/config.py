@@ -22,3 +22,8 @@ ORIGINS = [
     origin.strip()
     for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 ]
+
+# What /lan reports instead of the detected addresses, as comma separated
+# ws:// URLs. For a gateway that cannot see the computer's real LAN address,
+# like one inside Docker.
+LAN_URLS = [url.strip() for url in os.getenv("LAN_URLS", "").split(",") if url.strip()]
