@@ -1,9 +1,12 @@
-"""What happens after a valid request: join Wi-Fi, reach the gateway, share the claim."""
+"""What happens after a valid request: join Wi-Fi, then sign in to Supabase in lab
+mode, or reach the gateway and share the claim otherwise."""
 
 import httpx
 
 from ..endpoints import http_base
+from ..lab.session import SignInError
 from .handoff import wait_for_claim
+from .lab_login import sign_in_pi
 from .repoint import repoint_agent
 from .session import ProvisioningSession
 from .wifi import connect_wifi
@@ -11,6 +14,10 @@ from .wifi import connect_wifi
 FAILURE_MESSAGE = (
     "Could not finish Wi-Fi or gateway setup. Check credentials, gateway mode "
     "and reachability, then retry."
+)
+LAB_FAILURE = (
+    "Could not finish Wi-Fi or Supabase setup. Check the Wi-Fi details and that "
+    "this network reaches the internet, then retry."
 )
 
 
@@ -36,6 +43,16 @@ async def provision(
         session.status = {"state": "connecting", "device_id": session.device_id}
         await connect_wifi(bus, ssid, password)
         session.status = {"state": "wifi_connected", "device_id": session.device_id}
+        if session.supabase:
+            agent_id = await sign_in_pi(credentials_path, *session.supabase)
+            session.status = {
+                "state": "gateway_connected",
+                "device_id": session.device_id,
+                "mode": "lab",
+                "agent_id": agent_id,
+            }
+            session.completed = True
+            return
         async with httpx.AsyncClient(timeout=20) as client:
             health = await client.get(http_base(target) + "/health")
             health.raise_for_status()
@@ -55,12 +72,19 @@ async def provision(
         if info.get("code"):
             session.status["claim_code"] = info["code"]
         session.completed = True
+    except SignInError as exc:
+        # Supabase's own reason, such as anonymous sign ins being off, tells the person what to fix.
+        session.status = {
+            "state": "error",
+            "device_id": session.device_id,
+            "message": f"Supabase refused the Pi's login: {str(exc)[:160]}",
+        }
     except Exception:
         # Never pass subprocess output or network secrets to the phone or logs.
         session.status = {
             "state": "error",
             "device_id": session.device_id,
-            "message": FAILURE_MESSAGE,
+            "message": LAB_FAILURE if session.supabase else FAILURE_MESSAGE,
         }
     finally:
         session.busy = False
