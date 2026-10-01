@@ -18,18 +18,11 @@ export interface NewAction {
   error?: string | null;
 }
 
-/** Records an action and returns its row. */
+/** Records an action and returns its row. The database stamps every time on it. */
 export async function addAction(action: NewAction): Promise<ActionEntry> {
-  const now = new Date().toISOString();
-  const finished = action.status === "done" || action.status === "failed";
   const { data, error } = await supabase()
     .from("actions")
-    .insert({
-      ...action,
-      payload: action.payload ?? {},
-      started_at: action.status === "pending" ? null : now,
-      completed_at: finished ? now : null,
-    })
+    .insert({ ...action, payload: action.payload ?? {} })
     .select(COLUMNS)
     .single();
   if (error) throw error;
@@ -49,13 +42,9 @@ export function captureResult(photo: Photo | null, stored: boolean): ActionUpdat
   return { status: "failed", error: photo ? "The photo couldn't be saved." : "The Autolab didn't send a photo." };
 }
 
-/** Moves an action on. Running stamps the start; every other state is an end. */
+/** Moves an action on. The database refuses changes to one that already ended. */
 export async function updateAction(id: string, update: ActionUpdate) {
-  const now = new Date().toISOString();
-  const { error } = await supabase()
-    .from("actions")
-    .update({ ...update, ...(update.status === "running" ? { started_at: now } : { completed_at: now }) })
-    .eq("id", id);
+  const { error } = await supabase().from("actions").update(update).eq("id", id);
   if (error) throw error;
 }
 
@@ -65,10 +54,9 @@ export async function updateAction(id: string, update: ActionUpdate) {
  * Resolves false when the row had already moved on.
  */
 export async function settlePending(id: string, status: "running" | "expired", error?: string) {
-  const now = new Date().toISOString();
   const { data, error: failure } = await supabase()
     .from("actions")
-    .update(status === "running" ? { status, started_at: now } : { status, error: error ?? null, completed_at: now })
+    .update({ status, error: error ?? null })
     .eq("id", id)
     .eq("status", "pending")
     .select("id");

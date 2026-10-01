@@ -59,6 +59,30 @@ create table public.actions (
  started_at timestamptz,
  completed_at timestamptz
 );
+-- The database keeps the times, so a screen with a wrong clock can't skew the
+-- log, and an entry that has ended can't be changed.
+create function public.stamp_action() returns trigger
+language plpgsql set search_path=public as $$
+begin
+ if tg_op='INSERT' then
+  new.created_at := now();
+  new.started_at := case when new.status='pending' then null else now() end;
+  new.completed_at := case when new.status in ('done','failed','expired') then now() end;
+  return new;
+ end if;
+ if old.status in ('done','failed','expired') then
+  -- Deleting a photo clears its link. Nothing else about an ended entry changes.
+  if new.image_id is null and to_jsonb(new)-'image_id' = to_jsonb(old)-'image_id' then
+   return new;
+  end if;
+  raise exception 'This command already ended';
+ end if;
+ new.created_at := old.created_at;
+ new.started_at := case when new.status='running' and old.status='pending' then now() else old.started_at end;
+ new.completed_at := case when new.status in ('done','failed','expired') then now() end;
+ return new;
+end $$;
+create trigger stamp_action before insert or update on public.actions for each row execute function public.stamp_action();
 create index actions_device_time on public.actions(device_id, created_at desc);
 create index actions_pending on public.actions(device_id) where status='pending';
 alter table public.actions enable row level security;
@@ -74,7 +98,7 @@ grant insert, delete on public.images to authenticated;
 grant update (analysis_status) on public.images to authenticated;
 grant insert, delete on public.image_analysis to authenticated;
 grant insert on public.actions to authenticated;
-grant update (status, result, error, image_id, started_at, completed_at) on public.actions to authenticated;
+grant update (status, result, error, image_id) on public.actions to authenticated;
 grant all on public.profiles, public.actions to service_role;
 
 create policy own_profile on public.profiles for select to authenticated using (id=(select auth.uid()));
