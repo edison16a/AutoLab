@@ -4,7 +4,7 @@
  * rows that the station picks up, runs and closes.
  */
 import { supabase } from "../cloud";
-import type { ActionEntry, ActionKind, ActionStatus } from "@/model/types";
+import type { ActionEntry, ActionKind, ActionStatus, Photo } from "@/model/types";
 
 const COLUMNS = "id,device_id,kind,origin,status,error,image_id,created_at,completed_at";
 
@@ -43,6 +43,12 @@ export interface ActionUpdate {
   result?: Record<string, unknown>;
 }
 
+/** How a photo command ended: done with its image, or failed with the reason. */
+export function captureResult(photo: Photo | null, stored: boolean): ActionUpdate {
+  if (photo && stored) return { status: "done", image_id: photo.id };
+  return { status: "failed", error: photo ? "The photo couldn't be saved." : "The Autolab didn't send a photo." };
+}
+
 /** Moves an action on. Running stamps the start; every other state is an end. */
 export async function updateAction(id: string, update: ActionUpdate) {
   const now = new Date().toISOString();
@@ -53,11 +59,34 @@ export async function updateAction(id: string, update: ActionUpdate) {
   if (error) throw error;
 }
 
+/**
+ * Takes a pending command, or expires one nobody took. Only a row still
+ * pending changes, so two stations or a late station can't both act on it.
+ * Resolves false when the row had already moved on.
+ */
+export async function settlePending(id: string, status: "running" | "expired", error?: string) {
+  const now = new Date().toISOString();
+  const { data, error: failure } = await supabase()
+    .from("actions")
+    .update(status === "running" ? { status, started_at: now } : { status, error: error ?? null, completed_at: now })
+    .eq("id", id)
+    .eq("status", "pending")
+    .select("id");
+  if (failure) throw failure;
+  return !!data?.length;
+}
+
 /** The newest entries, for the activity list. */
 export async function recentActions(limit = 30): Promise<ActionEntry[]> {
   const { data, error } = await supabase().from("actions").select(COLUMNS).order("created_at", { ascending: false }).limit(limit);
   if (error) throw error;
   return data as ActionEntry[];
+}
+
+export async function getAction(id: string): Promise<ActionEntry | null> {
+  const { data, error } = await supabase().from("actions").select(COLUMNS).eq("id", id).maybeSingle();
+  if (error) throw error;
+  return data as ActionEntry | null;
 }
 
 /** Commands other screens left for this Autolab that nobody has picked up yet, oldest first. */
