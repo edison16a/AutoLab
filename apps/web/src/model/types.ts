@@ -36,6 +36,40 @@ export interface Photo {
 export interface Device {
   id: string;
   name: string;
+  /** Lab mode: what the lab computer last wrote about it, for every other screen. */
+  report?: DeviceReport;
+}
+
+/** The status a lab computer keeps in Supabase while it's connected to the Autolab. */
+export interface DeviceReport {
+  online: boolean;
+  camera_online: boolean;
+  last_seen: string | null;
+  simulated: boolean;
+  agent_version?: string;
+}
+
+/**
+ * Who this browser is in lab mode. The station is the computer next to the
+ * Autolab and holds the WebSocket; remote screens send commands through
+ * Supabase instead. Demo and cloud screens talk to the gateway directly.
+ */
+export type Role = "direct" | "station" | "remote";
+
+export type ActionKind = "capture_photo" | "start_preview" | "stop_preview" | "analyze_image";
+export type ActionStatus = "pending" | "running" | "done" | "failed" | "expired";
+
+/** One line of the lab mode action log: a command, who sent it and how it ended. */
+export interface ActionEntry {
+  id: string;
+  device_id: string | null;
+  kind: ActionKind;
+  origin: "station" | "remote";
+  status: ActionStatus;
+  error: string | null;
+  image_id: string | null;
+  created_at: string;
+  completed_at: string | null;
 }
 
 /** One live preview frame. Frames are never stored, only shown. */
