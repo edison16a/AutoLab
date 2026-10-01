@@ -14,9 +14,9 @@ const RECENT_LIMIT = 8;
 
 /** The Autolab camera source: live stage, controls and the side panel. */
 export function AutolabCamera() {
-  const { role, device, connection, status, preview, liveFrame, photos, capture, capturing, notify } = useAutolab();
+  const { device, connection, status, preview, liveFrame, photos, capture, capturing, notify } = useAutolab();
   const { ready, pause, resume } = useAutoPreview();
-  const state = stageState({ role, device, connection, status, preview, frame: liveFrame });
+  const state = stageState({ device, connection, status, preview, frame: liveFrame });
 
   const recent = useMemo(
     () => (device ? photos.filter((photo) => photo.device_id === device.id).slice(0, RECENT_LIMIT) : []),

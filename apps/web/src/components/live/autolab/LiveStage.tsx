@@ -1,6 +1,6 @@
 "use client";
 import type { CSSProperties } from "react";
-import { CameraOff, Monitor, Pause, Plug, WifiOff } from "lucide-react";
+import { CameraOff, Pause, Plug, WifiOff } from "lucide-react";
 import { useAutolab } from "@/providers/autolab-context";
 import { ImageView } from "../../ui/ImageView";
 import { Chip, StageChips } from "../StageChips";
@@ -56,7 +56,7 @@ export function LiveStage({ state, onResume }: LiveStageProps) {
 }
 
 function StateMessage({ state, onResume }: LiveStageProps) {
-  const { openConnect, connection, status } = useAutolab();
+  const { openConnect, connection } = useAutolab();
   switch (state) {
     case "no-device":
       return (
@@ -69,14 +69,6 @@ function StateMessage({ state, onResume }: LiveStageProps) {
               Connect device
             </button>
           }
-        />
-      );
-    case "remote":
-      return (
-        <StageMessage
-          icon={Monitor}
-          title="Live view runs on the lab computer"
-          text={status.online ? "You can still take photos from here." : "The lab computer isn't reporting the Autolab right now."}
         />
       );
     case "connecting":

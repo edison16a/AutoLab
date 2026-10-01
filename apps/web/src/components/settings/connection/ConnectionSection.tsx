@@ -3,7 +3,6 @@ import { RotateCw } from "lucide-react";
 import type { Connection } from "@/model/types";
 import { useAutolab } from "@/providers/autolab-context";
 import { StatusDot, type DotState } from "../../ui/StatusDot";
-import { Switch } from "../../ui/Switch";
 import { SettingsRow, SettingsSection } from "../SettingsSection";
 import { GatewayForm } from "./GatewayForm";
 
@@ -16,11 +15,11 @@ const STATE: Record<Connection, { dot: DotState; label: string }> = {
 };
 
 /**
- * The gateway address and whether this browser is talking to it. In lab mode
- * it also says whether this computer is the one next to the Autolab.
+ * The gateway address and whether this browser is talking to it. Lab mode has
+ * no gateway: the browser and the Pi both talk to Supabase, so only the status shows.
  */
 export function ConnectionSection() {
-  const { mode, role, setStation, device, connection, reconnect } = useAutolab();
+  const { mode, device, connection, reconnect } = useAutolab();
   // With no device there's nothing to connect for, so say that instead of "Not connected".
   const state = device ? STATE[connection] : { dot: "offline" as const, label: "No device" };
 
@@ -38,12 +37,7 @@ export function ConnectionSection() {
           </button>
         ) : null}
       </SettingsRow>
-      {mode === "lab" ? (
-        <SettingsRow label="Lab computer" hint="Turn on for the computer next to the Autolab. Other screens send their commands through it.">
-          <Switch label="Lab computer" checked={role === "station"} onChange={setStation} />
-        </SettingsRow>
-      ) : null}
-      {role === "remote" ? null : <GatewayForm />}
+      {mode === "lab" ? null : <GatewayForm />}
     </SettingsSection>
   );
 }
