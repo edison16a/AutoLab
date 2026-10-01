@@ -4,6 +4,8 @@ import json
 import secrets
 import time
 
+from ..endpoints import valid_gateway
+
 SETUP_WINDOW = 600
 MAX_CHUNK = 512  # the most BlueZ hands over in one write
 MAX_REQUEST = 2048
@@ -16,7 +18,8 @@ class ProvisioningSession:
 
     BLE writes arrive in small chunks and a request ends with a newline. Each
     peer gets its own buffer, so one phone cannot splice bytes into another's
-    request. `status` is what the status characteristic serves.
+    request. `status` is what the status characteristic serves. `gateway` is
+    the address the lab station handed over in the last valid request, if any.
     """
 
     def __init__(self, device_id: str, pin: str, ttl: float = SETUP_WINDOW) -> None:
@@ -29,6 +32,7 @@ class ProvisioningSession:
         self.completed = False
         # Only the peer that sent the right PIN may read the claim code later.
         self.authorized_peer: str | None = None
+        self.gateway: str | None = None
         self.status: dict = {"state": "ready", "device_id": device_id}
 
     def receive(self, peer: str, chunk: bytes) -> tuple[str, str] | None:
@@ -65,7 +69,7 @@ class ProvisioningSession:
             raise ValueError("Too many setup connections")
 
     def _parse(self, raw: bytes) -> tuple[str, str]:
-        """Check the PIN before the network fields, so a wrong PIN learns nothing."""
+        """Check the PIN before the other fields, so a wrong PIN learns nothing."""
         try:
             data = json.loads(raw)
         except (ValueError, UnicodeError):
@@ -90,4 +94,11 @@ class ProvisioningSession:
             or "\x00" in password
         ):
             raise ValueError("WPA password must be 8 to 63 characters")
+        # Optional. Leaving it out keeps the gateway the Pi already has.
+        gateway = data.get("gateway")
+        if gateway is not None and not valid_gateway(gateway):
+            raise ValueError(
+                "Gateway must be wss:// or ws:// on the local network, with no path"
+            )
+        self.gateway = gateway
         return ssid, password

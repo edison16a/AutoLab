@@ -1,6 +1,7 @@
 """How the agent and the provisioning service address the gateway."""
 
 import ipaddress
+import re
 from urllib.parse import urlsplit
 
 # Plain ws:// may only go to these. None of them is reachable from the internet.
@@ -14,6 +15,9 @@ LOCAL_NETWORKS = [
         "169.254.0.0/16",
     )
 ]
+GATEWAY_LIMIT = 200
+# Scheme, host and an optional port. No room for a path, a query or a login.
+_HANDED_OVER = re.compile(r"wss?://([A-Za-z0-9.-]+)(?::([0-9]{1,5}))?/?")
 
 
 def http_base(gateway: str) -> str:
@@ -50,3 +54,23 @@ def local_host(host: str) -> bool:
     except ValueError:
         return False
     return any(address in network for network in LOCAL_NETWORKS)
+
+
+def valid_gateway(gateway: object) -> bool:
+    """The strict form a lab station may hand over in a Bluetooth request.
+
+    Anything this accepts also passes allowed_gateway, so the agent never
+    refuses an address that setup saved for it.
+    """
+    if not isinstance(gateway, str) or len(gateway) > GATEWAY_LIMIT:
+        return False
+    match = _HANDED_OVER.fullmatch(gateway)
+    if not match:
+        return False
+    host, port = match.groups()
+    if port is not None and not 0 < int(port) <= 65535:
+        return False
+    for label in host.split("."):
+        if not 0 < len(label) <= 63 or "-" in (label[0], label[-1]):
+            return False
+    return allowed_gateway(gateway)

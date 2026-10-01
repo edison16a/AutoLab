@@ -64,3 +64,69 @@ def test_invalid_network_parameters(changes):
     with pytest.raises(ValueError):
         session.receive("browser", framed(**changes))
     assert not session.busy
+
+
+def test_gateway_is_optional():
+    session = ProvisioningSession("id", "123456")
+    session.receive("browser", framed())
+    assert session.gateway is None
+
+
+@pytest.mark.parametrize(
+    "gateway",
+    [
+        "ws://192.168.1.20:8000",
+        "ws://10.0.0.7",
+        "ws://172.20.3.4:8000/",
+        "ws://lab-computer.local:8000",
+        "ws://localhost:8000",
+        "wss://gateway.example.com",
+        "wss://gateway.example.com:443",
+    ],
+)
+def test_lab_station_hands_over_its_gateway(gateway):
+    session = ProvisioningSession("id", "123456")
+    assert session.receive("browser", framed(gateway=gateway))
+    assert session.gateway == gateway
+
+
+@pytest.mark.parametrize(
+    "gateway",
+    [
+        "",
+        8000,
+        "192.168.1.20:8000",
+        "http://192.168.1.20:8000",
+        "ws://8.8.8.8:8000",
+        "ws://gateway.example.com:8000",
+        "ws://192.168.1.20:8000/ws/device",
+        "ws://192.168.1.20:8000?next=1",
+        "wss://gateway.example.com#top",
+        "ws://admin:secret@192.168.1.20:8000",
+        "ws://192.168.1.20:0",
+        "ws://192.168.1.20:65536",
+        "ws://192.168.1.20 :8000",
+        "ws://192.168.1.20:8000\n",
+        "ws://-lab.local:8000",
+        "ws://lab..local:8000",
+        "ws://[::1]:8000",
+        "wss://" + "a" * 63 + "." + "b" * 63 + "." + "c" * 63 + ".example",
+    ],
+)
+def test_invalid_gateway_is_rejected(gateway):
+    session = ProvisioningSession("id", "123456")
+    with pytest.raises(ValueError, match="Gateway must be"):
+        session.receive("browser", framed(gateway=gateway))
+    assert not session.busy
+    assert session.attempts == 0
+
+
+def test_longest_request_still_fits_the_frame():
+    session = ProvisioningSession("id", "123456")
+    gateway = "wss://" + "a" * 63 + "." + "b" * 63 + "." + "c" * 62 + ".lab"
+    request = framed(ssid="é" * 16, password="é" * 63, gateway=gateway)
+    assert len(gateway) == 200
+    result = None
+    for offset in range(0, len(request), 20):
+        result = session.receive("browser", request[offset : offset + 20])
+    assert result and session.gateway == gateway
