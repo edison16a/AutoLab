@@ -14,7 +14,8 @@ export async function piGateway(gateway: string) {
     const response = await fetch(`${httpBase(gateway)}/lan`);
     if (response.ok) urls = ((await response.json()) as { urls?: string[] }).urls ?? [];
   } catch {
-    throw new Error("Start the gateway on this computer, then try again.");
+    // A gateway that isn't running and one that refuses this site's address fail the same way here.
+    throw new Error("Start the gateway on this computer and check that its ALLOWED_ORIGINS lists this site, then try again.");
   }
   if (!urls[0]) throw new Error("This computer isn't on a network the Pi can join. Connect it to the lab Wi-Fi or Ethernet.");
   return urls[0];
