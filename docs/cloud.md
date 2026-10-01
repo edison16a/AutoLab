@@ -16,6 +16,8 @@ Cloud mode needs three things running: the **web app**, the **gateway** (Python,
 
 Running the file a second time fails with "already exists". That's harmless. It only has to succeed once.
 
+Don't run `002_lab_mode.sql` in a cloud mode project. It lets signed in browsers write their own rows, which [lab mode](lab-mode.md) needs and cloud mode is built to avoid.
+
 ## 2. Turn on email sign in
 
 1. Under **Authentication**, open **Sign In / Providers** and make sure **Email** is enabled (it is by default).

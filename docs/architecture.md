@@ -26,6 +26,10 @@ The gateway holds only live connections, short lived request IDs and bounded sen
 
 Every image and live frame in the browser is a blob URL owned by one hook, which revokes them when images are deleted, evicted or the app unmounts. The live view keeps the last 8 frames alive so detection can finish reading a frame before it's released, and shows the newest analyzed frame rather than drawing old boxes over a newer picture.
 
+## Lab mode data
+
+In lab mode the browser on the lab computer, the station, is the only one with a WebSocket to the gateway. It uploads each photo to Supabase Storage under the signed in person's own folder, writes the row, and reports the Autolab's status every 30 seconds and on each change. Other screens read the same rows and hear changes over Supabase Realtime. Their commands are `actions` rows that start as pending. The station claims one with an update that only matches a pending row, so two station tabs can't run it twice, then runs it over the WebSocket and closes it. A command nobody claims within 20 seconds expires. Realtime is the fast path, and slow polls on both sides cover a dropped subscription. The database stamps every time on the log and refuses changes to an entry that has ended.
+
 ## Backpressure and failure handling
 
 - Binary packets are capped at 16 MiB and headers at 8 KiB.
