@@ -4,8 +4,12 @@
  * sees to Supabase every so often and whenever it changes. Remote screens
  * read it back, and treat a report that stopped coming as offline, since
  * that means the station closed or lost its network.
+ *
+ * A station only reports once it has reached the Autolab. Until then it
+ * knows nothing, and a computer switched to station by mistake, or one still
+ * loading, would otherwise mark a working Autolab offline for everyone.
  */
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { reportDevice } from "@/lib/lab/devices";
 import { OFFLINE_STATUS, type Connection, type Device, type DeviceStatus, type Role } from "@/model/types";
 import { useNow } from "./use-now";
@@ -26,9 +30,15 @@ export function useLabStatus({ role, device, connection, status }: LabStatusInpu
   const deviceId = device?.id ?? null;
   const live = connection === "connected" && status.online;
   const { camera_online, simulated, agent_version } = status;
+  /** The device this station has reached, so it may report on it. */
+  const [reached, setReached] = useState<string | null>(null);
+  useEffect(() => {
+    if (connection === "connected" && deviceId) setReached(deviceId);
+  }, [connection, deviceId]);
+  const mayReport = role === "station" && !!deviceId && reached === deviceId;
 
   useEffect(() => {
-    if (role !== "station" || !deviceId) return;
+    if (!mayReport || !deviceId) return;
     const report = () =>
       void reportDevice(deviceId, {
         online: live,
@@ -40,7 +50,7 @@ export function useLabStatus({ role, device, connection, status }: LabStatusInpu
     report();
     const timer = setInterval(report, REPORT_MS);
     return () => clearInterval(timer);
-  }, [role, deviceId, live, camera_online, simulated, agent_version]);
+  }, [mayReport, deviceId, live, camera_online, simulated, agent_version]);
 
   const now = useNow(10_000);
   const report = device?.report;
