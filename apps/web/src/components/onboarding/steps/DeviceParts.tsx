@@ -1,6 +1,7 @@
 "use client";
 import { Bluetooth, LoaderCircle, Wifi } from "lucide-react";
 import type { ProvisionStatus } from "@/lib/provisioning/bluetooth";
+import { labEnabled } from "@/lib/cloud";
 
 /** The Device name field both setup paths share. */
 export function DeviceNameField({ value, onChange, disabled }: { value: string; onChange: (value: string) => void; disabled: boolean }) {
@@ -34,8 +35,9 @@ export function WaitingRow({ onStop }: { onStop: () => void }) {
 const STATE_TEXT: Record<Exclude<ProvisionStatus["state"], "error">, string> = {
   ready: "Connected over Bluetooth",
   connecting: "Joining Wi-Fi",
-  wifi_connected: "On Wi-Fi, reaching the gateway",
-  gateway_connected: "Gateway reached",
+  // In lab mode the Pi signs in to Supabase instead of reaching a gateway.
+  wifi_connected: labEnabled ? "On Wi-Fi, signing in" : "On Wi-Fi, reaching the gateway",
+  gateway_connected: labEnabled ? "Signed in" : "Gateway reached",
 };
 
 /** What the Pi last said over Bluetooth, in words. */

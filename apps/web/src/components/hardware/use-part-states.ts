@@ -4,6 +4,7 @@ import type { DotState } from "@/components/ui/StatusDot";
 import { HARDWARE_PARTS } from "@/data/hardware-parts";
 import type { ComponentReport, Connection, Device, DeviceStatus, Photo } from "@/model/types";
 import { useAutolab } from "@/providers/autolab-context";
+import { labEnabled } from "@/lib/cloud";
 
 /** One line in the details panel. Times are ISO strings the panel shows as "5m ago". */
 export interface PartFact {
@@ -42,7 +43,8 @@ function piState(device: Device, status: DeviceStatus, connection: Connection): 
   ];
   if (status.agent_version) facts.push({ label: "Agent", value: status.agent_version });
   if (status.network) facts.push({ label: "Network", value: status.network });
-  facts.push({ label: "Gateway", value: GATEWAY_LABEL[connection] });
+  // Lab mode has no gateway. The screen and the Pi meet in Supabase.
+  facts.push({ label: labEnabled ? "Supabase" : "Gateway", value: GATEWAY_LABEL[connection] });
   if (connection !== "connected")
     return { dot: "idle", status: GATEWAY_LABEL[connection], live: false, installed: true, facts };
   if (!status.online) return { dot: "offline", status: "Offline", live: false, installed: true, facts };
