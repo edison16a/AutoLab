@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-AGENT_VERSION = "1.1.0"
+AGENT_VERSION = "2.0.0"
 
 
 def network_kind() -> str | None:
