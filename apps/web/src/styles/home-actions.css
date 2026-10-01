@@ -1,0 +1,100 @@
+/*
+  Lab mode's activity list on Home: one row per command, with where it came
+  from, how it ended and when.
+*/
+
+.home-actions__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-action {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 16px;
+}
+
+.home-action + .home-action {
+  border-top: 1px solid var(--border);
+}
+
+.home-action__icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+.home-action__what {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.home-action__title {
+  font-weight: 500;
+}
+
+.home-action__link:hover {
+  color: var(--accent-text);
+  text-decoration: underline;
+}
+
+.home-action__detail,
+.home-action__time {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-action__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.home-action__time {
+  min-width: 64px;
+  text-align: right;
+}
+
+.home-actions__empty {
+  padding: 24px 16px;
+}
+
+/* Phones: the time moves under the state so the command keeps its width. */
+@media (max-width: 560px) {
+  .home-action {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "icon what state" "icon what time";
+    row-gap: 2px;
+  }
+
+  .home-action__icon {
+    grid-area: icon;
+  }
+
+  .home-action__what {
+    grid-area: what;
+  }
+
+  .home-action__state {
+    grid-area: state;
+    justify-self: end;
+  }
+
+  .home-action__time {
+    grid-area: time;
+  }
+}

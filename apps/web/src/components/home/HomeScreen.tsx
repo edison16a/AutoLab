@@ -3,7 +3,10 @@ import "@/styles/home.css";
 import "@/styles/home-device.css";
 import "@/styles/home-tiles.css";
 import "@/styles/home-captures.css";
+import "@/styles/home-actions.css";
+import { labEnabled } from "@/lib/cloud";
 import { useAutolab } from "@/providers/autolab-context";
+import { ActionLog } from "./ActionLog";
 import { ConnectCard } from "./ConnectCard";
 import { DeviceCard } from "./DeviceCard";
 import { HomeHeader } from "./HomeHeader";
@@ -13,7 +16,8 @@ import { RecentCaptures } from "./RecentCaptures";
 
 /**
  * Home: the machine in 3D, how the device is doing, a few numbers and the
- * latest captures. Everything deeper lives on its own screen, one click away.
+ * latest captures, plus lab mode's command log. Everything deeper lives on
+ * its own screen, one click away.
  */
 export function HomeScreen() {
   const { device } = useAutolab();
@@ -29,6 +33,7 @@ export function HomeScreen() {
         </div>
       </div>
       <RecentCaptures />
+      {labEnabled ? <ActionLog /> : null}
     </div>
   );
 }
