@@ -1,0 +1,25 @@
+[Unit]
+Description=Autolab Bluetooth setup after boot
+# One 10 minute setup window after every boot, and more while the Pi is
+# offline. A shipped unit has no screen and nobody to start setup by hand.
+After=bluetooth.service NetworkManager.service hciuart.service
+Requires=bluetooth.service NetworkManager.service
+# Only one setup service may own the Bluetooth setup objects at a time.
+Conflicts=autolab-provisioning.service
+StartLimitIntervalSec=300
+StartLimitBurst=10
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/YOUR_USER/AutoLab/devices/raspberry-pi
+EnvironmentFile=/home/YOUR_USER/AutoLab/devices/raspberry-pi/.env
+ExecStart=/home/YOUR_USER/AutoLab/devices/raspberry-pi/.venv/bin/python -m autolab_agent.provisioning --on-boot
+# The Bluetooth adapter can appear a little after bluetooth.service starts.
+# Try again shortly instead of skipping setup for this boot.
+Restart=on-failure
+RestartSec=10
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

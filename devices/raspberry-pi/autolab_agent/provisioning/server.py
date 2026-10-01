@@ -1,9 +1,7 @@
 """Run the setup window: prepare the adapter, publish the service, clean up after."""
 
 import asyncio
-import json
 import time
-from pathlib import Path
 
 from dbus_next import BusType, Variant
 from dbus_next.aio import MessageBus
@@ -11,7 +9,6 @@ from dbus_next.aio import MessageBus
 from .dbus_proxy import proxy
 from .gatt import ROOT, SERVICE_PATH, Advertisement, Application, Characteristic, Service
 from .pairing import PairingAgent
-from .pin import PIN_FILE, setup_pin
 from .session import ProvisioningSession
 from .setup_flow import provision
 
@@ -21,11 +18,8 @@ ADVERTISEMENT_PATH = ROOT + "/advertisement"
 AGENT_PATH = ROOT + "/agent"
 
 
-async def run(args) -> None:
-    """Serve setup until the window closes, then put the adapter back as it was."""
-    creds = json.loads(Path(args.credentials).expanduser().read_text())
-    pin, fixed = setup_pin()
-    session = ProvisioningSession(creds["device_id"], pin)
+async def run(args, session: ProvisioningSession) -> None:
+    """Serve one window until it closes, then put the adapter back as it was."""
     bus = await MessageBus(bus_type=BusType.SYSTEM).connect()
     tasks: set[asyncio.Task] = set()
 
@@ -49,7 +43,7 @@ async def run(args) -> None:
         (SERVICE_PATH, Service()),
         (SERVICE_PATH + "/command", Characteristic("command", session, start_setup)),
         (SERVICE_PATH + "/status", Characteristic("status", session, start_setup)),
-        (ADVERTISEMENT_PATH, Advertisement(creds["device_id"])),
+        (ADVERTISEMENT_PATH, Advertisement(session.device_id)),
         (AGENT_PATH, PairingAgent(session)),
     ]:
         bus.export(path, obj)
@@ -64,12 +58,9 @@ async def run(args) -> None:
         await gatt.call_register_application(ROOT, {})
         await advertising.call_register_advertisement(ADVERTISEMENT_PATH, {})
         print(
-            f"Autolab setup active for 10 minutes. Device: {creds['device_id']}",
+            f"Autolab setup active for 10 minutes. Device: {session.device_id}",
             flush=True,
         )
-        # A fixed PIN lasts for years, so it is kept out of the journal.
-        shown = f"the one on the sticker ({PIN_FILE})" if fixed else pin
-        print(f"Setup PIN: {shown}", flush=True)
         while time.monotonic() < session.deadline:
             await asyncio.sleep(1)
     finally:

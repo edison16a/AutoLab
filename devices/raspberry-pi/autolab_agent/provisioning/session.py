@@ -57,12 +57,12 @@ class ProvisioningSession:
 
     def _check_open(self, peer: str, chunk: bytes) -> None:
         if time.monotonic() > self.deadline:
-            raise ValueError("Setup window expired. Restart provisioning on the Pi.")
+            raise ValueError("Setup window expired. Restart the Autolab to reopen it.")
         if self.busy or self.completed:
             raise ValueError("Setup already in progress or completed")
         # Counted across peers, so reconnecting does not reset the guesses.
         if self.attempts >= MAX_PIN_ATTEMPTS:
-            raise ValueError("Too many failed PIN attempts. Restart provisioning.")
+            raise ValueError("Too many wrong PINs. Restart the Autolab to try again.")
         if not isinstance(chunk, bytes) or len(chunk) > MAX_CHUNK:
             raise ValueError("Invalid BLE chunk")
         if peer not in self.buffers and len(self.buffers) >= MAX_PEERS:
