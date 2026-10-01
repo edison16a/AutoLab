@@ -1,4 +1,4 @@
-"""How the agent and the provisioning service address the gateway."""
+"""How the agent and the provisioning service address the gateway and Supabase."""
 
 import ipaddress
 import re
@@ -74,3 +74,23 @@ def valid_gateway(gateway: object) -> bool:
         if not 0 < len(label) <= 63 or "-" in (label[0], label[-1]):
             return False
     return allowed_gateway(gateway)
+
+
+# Scheme, host and an optional port, like the gateway. Supabase keys are JWTs or sb_ keys.
+_SUPABASE_URL = re.compile(r"https?://([A-Za-z0-9.-]+)(?::([0-9]{1,5}))?/?")
+_SUPABASE_KEY = re.compile(r"[A-Za-z0-9._-]{20,1000}")
+
+
+def valid_supabase(url: object, key: object) -> bool:
+    """The Supabase project a screen may hand over in a Bluetooth request.
+
+    https anywhere, plain http only on this machine or the lab's network, the
+    way a self hosted or local test project runs. The key must look like a
+    public key; the Pi never needs anything more.
+    """
+    if not isinstance(url, str) or not isinstance(key, str) or len(url) > GATEWAY_LIMIT:
+        return False
+    match = _SUPABASE_URL.fullmatch(url)
+    if not match or not _SUPABASE_KEY.fullmatch(key):
+        return False
+    return url.startswith("https://") or local_host(match.group(1))
