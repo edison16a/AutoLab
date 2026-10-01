@@ -5,13 +5,29 @@
  * gateway directly.
  */
 import { createContext, useContext, type RefObject } from "react";
-import type { Analysis, Connection, Device, DeviceStatus, Frame, Notice, NoticeKind, Photo, PhotoSource } from "@/model/types";
+import type {
+  ActionEntry,
+  Analysis,
+  Connection,
+  Device,
+  DeviceStatus,
+  Frame,
+  Notice,
+  NoticeKind,
+  Photo,
+  PhotoSource,
+  Role,
+} from "@/model/types";
 import type { AppMode } from "@/lib/cloud";
 import type { User } from "./AuthProvider";
 
 export interface AutolabValue {
   user: User;
   mode: AppMode;
+  /** "direct" outside lab mode. In lab mode, whether this browser runs the Autolab or follows along. */
+  role: Role;
+  /** Lab mode: makes this browser the station, or stops it being one. */
+  setStation: (on: boolean) => void;
 
   gateway: string;
   setGateway: (url: string) => void;
@@ -44,6 +60,8 @@ export interface AutolabValue {
   capturing: boolean;
   /** Resolves with the new photo once the Pi returns the full resolution still. */
   capture: () => Promise<Photo | null>;
+  /** Lab mode's newest commands, from every screen on this account. Empty elsewhere. */
+  actions: ActionEntry[];
   analyzing: string[];
   analyze: (photo: Photo) => Promise<void>;
   removePhotos: (ids: string[]) => Promise<void>;
