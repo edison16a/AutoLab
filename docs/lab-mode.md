@@ -66,24 +66,25 @@ NEXT_PUBLIC_GATEWAY_URL=ws://localhost:8000
 
 ## 3. Set up the lab station
 
-The station needs Python 3.11 or newer, Chrome or Edge, and Bluetooth. It doesn't need Node.js or a build: it only runs the gateway. Clone the repository on it, then:
+The station needs Chrome or Edge and Bluetooth. It doesn't need Node.js or a build: it only runs the gateway, and a script sets that up.
+
+**On a Mac:**
+
+1. Get the code. While signed in to GitHub, open the repository, click **Code**, then **Download ZIP**. If the browser didn't unzip it, double-click it in Downloads. You get a folder named `AutoLab-main`. If you use git instead, any folder works.
+2. Open **Terminal** (press Command and Space, type Terminal, press Return) and run:
 
 ```bash
-cd services/gateway
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+bash ~/Downloads/AutoLab-main/services/gateway/start-station.sh
 ```
 
-On Windows, use `py -m venv .venv`, then `.venv\Scripts\activate`, then the same `pip install`.
+The first run downloads uv, a small tool that brings its own Python, since the one built into macOS is too old. That takes a minute. Later runs start in seconds.
 
-The gateway only answers pages from the addresses in `ALLOWED_ORIGINS`, which by default are `https://auto-lab-web.vercel.app` and `http://localhost:3000`. If the site ever moves, copy `.env.example` to `.env` and put the new address there, with no slash at the end. Start the gateway, listening on the whole network so the Pi can reach it:
+3. If macOS asks whether Python may accept incoming network connections, click **Allow**. That lets the Pi reach the gateway.
+4. Leave the Terminal window open. Closing it stops the gateway. To start it again later, run the same command.
 
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
-```
+**On Windows**, install Python 3.12 from python.org, then in the `services\gateway` folder of the download run `py -m venv .venv`, `.venv\Scripts\activate`, `pip install -r requirements.txt` and `uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1`. Allow it through the firewall when asked.
 
-Let other machines on the lab network reach port 8000. macOS and Windows ask the first time; say yes. Leave this window running. To start it again later, open a terminal in `services/gateway`, activate `.venv` and run the last command.
+The gateway only answers pages from the addresses in `ALLOWED_ORIGINS`, which by default are `https://auto-lab-web.vercel.app` and `http://localhost:3000`. If the site ever moves, copy `.env.example` to `.env` beside it and put the new address there, with no slash at the end.
 
 Open https://auto-lab-web.vercel.app in Chrome or Edge, create your account and sign in. Chrome may ask whether the site may connect to devices on your local network or apps on this computer. Allow it, since that is how the site reaches the gateway. Leave the tab open whenever people should be able to use the Autolab.
 
