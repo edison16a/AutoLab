@@ -6,8 +6,10 @@ module.exports = async function statsAndSettings(page) {
   // Match the label exactly: other tiles mention captures in their sub line.
   const label = page.locator(".stats-tile__label", { hasText: /^Captures$/ });
   // Wait for a number: while the library loads the tile holds an empty placeholder.
+  // This comes straight after the 3D Hardware page, which can keep a slow CI
+  // runner's software renderer busy for a while, so it gets the same headroom as Ready.
   const captures = page.locator(".stats-tile", { has: label }).locator(".stats-tile__value", { hasText: /\d/ });
-  await captures.waitFor();
+  await captures.waitFor({ timeout: 90000 });
   assert.equal((await captures.innerText()).trim(), "1", "Statistics count the library");
 
   await page.getByRole("button", { name: "Account" }).click();
