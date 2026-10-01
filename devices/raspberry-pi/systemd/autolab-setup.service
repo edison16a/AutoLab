@@ -20,6 +20,9 @@ ExecStart=/home/YOUR_USER/AutoLab/devices/raspberry-pi/.venv/bin/python -m autol
 Restart=on-failure
 RestartSec=10
 UMask=0077
+# Runs as root inside the user's checkout. Root owned cache files there would
+# get in the user's way.
+Environment=PYTHONDONTWRITEBYTECODE=1
 
 [Install]
 WantedBy=multi-user.target
