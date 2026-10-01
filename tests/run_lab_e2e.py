@@ -1,10 +1,10 @@
-"""Lab mode end to end: the real web UI against a local Supabase.
+"""Lab mode end to end: the real web UI and a simulated Pi against a local Supabase.
 
 Start Supabase first with `npx supabase start` (needs Docker). This script
-reads its URL and public key from `npx supabase status`, then runs the
-gateway, the web app in lab mode and a simulated Pi, and drives two browsers
-on one account through tests/e2e/lab.cjs. Each run uses new accounts and a new
-device ID, so runs never clash.
+reads its URL and public key from `npx supabase status`, runs the web app in
+lab mode and a simulated Pi in lab mode, and drives the browser through
+tests/e2e/lab.cjs. The Pi signs in to Supabase by itself, the same way a real
+one does after Bluetooth setup. Each run uses new accounts and a new Pi.
 """
 
 import json
@@ -13,7 +13,6 @@ import subprocess
 import sys
 import tempfile
 import time
-import uuid
 from pathlib import Path
 
 import httpx
@@ -29,9 +28,7 @@ def local_supabase() -> tuple[str, str]:
     url, key = os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_ANON_KEY")
     if url and key:
         return url, key
-    status = subprocess.run(
-        ["npx", "--yes", "supabase", "status", "-o", "json"], cwd=ROOT, capture_output=True, text=True
-    )
+    status = subprocess.run(["npx", "--yes", "supabase", "status", "-o", "json"], cwd=ROOT, capture_output=True, text=True)
     if status.returncode:
         sys.exit("Local Supabase isn't running. Start it with: npx supabase start")
     info = json.loads(status.stdout[status.stdout.index("{") :])
@@ -41,44 +38,41 @@ def local_supabase() -> tuple[str, str]:
 processes = []
 
 
-def start(args, cwd, env=None):
-    p = subprocess.Popen(args, cwd=cwd, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+def start(args, cwd, env=None, out=subprocess.DEVNULL, err=subprocess.PIPE):
+    p = subprocess.Popen(args, cwd=cwd, env=env, stdout=out, stderr=err)
     processes.append(p)
     return p
 
 
-def wait_for(*urls, tries=240):
+def wait_until(check, what, tries=240):
     for _ in range(tries):
         try:
-            if all(httpx.get(url).is_success for url in urls):
+            if check():
                 return
         except httpx.HTTPError:
             pass
         time.sleep(0.5)
-    raise RuntimeError("Services did not start")
+    raise RuntimeError(f"{what} did not start")
 
 
 try:
     supabase_url, anon_key = local_supabase()
     with tempfile.TemporaryDirectory() as d:
-        device = str(uuid.uuid4())
-        cred = Path(d) / "credentials.json"
-        cred.write_text(json.dumps({"device_id": device, "secret": "test-only-secret-never-use-in-production"}))
-        start([sys.executable, "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8000"], ROOT / "services/gateway")
+        web = {**os.environ, "NEXT_PUBLIC_AUTOLAB_MODE": "lab", "NEXT_PUBLIC_SUPABASE_URL": supabase_url, "NEXT_PUBLIC_SUPABASE_ANON_KEY": anon_key}
         # Dev server, so the demo mode production build in .next stays as it is.
-        web = {
-            **os.environ,
-            "NEXT_PUBLIC_AUTOLAB_MODE": "lab",
-            "NEXT_PUBLIC_SUPABASE_URL": supabase_url,
-            "NEXT_PUBLIC_SUPABASE_ANON_KEY": anon_key,
-        }
         start(["node", "../../node_modules/next/dist/bin/next", "dev", "--hostname", "127.0.0.1"], ROOT / "apps/web", web)
-        wait_for("http://127.0.0.1:8000/health", "http://127.0.0.1:3000/login")
-        start(
-            [sys.executable, "-m", "autolab_agent.main", "--gateway", "ws://127.0.0.1:8000", "--simulate", "--credentials", str(cred)],
-            ROOT / "devices/raspberry-pi",
-        )
-        env = {**os.environ, "TEST_DEVICE_ID": device}
+        wait_until(lambda: httpx.get("http://127.0.0.1:3000/login").is_success, "The web app")
+        printed = Path(d) / "agent.out"
+        with printed.open("w") as out:
+            agent = start(
+                [sys.executable, "-m", "autolab_agent.main", "--simulate", "--credentials", str(Path(d) / "credentials.json"),
+                 "--supabase-url", supabase_url, "--supabase-key", anon_key],
+                # Its log goes in the same file, so a long run can't fill a pipe and stall it.
+                ROOT / "devices/raspberry-pi", out=out, err=subprocess.STDOUT,
+            )
+            wait_until(lambda: "Setup code:" in printed.read_text(), "The Pi")
+        code = printed.read_text().split("Setup code:")[1].split()[0]
+        env = {**os.environ, "TEST_SETUP_CODE": code, "TEST_PI_PID": str(agent.pid)}
         if subprocess.run(["node", "tests/e2e/lab.cjs"], cwd=ROOT, env=env, check=False).returncode:
             raise RuntimeError("Lab mode browser checks failed")
 finally:
