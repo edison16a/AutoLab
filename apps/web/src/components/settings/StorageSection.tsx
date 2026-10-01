@@ -51,7 +51,7 @@ export function StorageSection() {
     }
   }
 
-  if (mode === "cloud")
+  if (mode !== "demo")
     return (
       <SettingsSection title="Storage">
         <SettingsRow label="Images are stored in Supabase" />
