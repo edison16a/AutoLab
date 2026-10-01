@@ -1,74 +1,96 @@
 # Bluetooth setup
 
-Bluetooth is the main way to connect a new Autolab. The connect wizard finds the Pi over Bluetooth, hands it your Wi-Fi details and waits until it's online. After that, camera commands, the preview and detection all run over the internet through the gateway, so Bluetooth is only used during setup. Browsers without Web Bluetooth (anything other than Chrome or Edge, or a page not on HTTPS) get the manual path instead: set up Wi-Fi yourself and paste the Device ID.
+In lab mode the Pi never talks to the internet. A computer in the lab, the lab station, runs the gateway and keeps the Autolab app open. The Pi joins the lab Wi-Fi and connects to the gateway on that computer over the local network. Bluetooth is how the Pi learns the Wi-Fi details and the station's address. After setup, camera commands and the preview run over Wi-Fi.
 
-## Before first use
+Bluetooth setup needs Chrome or Edge. Other browsers get the manual path: set up Wi-Fi yourself and paste the Device ID.
 
-The Pi needs Raspberry Pi OS with BlueZ and NetworkManager, the Autolab code, a configured trusted gateway URL, and the camera agent. Bluetooth cannot install software on an unprepared Pi. Use Raspberry Pi Imager's Wi-Fi settings, temporary Ethernet or SSH to perform this initial installation.
+## Prepare a Pi once
 
-```bash
-cd ~/AutoLab/devices/raspberry-pi
-sudo apt install -y bluez network-manager
-source .venv/bin/activate
-pip install -r requirements-provisioning.txt
-```
-
-Configure `.env` with the same mode and gateway as the web app:
-
-```dotenv
-AUTOLAB_GATEWAY=wss://YOUR_GATEWAY_HOST
-AUTOLAB_MODE=demo
-AUTOLAB_CREDENTIALS=/home/YOUR_USER/.config/autolab/credentials.json
-```
-
-Initialize credentials by running the normal agent once as your regular user. Install and start the camera agent systemd unit from the README so it reconnects independently after Wi-Fi changes. Do not generate a second identity as root.
-
-## Start a physical setup session
-
-From the Pi or an existing SSH/Ethernet connection:
+Flash Raspberry Pi OS Bookworm (64-bit, Lite) with Raspberry Pi Imager. Set a user, and turn on SSH or plug in Ethernet so you can reach it this one time. Then on the Pi:
 
 ```bash
-cd ~/AutoLab/devices/raspberry-pi
-sudo .venv/bin/python -m autolab_agent.provisioning
+sudo apt update && sudo apt install -y git
+git clone https://github.com/edison16a/AutoLab.git
+~/AutoLab/devices/raspberry-pi/install.sh
 ```
 
-The service advertises `Autolab-XXXX` for ten minutes and prints a six-digit **setup PIN**. Keep that terminal visible. Administrator privileges are needed for BlueZ registration and NetworkManager changes. The process exits after the setup window and restores the prior adapter pairable state. It is not enabled at boot.
+Run it as your normal user. It asks for sudo when it needs it. It installs everything and creates the Pi's identity. Then it enables two services, the camera agent and setup on boot. It never connects to a gateway.
 
-Alternatively replace `YOUR_USER` in `systemd/autolab-provisioning.service`, copy it to `/etc/systemd/system`, run `sudo systemctl daemon-reload`, then explicitly start it with `sudo systemctl start autolab-provisioning`. Read the PIN with `sudo journalctl -u autolab-provisioning -f`. The unit deliberately has no install/enable target and does not restart automatically.
+At the end it prints the **Device ID** and the **setup PIN**. Write the PIN on a sticker on the machine. It lives in `/etc/autolab/setup-pin`, readable by root only, and stays the same when you run the installer again. If the installer says Wi-Fi is off, set the Wi-Fi country in `sudo raspi-config` first.
 
-In the web app:
+The installer is safe to run again after a `git pull`. It keeps what it made the first time, PIN included, and restarts the agent on the new code.
 
-1. Click **Connect device** and go through the camera and power steps.
-2. Click **Find Autolab**, pick the nearby Pi in the browser's chooser, and allow pairing if the OS asks.
-3. Enter the **Wi-Fi name**, the **Wi-Fi password** and the **setup PIN shown on the Pi**, then **Connect Wi-Fi**.
-4. The wizard waits for NetworkManager to join the network and for the Pi to reach the gateway.
-5. The browser opens the device channel. In cloud mode it also claims the device for your account.
-6. **Open Autolab** appears only once the device reports a working camera.
+## Prepare the lab station
 
-Supported provisioning networks use WPA personal credentials, such as a home router or personal hotspot. Enterprise Wi-Fi, captive portals, open networks and unusual authentication methods require the manual network setup path. The user's laptop must also retain internet access to the web app and gateway.
+The station runs the gateway in demo mode, listening on the LAN:
+
+```bash
+cd services/gateway
+uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
+```
+
+Its `ALLOWED_ORIGINS` must include the origin of the web app you open. The firewall must let other machines on the LAN reach port 8000.
+
+The app asks the local gateway for the station's address with `GET /lan`. It answers `{"urls": ["ws://192.168.1.20:8000"]}`, best guess first. Inside Docker the gateway only sees the container's own address, so set `LAN_URLS=ws://YOUR_LAN_IP:8000` there. Do the same with a `.local` name if the lab network uses public IP addresses, since the Pi only uses plain `ws://` on local addresses.
+
+## Set up a Pi
+
+1. Power the Pi on near the lab computer. Setup opens for 10 minutes after every start. While the Pi has no network it keeps reopening.
+2. In the app, click **Connect device**, then **Find Autolab**, and pick `Autolab-XXXX` in the browser's chooser. Allow pairing if the computer asks.
+3. Enter the Wi-Fi name, the Wi-Fi password and the PIN from the sticker.
+4. The app sends these together with the station's address. The Pi joins the Wi-Fi and checks that the gateway answers. Then it saves the address and restarts the camera agent, which connects to the station.
+
+Only WPA personal networks work. Enterprise Wi-Fi and captive portals need the manual path.
+
+## Move a Pi to another computer
+
+Power cycle the Pi and run **Connect device** from the new computer within 10 minutes. Over SSH, `sudo systemctl restart autolab-setup` opens a new window without a reboot.
+
+## Where the agent's gateway comes from
+
+The camera agent uses the first of these it finds:
+
+1. The `--gateway` flag.
+2. `gateway.json` beside the credentials file, written by Bluetooth setup.
+3. `AUTOLAB_GATEWAY` in `.env`.
+4. `ws://localhost:8000`.
+
+Plain `ws://` is only used for local addresses: `localhost`, names ending in `.local`, and private IPv4 ranges (10.x, 172.16 to 172.31, 192.168.x and 169.254.x). Anything else needs `wss://`.
+
+## Protocol
+
+- Service `f7a10000-76b8-4f58-9b31-879c4e198a10`.
+- Command `f7a10001-76b8-4f58-9b31-879c4e198a10`, encrypted writes.
+- Status `f7a10002-76b8-4f58-9b31-879c4e198a10`, encrypted reads.
+
+The browser writes one UTF-8 JSON object followed by a newline, in 20 byte writes with response:
+
+```json
+{"ssid": "Lab Wi-Fi", "password": "wifi password", "pin": "123456", "gateway": "ws://192.168.1.20:8000"}
+```
+
+`gateway` is optional. Without it the Pi keeps the gateway it has. When present it must be a `ws://` or `wss://` URL with a host and an optional port, at most 200 characters. Nothing else is allowed, such as a path or a login. A bad value rejects the request with a message, like a bad SSID or password does. The whole request may be at most 2048 bytes.
+
+Status moves through `ready`, `connecting`, `wifi_connected`, then `gateway_connected` or `error`. Only one request runs at a time. Five wrong PINs lock setup until the Pi restarts. Renewed windows do not reset that count.
+
+## Security
+
+Pairing encrypts the Bluetooth link, and the sticker PIN shows the person is at the machine. This does not protect against an active Bluetooth man in the middle, so setup only opens for short windows after boot or while the Pi is offline. The setup service never prints a PIN from the sticker file.
+
+NetworkManager stores the Wi-Fi password. It never reaches logs or the gateway. A failed join deletes the new profile and brings back the old connection. A successful one deletes older Autolab Wi-Fi profiles.
+
+With plain `ws://` the device secret crosses the lab network unencrypted. Use `wss://` if you do not trust that network.
 
 ## Cloud mode
 
-The running camera agent writes its latest claim response to `credentials.setup.json` beside its credential file, with owner-only permissions. The provisioning service reads that result after Wi-Fi connects instead of creating a competing claim code. The browser receives the short-lived claim code only on the Bluetooth peer that supplied the correct setup PIN. The six-digit **setup PIN** and six-digit **cloud claim code** serve different purposes.
+Cloud mode still works. The camera agent writes its latest claim result to `credentials.setup.json` beside its credentials. Setup reads it after Wi-Fi connects, and only the browser that sent the right PIN gets the claim code. Restart the camera agent before an unclaimed cloud setup, so the code is current.
 
-Start or restart the camera agent when beginning an unclaimed cloud setup so it issues a current claim code. If the agent is stopped or the code expires, provisioning reports failure and the manual claim-code path remains available. Already claimed devices do not transfer ownership; the gateway requires the current owning account.
+## Without setup on boot
 
-## Protocol and limits
+To open one window by hand, run `sudo .venv/bin/python -m autolab_agent.provisioning` in `devices/raspberry-pi`. It uses the sticker PIN if `/etc/autolab/setup-pin` exists, and prints a random one otherwise. `systemd/autolab-provisioning.service` does the same as a service you start yourself. It cannot run alongside `autolab-setup`.
 
-- Service: `f7a10000-76b8-4f58-9b31-879c4e198a10`.
-- Command: `f7a10001-76b8-4f58-9b31-879c4e198a10`, encrypted ATT writes.
-- Status: `f7a10002-76b8-4f58-9b31-879c4e198a10`, encrypted ATT reads.
-- Browser sends a UTF-8 JSON object with `ssid`, `password`, `pin`, followed by newline, in 20-byte writes with response.
-- Per-peer framing is bounded at 2048 bytes. Five invalid PIN attempts close the setup opportunity until the service restarts.
-- Only one validated request runs at a time. Successful sessions reject additional writes.
-- Status progresses through ready, connecting, wifi_connected, gateway_connected or error, based on real operations.
+## Still to test on hardware
 
-The service uses NetworkManager D-Bus to activate the network. Passwords are not placed in shell commands, URLs, browser storage, gateway requests, or error messages. NetworkManager persists the network using its normal protected connection storage. Failed activation attempts remove the new profile and attempt to restore the previous connection.
-
-ATT encryption uses OS pairing. The additional terminal PIN limits setup to someone with access to the Pi's setup session. The service does not claim protection against a sophisticated active Bluetooth man-in-the-middle. Use the short setup window in a trusted physical setting; stop provisioning when finished. Device secrets never leave the Pi through this protocol.
-
-## Hardware smoke test still required
-
-Test browser discovery, OS pairing, wrong-PIN rejection, Wi-Fi activation, gateway recovery, cloud claiming and service expiry on the actual Pi. Browser mocks and unit tests cannot verify radio/OS behavior.
+Unit tests cannot cover the radio or the OS. On a real Pi, check discovery, pairing, a wrong PIN, joining Wi-Fi and reaching the station. Also check setup on boot, the agent restart and a power cycle onto a new computer.
 
 References: [Chrome Web Bluetooth](https://developer.chrome.com/docs/capabilities/bluetooth), [BlueZ GATT](https://bluez.readthedocs.io/en/latest/gatt-api/), [BlueZ advertising](https://bluez.readthedocs.io/en/latest/advertising-api/), [NetworkManager D-Bus](https://networkmanager.dev/docs/api/latest/gdbus-org.freedesktop.NetworkManager.html).
