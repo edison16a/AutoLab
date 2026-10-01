@@ -4,6 +4,7 @@ import httpx
 
 from ..endpoints import http_base
 from .handoff import wait_for_claim
+from .repoint import repoint_agent
 from .session import ProvisioningSession
 from .wifi import connect_wifi
 
@@ -25,20 +26,26 @@ async def provision(
     """Move `session.status` through each step, ending in gateway_connected or error.
 
     The phone polls the status characteristic, so progress is reported there
-    rather than returned.
+    rather than returned. `gateway` is the one the Pi already has. A gateway
+    in the request replaces it, but only once the Pi has reached it, so a bad
+    address never strands the agent.
     """
+    handed_over = session.gateway
+    target = handed_over or gateway
     try:
         session.status = {"state": "connecting", "device_id": session.device_id}
         await connect_wifi(bus, ssid, password)
         session.status = {"state": "wifi_connected", "device_id": session.device_id}
         async with httpx.AsyncClient(timeout=20) as client:
-            health = await client.get(http_base(gateway) + "/health")
+            health = await client.get(http_base(target) + "/health")
             health.raise_for_status()
             if health.json().get("mode") != mode:
                 raise RuntimeError("Gateway and Pi mode do not match")
+            if handed_over:
+                await repoint_agent(credentials_path, handed_over)
             info = {}
             if mode == "cloud":
-                info = await wait_for_claim(session.device_id, gateway, credentials_path)
+                info = await wait_for_claim(session.device_id, target, credentials_path)
         session.status = {
             "state": "gateway_connected",
             "device_id": session.device_id,
