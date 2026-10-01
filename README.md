@@ -6,7 +6,7 @@
 
 Autolab is a low cost automated cell culture system for neuronal cultures, built by the Neurotech wet lab team. A desktop 3D printer gantry sits inside an insulated enclosure that holds 37 °C, 5% CO₂ and 85 to 95% humidity. The gantry carries a motorized P1000 pipette for media changes and a Raspberry Pi HQ camera for checking the culture, all run by a Raspberry Pi 4.
 
-This repository is the software. You sign in, connect your Autolab over Bluetooth, and then watch the live camera, take photos, run object detection and browse the results. In lab mode a computer next to the Autolab saves everything to Supabase, so you can follow along and take photos from any other device. A 3D model of the whole machine shows every part and what state it's in.
+This repository is the software. You sign in, connect your Autolab over Bluetooth, and then watch the live camera, take photos, run object detection and browse the results. In lab mode the Pi talks to Supabase itself, so you can watch, take photos and follow along from any phone or laptop, with no computer kept on next to the machine. A 3D model of the whole machine shows every part and what state it's in.
 
 ## Screenshots
 
@@ -50,13 +50,13 @@ There are three modes:
 | | Demo (default) | Lab | Cloud |
 | --- | --- | --- | --- |
 | Sign in | The fixed demo login `ntabuser` / `ntabuser123` | Supabase email and password | Supabase email and password |
-| Where the gateway runs | Your computer | The lab computer next to the Autolab | An always-on host |
-| Connecting a Pi | Its Device ID | Bluetooth, or its Device ID | A one-time six-digit claim code |
+| Where the gateway runs | Your computer | No gateway: the Pi talks to Supabase | An always-on host |
+| Connecting a Pi | Its Device ID | Bluetooth, or a setup code | A one-time six-digit claim code |
 | Where images live | This browser (IndexedDB) | Private Supabase Storage | Private Supabase Storage |
-| Other devices | No | See everything and take photos through the lab computer | Full access through the hosted gateway |
+| Other devices | No | Any phone or laptop, live view included | Full access through the hosted gateway |
 | Supabase secret key | None | None | On the gateway only |
 
-In lab mode the lab computer, the station, holds the WebSocket to the Pi and writes photos, status and a log of every command to Supabase as the signed in person. Other screens read from Supabase and leave commands there, which the station picks up over Realtime and runs. Row level security keeps every account to its own rows. See [lab mode](docs/lab-mode.md).
+In lab mode the Pi signs in to Supabase as its own anonymous login, which its owner links to their Autolab during setup. It reports its status, runs photo commands from the action log, uploads photos and streams the live preview over a private Realtime channel. Screens read and write the same rows as the signed in person. Row level security keeps every account, and every Pi, to its own rows. See [lab mode](docs/lab-mode.md).
 
 ## Repository layout
 
@@ -112,7 +112,7 @@ It prints a Device ID. In the app, click **Connect device**, go through the step
 
 ### Lab mode
 
-[docs/lab-mode.md](docs/lab-mode.md) goes from an empty Supabase project to a Pi set up over Bluetooth and other devices following along. In short: run both migrations in Supabase, set `NEXT_PUBLIC_AUTOLAB_MODE=lab` and the Supabase URL and anon key on the Vercel site (https://auto-lab-web.vercel.app), run only the gateway on the lab computer with `bash services/gateway/start-station.sh`, install the Pi with `devices/raspberry-pi/install.sh`, then open the site on the lab computer and click **Connect device**.
+[docs/lab-mode.md](docs/lab-mode.md) goes from an empty Supabase project to a Pi set up over Bluetooth and other devices following along. In short: run both migrations in Supabase and turn on anonymous sign ins, set `NEXT_PUBLIC_AUTOLAB_MODE=lab` and the Supabase URL and anon key on the Vercel site (https://auto-lab-web.vercel.app), install the Pi with `devices/raspberry-pi/install.sh`, then open the site in Chrome and click **Connect device**.
 
 ### A real Raspberry Pi
 
@@ -175,9 +175,9 @@ npx playwright install chromium
 .venv/bin/python tests/run_e2e.py
 ```
 
-The end to end run starts the gateway, the production web app and the Pi simulator, then drives a real browser through sign in, connecting a device, the live camera, capture, detection on a real street photo, the library, the 3D hardware view, statistics, settings, phone layouts and the no-WebGL fallback. Ports 3000 and 8000 must be free. CI runs all of this on every push, along with `supabase/tests/rls.sh`, which checks the database's security rules as two signed in people.
+The end to end run starts the gateway, the production web app and the Pi simulator, then drives a real browser through sign in, connecting a device, the live camera, capture, detection on a real street photo, the library, the 3D hardware view, statistics, settings, phone layouts and the no-WebGL fallback. Ports 3000 and 8000 must be free. CI runs all of this on every push, along with `supabase/tests/rls.sh`, which checks the database's security rules as two signed in people and a Pi.
 
-Lab mode has its own browser run against a local Supabase in Docker. It drives a lab computer, a remote screen and a stranger's account through photos, commands, analysis, deletes and an expired command:
+Lab mode has its own browser run against a local Supabase in Docker, with a simulated Pi that signs in to Supabase by itself. It drives two screens and a stranger's account through linking the Pi, the live view, photos, analysis, deletes and a command that expires once the Pi stops:
 
 ```bash
 npx supabase start
