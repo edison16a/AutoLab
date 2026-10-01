@@ -114,10 +114,10 @@ create policy add_own_autolab_objects on storage.objects for insert to authentic
 create policy remove_own_autolab_objects on storage.objects for delete to authenticated
  using (bucket_id='autolab-images' and (storage.foldername(name))[1]=(select auth.uid())::text);
 
--- Realtime: the station hears new commands, and every open screen hears new photos and status.
+-- Realtime: the station hears new commands, and every open screen hears new photos, results and status.
 do $$
 begin
  if exists (select 1 from pg_publication where pubname='supabase_realtime') then
-  alter publication supabase_realtime add table public.actions, public.images, public.devices;
+  alter publication supabase_realtime add table public.actions, public.images, public.image_analysis, public.devices;
  end if;
 end $$;
