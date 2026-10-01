@@ -1,4 +1,4 @@
-"""After a valid request: the Pi checks the handed over gateway, then keeps it."""
+"""After a valid request: Wi-Fi, then the handed over gateway is checked and kept."""
 
 import asyncio
 import importlib.util
@@ -16,7 +16,7 @@ if importlib.util.find_spec("dbus_next") is None:
     sys.modules["dbus_next"] = types.ModuleType("dbus_next")
     sys.modules["dbus_next"].Variant = None
 
-from autolab_agent.provisioning import setup_flow  # noqa: E402
+from autolab_agent.provisioning import setup_flow, wifi  # noqa: E402
 
 OLD = "ws://192.168.1.10:8000"
 NEW = "ws://192.168.1.20:8000"
@@ -73,3 +73,30 @@ def test_an_unreachable_gateway_is_never_saved(network):
     network["status"] = 503
     assert run(NEW).status["state"] == "error"
     assert network["repointed"] == []
+
+
+def test_older_autolab_wifi_profiles_are_forgotten(monkeypatch):
+    profiles = {"/new": "Autolab Wi-Fi", "/old": "Autolab Wi-Fi", "/home": "Home"}
+    deleted = []
+
+    class Settings:
+        async def call_list_connections(self):
+            return list(profiles)
+
+    class Saved:
+        def __init__(self, path):
+            self.path = path
+
+        async def call_get_settings(self):
+            name = types.SimpleNamespace(value=profiles[self.path])
+            return {"connection": {"id": name}}
+
+        async def call_delete(self):
+            deleted.append(self.path)
+
+    async def proxy(bus, destination, path, interface):
+        return Settings() if interface.endswith(".Settings") else Saved(path)
+
+    monkeypatch.setattr(wifi, "proxy", proxy)
+    asyncio.run(wifi._forget_older_profiles(None, "/new"))
+    assert deleted == ["/old"]

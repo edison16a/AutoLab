@@ -13,6 +13,7 @@ DEVICE_TYPE_WIFI = 2
 STATE_ACTIVATED = 2
 STATE_DEACTIVATED = 4
 ACTIVATION_TIMEOUT = 45
+PROFILE = "Autolab Wi-Fi"
 
 
 async def connect_wifi(bus, ssid: str, password: str) -> None:
@@ -37,6 +38,26 @@ async def connect_wifi(bus, ssid: str, password: str) -> None:
         except Exception:
             pass
         raise
+    try:
+        await _forget_older_profiles(bus, connection)
+    except Exception:
+        pass  # tidying up must never fail a setup that worked
+
+
+async def _forget_older_profiles(bus, keep: str) -> None:
+    """Every setup adds a profile, and a lab may set up again at each power cycle.
+
+    Only once the new one works are the older Autolab profiles deleted.
+    """
+    settings = await proxy(bus, NM, NM_PATH + "/Settings", NM + ".Settings")
+    for path in await settings.call_list_connections():
+        if path == keep:
+            continue
+        saved = await proxy(bus, NM, path, NM + ".Settings.Connection")
+        config = await saved.call_get_settings()
+        name = config.get("connection", {}).get("id")
+        if name is not None and name.value == PROFILE:
+            await saved.call_delete()
 
 
 async def _wifi_device(bus, manager) -> tuple[str, str]:
@@ -59,7 +80,7 @@ async def _wifi_device(bus, manager) -> tuple[str, str]:
 def _settings(ssid: str, password: str) -> dict:
     return {
         "connection": {
-            "id": Variant("s", "Autolab Wi-Fi"),
+            "id": Variant("s", PROFILE),
             "type": Variant("s", "802-11-wireless"),
             "autoconnect": Variant("b", True),
         },
