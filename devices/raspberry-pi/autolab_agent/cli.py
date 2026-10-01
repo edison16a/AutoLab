@@ -1,4 +1,7 @@
-"""Command line for the agent. Flags default to the AUTOLAB_* variables in .env."""
+"""Command line for the agent. Flags default to the AUTOLAB_* variables in .env.
+
+The gateway can also come from gateway.json, which Bluetooth setup writes.
+"""
 
 import argparse
 import asyncio
@@ -9,13 +12,13 @@ from dotenv import load_dotenv
 
 from .agent import run
 from .endpoints import allowed_gateway
+from .settings import resolve_gateway
 
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser()
-    p.add_argument(
-        "--gateway", default=os.getenv("AUTOLAB_GATEWAY", "ws://localhost:8000")
-    )
+    # None, so main() can tell a typed flag from the saved file and .env.
+    p.add_argument("--gateway", default=None)
     p.add_argument(
         "--mode", choices=["demo", "cloud"], default=os.getenv("AUTOLAB_MODE", "demo")
     )
@@ -33,8 +36,12 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     parser = build_parser()
     args = parser.parse_args()
+    args.gateway = resolve_gateway(args.gateway, args.credentials)
+    logging.getLogger("agent").info("Gateway: %s", args.gateway)
     if not allowed_gateway(args.gateway):
-        parser.error("Use wss:// unless the gateway is on this machine or the local network")
+        parser.error(
+            "Use wss:// unless the gateway is on this machine or the local network"
+        )
     try:
         asyncio.run(run(args))
     except KeyboardInterrupt:
