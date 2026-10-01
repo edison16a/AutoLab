@@ -16,7 +16,6 @@ import type {
   NoticeKind,
   Photo,
   PhotoSource,
-  Role,
 } from "@/model/types";
 import type { AppMode } from "@/lib/cloud";
 import type { User } from "./AuthProvider";
@@ -24,10 +23,6 @@ import type { User } from "./AuthProvider";
 export interface AutolabValue {
   user: User;
   mode: AppMode;
-  /** "direct" outside lab mode. In lab mode, whether this browser runs the Autolab or follows along. */
-  role: Role;
-  /** Lab mode: makes this browser the station, or stops it being one. */
-  setStation: (on: boolean) => void;
 
   gateway: string;
   setGateway: (url: string) => void;
@@ -35,7 +30,8 @@ export interface AutolabValue {
   /** The selected device, or null before one is connected. */
   device: Device | null;
   selectDevice: (id: string) => void;
-  addDevice: (id: string, name: string) => Promise<void>;
+  /** In lab mode `agentId` is the Pi's own login, which the account links to the Autolab. */
+  addDevice: (id: string, name: string, agentId?: string) => Promise<void>;
   renameDevice: (id: string, name: string) => Promise<void>;
   /** Demo only. Other modes keep devices linked to the account. */
   forgetDevice: (id: string) => void;
