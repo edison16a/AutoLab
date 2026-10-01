@@ -85,7 +85,7 @@ export function useConnectFlow() {
       run(async () => {
         const result = await provision(details.ssid, details.password, details.pin);
         // An already claimed cloud device only needs adding to the list.
-        if (mode === "cloud" && result.claimed) follow(result.deviceId, details.name);
+        if (mode === "cloud" && result.claimed) await follow(result.deviceId, details.name);
         else await attach(result.deviceId, result.claimCode, details.name);
       }),
     [run, provision, mode, follow, attach],

@@ -19,9 +19,9 @@ export interface AutolabValue {
   /** The selected device, or null before one is connected. */
   device: Device | null;
   selectDevice: (id: string) => void;
-  addDevice: (id: string, name: string) => void;
+  addDevice: (id: string, name: string) => Promise<void>;
   renameDevice: (id: string, name: string) => Promise<void>;
-  /** Demo only. Cloud devices stay claimed by the account. */
+  /** Demo only. Other modes keep devices linked to the account. */
   forgetDevice: (id: string) => void;
   connection: Connection;
   status: DeviceStatus;

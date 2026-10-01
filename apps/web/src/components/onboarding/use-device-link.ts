@@ -20,19 +20,19 @@ export function useDeviceLink() {
   const latest = useRef({ selected: device?.id, status });
   latest.current = { selected: device?.id, status };
 
-  /** Adds a device that needs no claim: demo mode, or one this account already owns. */
+  /** Adds a device that needs no claim: demo and lab mode, or one this account already owns. */
   const follow = useCallback(
-    (id: string, name: string) => {
+    async (id: string, name: string) => {
       const { selected, status: shown } = latest.current;
+      await addDevice(id, name);
       setStale(selected === id ? null : shown);
-      addDevice(id, name);
       setWaitingFor(id);
     },
     [addDevice],
   );
 
   /**
-   * Demo mode takes the Device ID as is. Cloud mode trades the six-digit
+   * Demo and lab mode take the Device ID as is. Cloud mode trades the six-digit
    * claim code for the device's ID once, through the gateway.
    */
   const attach = useCallback(
@@ -45,7 +45,7 @@ export function useDeviceLink() {
         id = claim.device_id ?? "";
       }
       if (!UUID_PATTERN.test(id)) throw new Error("Paste the full Device ID printed by the Pi agent.");
-      follow(id, name);
+      await follow(id, name);
     },
     [mode, gateway, follow],
   );
