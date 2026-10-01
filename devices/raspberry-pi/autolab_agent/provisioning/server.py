@@ -2,7 +2,6 @@
 
 import asyncio
 import json
-import secrets
 import time
 from pathlib import Path
 
@@ -12,6 +11,7 @@ from dbus_next.aio import MessageBus
 from .dbus_proxy import proxy
 from .gatt import ROOT, SERVICE_PATH, Advertisement, Application, Characteristic, Service
 from .pairing import PairingAgent
+from .pin import PIN_FILE, setup_pin
 from .session import ProvisioningSession
 from .setup_flow import provision
 
@@ -24,9 +24,8 @@ AGENT_PATH = ROOT + "/agent"
 async def run(args) -> None:
     """Serve setup until the window closes, then put the adapter back as it was."""
     creds = json.loads(Path(args.credentials).expanduser().read_text())
-    session = ProvisioningSession(
-        creds["device_id"], f"{secrets.randbelow(1000000):06d}"
-    )
+    pin, fixed = setup_pin()
+    session = ProvisioningSession(creds["device_id"], pin)
     bus = await MessageBus(bus_type=BusType.SYSTEM).connect()
     tasks: set[asyncio.Task] = set()
 
@@ -68,7 +67,9 @@ async def run(args) -> None:
             f"Autolab setup active for 10 minutes. Device: {creds['device_id']}",
             flush=True,
         )
-        print(f"Setup PIN: {session.pin}", flush=True)
+        # A fixed PIN lasts for years, so it is kept out of the journal.
+        shown = f"the one on the sticker ({PIN_FILE})" if fixed else pin
+        print(f"Setup PIN: {shown}", flush=True)
         while time.monotonic() < session.deadline:
             await asyncio.sleep(1)
     finally:
