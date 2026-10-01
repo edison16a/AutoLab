@@ -22,9 +22,9 @@ export function useDeviceLink() {
 
   /** Adds a device that needs no claim: demo and lab mode, or one this account already owns. */
   const follow = useCallback(
-    async (id: string, name: string) => {
+    async (id: string, name: string, agentId?: string) => {
       const { selected, status: shown } = latest.current;
-      await addDevice(id, name);
+      await addDevice(id, name, agentId);
       setStale(selected === id ? null : shown);
       setWaitingFor(id);
     },
@@ -32,12 +32,20 @@ export function useDeviceLink() {
   );
 
   /**
-   * Demo and lab mode take the Device ID as is. Cloud mode trades the six-digit
+   * Demo mode takes the Device ID as is. Lab mode takes the setup code, the
+   * Device ID and the Pi's login together. Cloud mode trades the six-digit
    * claim code for the device's ID once, through the gateway.
    */
   const attach = useCallback(
     async (deviceId: string, claimCode: string, name: string) => {
       let id = deviceId.trim();
+      let agentId: string | undefined;
+      if (mode === "lab") {
+        const [device = "", login = ""] = id.split("/");
+        if (!UUID_PATTERN.test(device) || !UUID_PATTERN.test(login))
+          throw new Error("Paste the whole setup code the Pi agent printed.");
+        [id, agentId] = [device, login];
+      }
       if (mode === "cloud") {
         const code = claimCode.trim();
         if (!/^\d{6}$/.test(code)) throw new Error("Enter the six-digit claim code from the Pi agent.");
@@ -45,7 +53,7 @@ export function useDeviceLink() {
         id = claim.device_id ?? "";
       }
       if (!UUID_PATTERN.test(id)) throw new Error("Paste the full Device ID printed by the Pi agent.");
-      await follow(id, name);
+      await follow(id, name, agentId);
     },
     [mode, gateway, follow],
   );

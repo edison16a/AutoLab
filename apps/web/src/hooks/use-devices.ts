@@ -82,11 +82,14 @@ export function useDevices(userId: string, notify: Notify) {
     [userId],
   );
 
-  /** Lab mode saves it to the account first, which fails if another account already has it. */
+  /**
+   * Lab mode saves it to the account first, linking the Pi's login, which
+   * fails if another account already has it.
+   */
   const addDevice = useCallback(
-    async (id: string, name: string) => {
+    async (id: string, name: string, agentId?: string) => {
       const clean = name.trim() || "My Autolab";
-      if (labEnabled) await lab.saveDevice(id, clean);
+      if (labEnabled) await lab.saveDevice(id, clean, agentId);
       update((list) => [...list.filter((d) => d.id !== id), { ...list.find((d) => d.id === id), id, name: clean }]);
       selectDevice(id);
     },

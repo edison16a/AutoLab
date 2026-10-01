@@ -1,7 +1,7 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import { ChevronRight, LoaderCircle } from "lucide-react";
-import type { AppMode } from "@/lib/cloud";
+import { supabaseSettings, type AppMode } from "@/lib/cloud";
 import { DeviceNameField, WaitingRow } from "./DeviceParts";
 import { StepFrame } from "./StepFrame";
 
@@ -15,15 +15,28 @@ interface ManualFormProps {
   onStop: () => void;
 }
 
-/** How to start the Pi agent against this app's gateway. It prints the ID or claim code. */
-function agentCommand(gateway: string) {
-  return `cd AutoLab/devices/raspberry-pi\nsource .venv/bin/activate\npython -m autolab_agent.main --gateway ${gateway}`;
+/**
+ * How to start the Pi agent by hand. It prints the ID, claim code or setup
+ * code. Lab mode points it at Supabase with the public key, which is safe to show.
+ */
+function agentCommand(mode: AppMode, gateway: string) {
+  const start = "cd AutoLab/devices/raspberry-pi\nsource .venv/bin/activate\npython -m autolab_agent.main";
+  if (mode !== "lab") return `${start} --gateway ${gateway}`;
+  const { url, key } = supabaseSettings();
+  return `${start} \\\n  --supabase-url ${url} \\\n  --supabase-key ${key}`;
 }
+
+const LEAD: Record<AppMode, string> = {
+  demo: "Paste the Device ID the Pi agent shows.",
+  lab: "Paste the setup code the Pi agent shows.",
+  cloud: "Enter the claim code the Pi agent shows.",
+};
 
 /**
  * Step 4 without Bluetooth: the person set up Wi-Fi on the Pi themselves
  * (Raspberry Pi Imager or SSH) and pastes what the Pi agent printed. Demo
- * mode wants the Device ID; cloud mode wants the six-digit claim code.
+ * mode wants the Device ID, lab mode the setup code and cloud mode the
+ * six-digit claim code.
  */
 export function ManualForm({ mode, gateway, busy, waiting, message, onSubmit, onStop }: ManualFormProps) {
   const [name, setName] = useState("My Autolab");
@@ -40,7 +53,7 @@ export function ManualForm({ mode, gateway, busy, waiting, message, onSubmit, on
     <form className="onboarding-form" onSubmit={submit}>
       <StepFrame
         title="Add your Autolab"
-        lead={cloud ? "Enter the claim code the Pi agent shows." : "Paste the Device ID the Pi agent shows."}
+        lead={LEAD[mode]}
         message={message}
         actions={
           <button type="submit" className="btn btn--primary btn--lg btn--block" disabled={locked}>
@@ -70,7 +83,7 @@ export function ManualForm({ mode, gateway, busy, waiting, message, onSubmit, on
             </label>
           ) : (
             <label className="field">
-              <span className="field__label">Device ID</span>
+              <span className="field__label">{mode === "lab" ? "Setup code" : "Device ID"}</span>
               <input
                 className="input mono"
                 value={value}
@@ -89,7 +102,7 @@ export function ManualForm({ mode, gateway, busy, waiting, message, onSubmit, on
             <ChevronRight className="onboarding-details__chevron" size={16} strokeWidth={1.8} aria-hidden="true" />
             Pi agent command
           </summary>
-          <pre className="onboarding-code">{agentCommand(gateway)}</pre>
+          <pre className="onboarding-code">{agentCommand(mode, gateway)}</pre>
           <p className="onboarding-details__text">Set up Wi-Fi first with Raspberry Pi Imager, or over SSH with sudo nmtui.</p>
         </details>
         {waiting ? <WaitingRow onStop={onStop} /> : null}

@@ -84,8 +84,9 @@ export function useConnectFlow() {
     (details: WifiDetails) =>
       run(async () => {
         const result = await provision(details.ssid, details.password, details.pin);
-        // An already claimed cloud device only needs adding to the list.
-        if (mode === "cloud" && result.claimed) await follow(result.deviceId, details.name);
+        // Lab mode links the Pi's login. An already claimed cloud device only needs adding to the list.
+        if (mode === "lab") await follow(result.deviceId, details.name, result.agentId);
+        else if (mode === "cloud" && result.claimed) await follow(result.deviceId, details.name);
         else await attach(result.deviceId, result.claimCode, details.name);
       }),
     [run, provision, mode, follow, attach],

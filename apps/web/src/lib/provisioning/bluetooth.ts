@@ -11,6 +11,8 @@ export type ProvisionStatus = {
   claim_code?: string;
   claimed?: boolean;
   mode?: string;
+  /** Lab mode: the Pi's own Supabase login, for the account to link. */
+  agent_id?: string;
 };
 export class AutolabBluetooth {
   device?: BluetoothDevice;
@@ -37,12 +39,12 @@ export class AutolabBluetooth {
     const value = await this.status.readValue();
     return JSON.parse(new TextDecoder().decode(value));
   }
-  /** `gateway` tells the Pi where to connect once it's on Wi-Fi. */
-  async provision(ssid: string, password: string, pin: string, gateway?: string) {
+  /** `extra` tells the Pi where to connect once it's on Wi-Fi: a gateway, or a Supabase project in lab mode. */
+  async provision(ssid: string, password: string, pin: string, extra: Record<string, string> = {}) {
     if (!this.command || !this.device?.gatt?.connected)
       throw new Error("Reconnect Bluetooth before provisioning");
     const bytes = new TextEncoder().encode(
-      JSON.stringify({ ssid, password, pin, ...(gateway ? { gateway } : {}) }),
+      JSON.stringify({ ssid, password, pin, ...extra }),
     );
     if (bytes.length > 2048)
       throw new Error("Provisioning request is too long");

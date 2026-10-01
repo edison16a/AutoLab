@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { gatewayMode } from "@/lib/cloud";
+import { gatewayMode, labEnabled, supabaseSettings } from "@/lib/cloud";
 import { AutolabBluetooth, type ProvisionStatus } from "@/lib/provisioning/bluetooth";
 import { piGateway } from "@/lib/provisioning/pi-gateway";
 
@@ -15,12 +15,21 @@ export class SetupCancelled extends Error {
   }
 }
 
-/** The Pi finished joining Wi-Fi and reached the gateway. */
+/** The Pi finished joining Wi-Fi and reached the gateway, or Supabase in lab mode. */
 export interface GatewayResult {
   deviceId: string;
   /** Cloud mode only, when the Pi still needs claiming by this account. */
   claimCode: string;
   claimed: boolean;
+  /** Lab mode only: the Pi's own login, which this account links to the Autolab. */
+  agentId: string;
+}
+
+/** Where the Pi should go once it's on Wi-Fi. Lab mode sends the project's public settings, never a secret. */
+async function destination(gateway: string): Promise<Record<string, string>> {
+  if (!labEnabled) return { gateway: await piGateway(gateway) };
+  const { url, key } = supabaseSettings();
+  return { supabase_url: url, supabase_key: key };
 }
 
 function wait(ms: number) {
@@ -29,8 +38,8 @@ function wait(ms: number) {
 
 /**
  * Web Bluetooth setup: find the Pi's provisioning service, send it the
- * Wi-Fi details, setup PIN and this app's gateway, then poll until the Pi
- * reports it reached that gateway.
+ * Wi-Fi details, setup PIN and where to connect, then poll until the Pi
+ * reports it got there: this app's gateway, or Supabase in lab mode.
  * Nothing sent here is stored. The connection closes when the wizard does.
  */
 export function useBluetoothSetup(gateway: string) {
@@ -70,9 +79,9 @@ export function useBluetoothSetup(gateway: string) {
     async (ssid: string, password: string, pin: string): Promise<GatewayResult> => {
       const link = bluetooth.current;
       if (!link) throw new Error("Bluetooth is disconnected. Select Find Autolab again.");
-      const target = await piGateway(gateway);
+      const extra = await destination(gateway);
       guard();
-      await link.provision(ssid, password, pin, target);
+      await link.provision(ssid, password, pin, extra);
       const started = Date.now();
       while (Date.now() - started < TIMEOUT_MS) {
         await wait(POLL_MS);
@@ -82,9 +91,11 @@ export function useBluetoothSetup(gateway: string) {
         setStatus(next);
         if (next.state === "error") throw new Error(next.message || "The Pi couldn't join Wi-Fi.");
         if (next.state !== "gateway_connected") continue;
-        if (next.mode !== gatewayMode) throw new Error(`The Pi and this app run in different modes. Set the Pi to ${gatewayMode} mode.`);
+        const expected = labEnabled ? "lab" : gatewayMode;
+        if (next.mode !== expected) throw new Error(`The Pi and this app run in different modes. Update the Pi with install.sh, then try again.`);
         if (!next.device_id) throw new Error("The Pi didn't report its Device ID.");
-        return { deviceId: next.device_id, claimCode: next.claim_code ?? "", claimed: !!next.claimed };
+        if (labEnabled && !next.agent_id) throw new Error("The Pi didn't report its login. Try again.");
+        return { deviceId: next.device_id, claimCode: next.claim_code ?? "", claimed: !!next.claimed, agentId: next.agent_id ?? "" };
       }
       throw new Error("The Pi took too long to connect. Check it, then try again or use manual setup.");
     },
