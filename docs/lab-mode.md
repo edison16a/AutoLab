@@ -1,21 +1,18 @@
 # Lab mode
 
-Lab mode is for a lab that keeps one computer next to the Autolab. That computer is the **lab station**. It runs the small gateway program and keeps the Autolab site open in Chrome. The site itself is hosted on Vercel at **https://auto-lab-web.vercel.app**, the same address for every screen. The Pi joins the lab Wi-Fi and talks only to the station, never to the internet.
+In lab mode the Autolab's Raspberry Pi talks to Supabase by itself, over the lab Wi-Fi. No computer has to stay on next to it, and nothing runs in a terminal. The site is hosted on Vercel at **https://auto-lab-web.vercel.app**. Any phone or laptop signed in there sees the Autolab's status, watches the live camera, takes photos and browses the results.
 
-The station saves every photo, the Autolab's status and a log of every command to Supabase, signed in as you. Any other phone or laptop signed in to the same account sees all of it and can take photos too. Those commands go through Supabase to the station, which runs them on the Autolab.
-
-Nothing in lab mode holds a Supabase secret key. The browser only has the public anon key, and row level security limits every read and write to the signed in person's own rows.
+During Bluetooth setup the Pi gets its own Supabase login, an anonymous user, and the person setting it up links that login to their Autolab. Row level security then lets the Pi touch that one Autolab's rows and nothing else. Nothing in lab mode holds a Supabase secret key: the site and the Pi only ever have the public anon key.
 
 ## What runs where
 
 | Part | Runs on | Talks to |
 | --- | --- | --- |
-| Pi agent | The Raspberry Pi | The station's gateway, over the lab Wi-Fi |
-| Gateway | The station, in demo mode | The Pi and the station's browser |
+| Pi agent | The Raspberry Pi | Supabase, over the lab Wi-Fi |
 | Autolab site | Vercel | Opened by every screen |
-| The site on the station | Chrome or Edge on the station | The gateway at `ws://localhost:8000` and Supabase |
-| The site anywhere else | Any browser | Supabase only |
-| Database, files, sign in | Supabase | Every signed in browser |
+| Database, files, sign in, live channel | Supabase | The site and the Pi |
+
+The Pi needs internet on the lab Wi-Fi. Enterprise Wi-Fi and networks with a sign in page don't work for it.
 
 ## The database
 
@@ -23,30 +20,35 @@ Nothing in lab mode holds a Supabase secret key. The browser only has the public
 
 | Table | What it holds |
 | --- | --- |
-| `profiles` | One row per account, made at sign up |
-| `devices` | Each Autolab, the account that owns it, and the status the station last reported |
+| `profiles` | One row per person, made at sign up |
+| `devices` | Each Autolab, its owner, its Pi's login and the status the Pi last reported |
 | `images` | One row per photo, pointing at its JPEG in the private `autolab-images` bucket |
 | `image_analysis` | Object detection results for a photo |
-| `actions` | The command log: every photo, preview start and stop and analysis, who sent it and how it ended |
+| `actions` | The command log: every photo, preview start and stop and analysis, and how it ended |
 
 The rules, enforced by Postgres itself:
 
-- You only ever see your own rows and files.
+- People only ever see their own rows and files.
 - An Autolab belongs to the first account that adds it. Nobody else can add it, see it or send it commands.
-- Photos go in a folder named after your user ID, and only for Autolabs you own.
-- The command log can't be deleted. Once a command has ended, it can't be changed. The database stamps every time on it, so a computer with a wrong clock can't skew it.
+- A Pi's login sees its own Autolab and the commands sent to it. It can report status, run those commands and file photos under its owner, in that Autolab's folder. It can't rename its Autolab, send commands, add Autolabs or see anyone else's.
+- Live preview travels on a private Realtime channel that only the owner and the Pi can join.
+- The command log can't be deleted. Once a command has ended, it can't be changed. The database stamps every time on it, so a wrong clock can't skew it.
 
 ## 1. Set up Supabase
 
 1. Sign in at [supabase.com](https://supabase.com) and create a project. Pick the region nearest the lab and keep the database password somewhere safe.
 2. Open **SQL Editor**, paste all of `supabase/migrations/001_autolab.sql` and run it. Then do the same with `002_lab_mode.sql`. Both must run, in that order.
-3. Open **Authentication**, then **Sign In / Providers**, and check that **Email** is on.
-4. Decide about **Confirm email** on the same page. Turned off, a new account can sign in at once, which is the simplest for a lab. Turned on, people click a link in an email first, so set **Authentication**, then **URL Configuration**, then **Site URL** to the address people open the app at.
-5. Open **Project Settings**, then **API Keys**. Copy the **Project URL** and the **anon public** key. Newer projects call it the **publishable** key, and either works. Never copy the **service_role** or **secret** key anywhere in lab mode.
+3. Open **Authentication**, then **Sign In / Providers**:
+   - check that **Email** is on;
+   - turn on **Allow anonymous sign-ins**. Each Pi signs in this way. Anonymous logins can't add Autolabs or send commands, and can only use an Autolab once its owner links them;
+   - decide about **Confirm email**. Off, a new account can sign in at once, which is simplest for a lab. On, people click a link in an email first.
+4. Open **Authentication**, then **URL Configuration**. Set **Site URL** to `https://auto-lab-web.vercel.app` and add it under **Redirect URLs** too.
+5. Leave CAPTCHA protection off under **Authentication**, then **Attack Protection**. The Pi can't solve one.
+6. Open **Project Settings**, then **API Keys**. Copy the **Project URL** and the **anon public** key. Newer projects call it the **publishable** key, and either works. Never copy the **service_role** or **secret** key anywhere in lab mode.
 
 If you use the Supabase CLI, `npx supabase link --project-ref YOUR_REF` and then `npx supabase db push` apply both migrations instead of step 2.
 
-## 2. Put the site on Vercel
+## 2. Point the site at Supabase
 
 The site lives at `https://auto-lab-web.vercel.app`, with `apps/web` as the Vercel project's **Root Directory**.
 
@@ -56,39 +58,12 @@ The site lives at `https://auto-lab-web.vercel.app`, with `apps/web` as the Verc
 NEXT_PUBLIC_AUTOLAB_MODE=lab
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=the key from step 1
-NEXT_PUBLIC_GATEWAY_URL=ws://localhost:8000
 ```
 
 2. Redeploy, since these are read when the site is built. Until then the site stays in demo mode.
-3. In Supabase, open **Authentication**, then **URL Configuration**. Set **Site URL** to `https://auto-lab-web.vercel.app` and add it under **Redirect URLs** too.
+3. Open the site, click **Create an account** and sign in.
 
-`ws://localhost:8000` points each browser at a gateway on its own computer. Only the station has one, and only the station uses it. Other screens never connect to it.
-
-## 3. Set up the lab station
-
-The station needs Chrome or Edge and Bluetooth. It doesn't need Node.js or a build: it only runs the gateway, and a script sets that up.
-
-**On a Mac:**
-
-1. Get the code. While signed in to GitHub, open the repository, click **Code**, then **Download ZIP**. If the browser didn't unzip it, double-click it in Downloads. You get a folder named `AutoLab-main`. If you use git instead, any folder works.
-2. Open **Terminal** (press Command and Space, type Terminal, press Return) and run:
-
-```bash
-bash ~/Downloads/AutoLab-main/services/gateway/start-station.sh
-```
-
-The first run downloads uv, a small tool that brings its own Python, since the one built into macOS is too old. That takes a minute. Later runs start in seconds.
-
-3. If macOS asks whether Python may accept incoming network connections, click **Allow**. That lets the Pi reach the gateway.
-4. Leave the Terminal window open. Closing it stops the gateway. To start it again later, run the same command.
-
-**On Windows**, install Python 3.12 from python.org, then in the `services\gateway` folder of the download run `py -m venv .venv`, `.venv\Scripts\activate`, `pip install -r requirements.txt` and `uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1`. Allow it through the firewall when asked.
-
-The gateway only answers pages from the addresses in `ALLOWED_ORIGINS`, which by default are `https://auto-lab-web.vercel.app` and `http://localhost:3000`. If the site ever moves, copy `.env.example` to `.env` beside it and put the new address there, with no slash at the end.
-
-Open https://auto-lab-web.vercel.app in Chrome or Edge, create your account and sign in. Chrome may ask whether the site may connect to devices on your local network or apps on this computer. Allow it, since that is how the site reaches the gateway. Leave the tab open whenever people should be able to use the Autolab.
-
-## 4. Prepare the Pi
+## 3. Prepare the Pi
 
 Do this once per Pi. [Bluetooth setup](bluetooth-provisioning.md) has the details.
 
@@ -102,50 +77,53 @@ git clone https://github.com/edison16a/AutoLab.git
 ~/AutoLab/devices/raspberry-pi/install.sh
 ```
 
-It prints the **Device ID** and a six digit **setup PIN**. Write the PIN on a sticker on the machine.
+While the repository is private, `git clone` asks for a username and password. Give your GitHub username and, as the password, a personal access token with read access to this repository.
 
-## 5. Connect it over Bluetooth
+The installer prints the **Device ID** and a six digit **setup PIN**. Write the PIN on a sticker on the machine. Nothing about your Supabase project goes on the Pi here; Bluetooth setup hands it over.
 
-1. Power the Pi on near the station. Setup stays open for 10 minutes after every start.
-2. On the station, in the Vercel site, click **Connect device** and follow the steps. Click **Find Autolab** and pick `Autolab-XXXX`.
+## 4. Connect it over Bluetooth
+
+Use Chrome or Edge on any computer with Bluetooth, or Chrome on an Android phone. iPhones and Safari can't do Web Bluetooth.
+
+1. Power the Pi on nearby. Setup stays open for 10 minutes after every start.
+2. On the site, click **Connect device** and follow the steps. Click **Find Autolab** and pick `Autolab-XXXX`.
 3. Enter the lab Wi-Fi name and password and the sticker PIN.
-4. The app hands the Pi the station's network address along with the Wi-Fi details. The Pi joins the Wi-Fi, connects to the station, and the app shows **Ready** once the camera reports in.
+4. The site sends these along with your project's address and public key. The Pi joins the Wi-Fi, signs in to Supabase and reports its login, which the site links to your Autolab. **Ready** shows once the Pi reports its camera.
 
-The Autolab is now saved to your account, and this computer is its station. **Settings**, then **Connection**, then **Lab computer** shows that, and you can switch it there.
+Without Bluetooth, set up the Pi's Wi-Fi with Raspberry Pi Imager instead, then choose **Use manual Wi-Fi setup**. The step shows the command to run on the Pi. It prints a **setup code** to paste back into the site.
 
-## 6. Use it from other devices
+## 5. Use it from anywhere
 
-Open the same Vercel address on any phone or laptop and sign in with the same account. You get:
+Open the site on any phone or laptop and sign in with the same account:
 
-- The Autolab's status, as the station last reported it. The station reports every 30 seconds, and a screen shows offline after 75 seconds without a report.
-- Every photo, analysis and deletion, live, from any screen.
-- **Take photo** on Home, Live and Hardware. The station takes it and it shows up a moment later.
-- **Activity** on Home: the newest commands, where each came from and how it ended.
+- **Home** shows the Autolab's status, the latest photos and **Activity**, the newest commands and how each ended.
+- **Live** streams the camera at 2 frames a second and takes full resolution photos. Each screen gets its own view.
+- **Data** has every photo, live from every screen. Analyses and deletes show everywhere at once.
 
-The live preview only runs on the station, since frames never leave the lab network. A command the station doesn't pick up within 20 seconds expires, and the screen that sent it says so.
+The Pi reports its status every 15 seconds, and screens show it offline after 45 seconds without a report. A photo command the Pi doesn't pick up within 20 seconds expires, and the screen says so.
+
+The preview only streams while a screen has Live open, and stops 12 seconds after the last one closes. Each frame is a Realtime message of roughly 20 to 60 KB, so an hour of watching uses about 100 to 400 MB of Supabase bandwidth. Keep an eye on **Usage** in the Supabase dashboard if you're on the free plan.
 
 ## Day to day
 
-- Keep the station awake with the app open. If it sleeps, other screens show the Autolab offline and their commands expire.
-- To move a Pi to a new station, power cycle it and run **Connect device** on the new computer within 10 minutes.
-- The station runs commands for the Autolab it has selected. A second Autolab needs its own station, or a switch of the selected device on this one.
-- To give an Autolab to another account, delete its row in **Table Editor**, then **devices**. Its photo records and log go with it, while the files stay in Storage until you delete them there. The new owner then adds it with **Connect device**.
+- The Pi starts by itself after a power cut and goes back online with the same login.
+- To change Wi-Fi, power cycle the Pi and run **Connect device** again within 10 minutes.
+- To give an Autolab to another account, that account runs **Connect device** on it. Setup gives the Pi a fresh login each time, so the previous owner's access ends there. They can then delete the old row in **Table Editor**, then **devices**.
+- A second Autolab is just another **Connect device**. The menu at the top switches between them.
 
 ## When something is off
 
 | What you see | What to check |
 | --- | --- |
-| "The lab computer didn't pick this up" | The station's tab is open, signed in to the same account, and **Lab computer** is on in Settings |
-| "This Autolab is linked to another account" | Someone else added it first. Remove it from their account as above |
-| Setup stops after "Wi-Fi connected" | The Pi can't reach port 8000 on the station. Check the firewall and that both are on the same network |
-| "Start the gateway on this computer" | The gateway isn't running, or a `.env` beside it sets `ALLOWED_ORIGINS` without the site's address. Restart the gateway after editing `.env` |
-| The station stays on "Connecting" | Same as above, or Chrome was told not to let the site reach this computer. Allow it in the site settings next to the address bar |
-| "The web app and gateway are running in different modes" | The gateway must run in demo mode, its default. Remove `AUTOLAB_MODE=cloud` from any `.env` beside it |
-| Remote screens show offline | The station is closed, asleep or offline |
+| "Supabase refused the Pi's login: Anonymous sign-ins are disabled" | Turn on **Allow anonymous sign-ins** (step 1), then run **Connect device** again |
+| Setup stops after "On Wi-Fi, signing in" | The Wi-Fi has no internet, or needs a sign in page. Try another network |
+| "The Autolab didn't pick this up" | The Pi is off, or lost its network. Home shows when it last reported |
+| "This Autolab is linked to another account" | Someone else added it first. They can hand it over as above |
+| The site says demo mode | The Vercel variables aren't set, or the site wasn't redeployed after setting them |
 
 ## Test it without hardware
 
-With Docker running, start a local copy of Supabase with both migrations applied, then run the lab browser test. It starts the gateway, the app in lab mode and a simulated Pi, then drives a station, a remote screen and a stranger's account:
+With Docker running, start a local copy of Supabase with both migrations applied, then run the lab browser test. It runs the site in lab mode and a simulated Pi that signs in to Supabase by itself, then drives two screens and a stranger's account:
 
 ```bash
 npx supabase start
@@ -160,6 +138,7 @@ PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres bash supabase/tests/rls.sh
 
 ## Security notes
 
-- The gateway on the station has no login, like demo mode. Anyone who can reach its port on the lab network can watch the camera. Keep it on a network you trust.
-- The Pi uses plain `ws://` on the lab network, so traffic between the Pi and the station isn't encrypted.
-- Everything that leaves the lab goes to Supabase over https, as the signed in person.
+- Only the public anon key is used, by the site and by the Pi. Row level security decides everything.
+- Anyone with the anon key can create an anonymous login, but such a login can't add Autolabs or send commands, and sees nothing until an owner links it.
+- The link happens over Bluetooth, which the sticker PIN protects, or with a setup code the owner copies from the Pi.
+- Everything between the Pi, the screens and Supabase goes over https.
