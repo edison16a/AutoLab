@@ -1,7 +1,8 @@
 /**
  * Small settings kept in localStorage: the demo session, the demo device
- * list, the selected device and a custom gateway URL. Images never go here,
- * they are far too big (see photo-store.ts).
+ * list, the selected device, a custom gateway URL and whether this computer
+ * is the lab station. Images never go here, they are far too big (see
+ * photo-store.ts).
  */
 
 /** Every key is namespaced so it can't collide with other apps on the origin. */
@@ -11,6 +12,7 @@ export const STORAGE_KEYS = {
   theme: "autolab:theme",
   devices: (userId: string) => `autolab:devices:${userId}`,
   selected: (userId: string) => `autolab:selected:${userId}`,
+  station: (userId: string) => `autolab:station:${userId}`,
 };
 
 /**
