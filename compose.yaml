@@ -4,5 +4,5 @@ services:
     ports: ["8000:8000"]
     environment:
       AUTOLAB_MODE: demo
-      ALLOWED_ORIGINS: http://localhost:3000
+      ALLOWED_ORIGINS: http://localhost:3000,https://auto-lab-web.vercel.app
     restart: unless-stopped

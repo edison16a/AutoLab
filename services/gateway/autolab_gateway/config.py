@@ -17,10 +17,11 @@ if MODE not in ("demo", "cloud"):
     raise RuntimeError("AUTOLAB_MODE must be demo or cloud")
 
 # One list serves CORS and the WebSocket origin check. Browsers do not apply CORS
-# to sockets, so the socket route has to enforce it by hand.
+# to sockets, so the socket route has to enforce it by hand. The default covers
+# local development and the hosted site, so a lab computer needs no settings.
+DEFAULT_ORIGINS = "http://localhost:3000,https://auto-lab-web.vercel.app"
 ORIGINS = [
-    origin.strip()
-    for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+    origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", DEFAULT_ORIGINS).split(",")
 ]
 
 # What /lan reports instead of the detected addresses, as comma separated
