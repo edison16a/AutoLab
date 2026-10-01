@@ -1,6 +1,6 @@
 # Lab mode
 
-Lab mode is for a lab that keeps one computer next to the Autolab. That computer is the **lab station**. It runs the gateway and keeps the Autolab app open. The Pi joins the lab Wi-Fi and talks only to the station, never to the internet.
+Lab mode is for a lab that keeps one computer next to the Autolab. That computer is the **lab station**. It runs the small gateway program and keeps your Autolab site open in Chrome. The site itself is hosted on Vercel, the same address for every screen. The Pi joins the lab Wi-Fi and talks only to the station, never to the internet.
 
 The station saves every photo, the Autolab's status and a log of every command to Supabase, signed in as you. Any other phone or laptop signed in to the same account sees all of it and can take photos too. Those commands go through Supabase to the station, which runs them on the Autolab.
 
@@ -12,8 +12,9 @@ Nothing in lab mode holds a Supabase secret key. The browser only has the public
 | --- | --- | --- |
 | Pi agent | The Raspberry Pi | The station's gateway, over the lab Wi-Fi |
 | Gateway | The station, in demo mode | The Pi and the station's browser |
-| Autolab app, as the station | Chrome or Edge on the station, at `http://localhost:3000` | The gateway and Supabase |
-| Autolab app, anywhere else | Any browser, at your hosted address | Supabase only |
+| Autolab site | Vercel | Opened by every screen |
+| The site on the station | Chrome or Edge on the station | The gateway at `ws://localhost:8000` and Supabase |
+| The site anywhere else | Any browser | Supabase only |
 | Database, files, sign in | Supabase | Every signed in browser |
 
 ## The database
@@ -45,45 +46,55 @@ The rules, enforced by Postgres itself:
 
 If you use the Supabase CLI, `npx supabase link --project-ref YOUR_REF` and then `npx supabase db push` apply both migrations instead of step 2.
 
-## 2. Set up the lab station
+## 2. Put the site on Vercel
 
-The station needs Node.js 22 or newer, Python 3.11 or newer, Chrome or Edge, and Bluetooth. Clone the repository on it, then from the repository root:
-
-```bash
-npm ci
-cp apps/web/.env.example apps/web/.env.local
-```
-
-Edit `apps/web/.env.local`:
+1. In Vercel, import the repository and set the **Root Directory** to `apps/web`.
+2. Under **Settings**, then **Environment Variables**, add:
 
 ```bash
 NEXT_PUBLIC_AUTOLAB_MODE=lab
-NEXT_PUBLIC_GATEWAY_URL=ws://localhost:8000
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=the key from step 1
+NEXT_PUBLIC_GATEWAY_URL=ws://localhost:8000
 ```
 
-Start the gateway in its own terminal. It listens on the whole network so the Pi can reach it:
+3. Redeploy, since these are read when the site is built.
+4. In Supabase, open **Authentication**, then **URL Configuration**. Set **Site URL** to your Vercel address, for example `https://your-app.vercel.app`, and add it under **Redirect URLs** too.
+
+`ws://localhost:8000` points each browser at a gateway on its own computer. Only the station has one, and only the station uses it. Other screens never connect to it.
+
+## 3. Set up the lab station
+
+The station needs Python 3.11 or newer, Chrome or Edge, and Bluetooth. It doesn't need Node.js or a build: it only runs the gateway. Clone the repository on it, then:
 
 ```bash
 cd services/gateway
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env
+```
+
+On Windows, use `py -m venv .venv`, then `.venv\Scripts\activate`, then `copy .env.example .env`.
+
+Edit `services/gateway/.env` and put your Vercel address in `ALLOWED_ORIGINS`, with no slash at the end:
+
+```bash
+AUTOLAB_MODE=demo
+ALLOWED_ORIGINS=https://your-app.vercel.app
+```
+
+The gateway only answers pages from these addresses. Then start it, listening on the whole network so the Pi can reach it:
+
+```bash
 uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
 ```
 
-Let other machines on the lab network reach port 8000. macOS and Windows ask the first time; say yes.
+Let other machines on the lab network reach port 8000. macOS and Windows ask the first time; say yes. Leave this window running. To start it again later, open a terminal in `services/gateway`, activate `.venv` and run the last command.
 
-Start the app in another terminal:
+Open your Vercel address in Chrome or Edge, create your account and sign in. Chrome may ask whether the site may connect to devices on your local network or apps on this computer. Allow it, since that is how the site reaches the gateway. Leave the tab open whenever people should be able to use the Autolab.
 
-```bash
-npm run build
-npm run start
-```
-
-Open **http://localhost:3000** in Chrome or Edge. Use `localhost`, not the computer's network address: Bluetooth only works on secure pages, and `localhost` counts as one. Click **Create an account**, then sign in. Leave this tab open whenever people should be able to use the Autolab.
-
-## 3. Prepare the Pi
+## 4. Prepare the Pi
 
 Do this once per Pi. [Bluetooth setup](bluetooth-provisioning.md) has the details.
 
@@ -99,20 +110,18 @@ git clone https://github.com/edison16a/AutoLab.git
 
 It prints the **Device ID** and a six digit **setup PIN**. Write the PIN on a sticker on the machine.
 
-## 4. Connect it over Bluetooth
+## 5. Connect it over Bluetooth
 
 1. Power the Pi on near the station. Setup stays open for 10 minutes after every start.
-2. On the station, click **Connect device** and follow the steps. Click **Find Autolab** and pick `Autolab-XXXX`.
+2. On the station, in the Vercel site, click **Connect device** and follow the steps. Click **Find Autolab** and pick `Autolab-XXXX`.
 3. Enter the lab Wi-Fi name and password and the sticker PIN.
 4. The app hands the Pi the station's network address along with the Wi-Fi details. The Pi joins the Wi-Fi, connects to the station, and the app shows **Ready** once the camera reports in.
 
 The Autolab is now saved to your account, and this computer is its station. **Settings**, then **Connection**, then **Lab computer** shows that, and you can switch it there.
 
-## 5. Use it from other devices
+## 6. Use it from other devices
 
-Deploy the same app so other devices can open it over https. On Vercel, set the root directory to `apps/web` and add `NEXT_PUBLIC_AUTOLAB_MODE=lab`, `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Add the Vercel address to Supabase under **Authentication**, then **URL Configuration**, then **Redirect URLs**.
-
-Sign in there with the same account. You get:
+Open the same Vercel address on any phone or laptop and sign in with the same account. You get:
 
 - The Autolab's status, as the station last reported it. The station reports every 30 seconds, and a screen shows offline after 75 seconds without a report.
 - Every photo, analysis and deletion, live, from any screen.
@@ -135,7 +144,9 @@ The live preview only runs on the station, since frames never leave the lab netw
 | "The lab computer didn't pick this up" | The station's tab is open, signed in to the same account, and **Lab computer** is on in Settings |
 | "This Autolab is linked to another account" | Someone else added it first. Remove it from their account as above |
 | Setup stops after "Wi-Fi connected" | The Pi can't reach port 8000 on the station. Check the firewall and that both are on the same network |
-| "Start the gateway on this computer" | The gateway isn't running, or the app isn't open at `localhost` |
+| "Start the gateway on this computer" | The gateway isn't running, or `ALLOWED_ORIGINS` in its `.env` doesn't match your Vercel address exactly. Restart the gateway after editing `.env` |
+| The station stays on "Connecting" | Same as above, or Chrome was told not to let the site reach this computer. Allow it in the site settings next to the address bar |
+| "The web app and gateway are running in different modes" | Set `AUTOLAB_MODE=demo` in the gateway's `.env`. Lab mode's gateway runs in demo mode |
 | Remote screens show offline | The station is closed, asleep or offline |
 
 ## Test it without hardware

@@ -29,7 +29,7 @@ cd services/gateway
 uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
 ```
 
-Its `ALLOWED_ORIGINS` must include the origin of the web app you open. The firewall must let other machines on the LAN reach port 8000.
+Its `ALLOWED_ORIGINS` in `services/gateway/.env` must include the address of the site you open, such as `https://your-app.vercel.app`. The firewall must let other machines on the LAN reach port 8000.
 
 The app asks the local gateway for the station's address with `GET /lan`. It answers `{"urls": ["ws://192.168.1.20:8000"]}`, best guess first. Inside Docker the gateway only sees the container's own address, so set `LAN_URLS=ws://YOUR_LAN_IP:8000` there. Do the same with a `.local` name if the lab network uses public IP addresses, since the Pi only uses plain `ws://` on local addresses.
 

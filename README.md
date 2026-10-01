@@ -112,7 +112,7 @@ It prints a Device ID. In the app, click **Connect device**, go through the step
 
 ### Lab mode
 
-[docs/lab-mode.md](docs/lab-mode.md) goes from an empty Supabase project to a Pi set up over Bluetooth and other devices following along. In short: run both migrations in Supabase, set `NEXT_PUBLIC_AUTOLAB_MODE=lab` with the Supabase URL and anon key on the lab computer, run the gateway there with `--host 0.0.0.0`, install the Pi with `devices/raspberry-pi/install.sh`, then click **Connect device**.
+[docs/lab-mode.md](docs/lab-mode.md) goes from an empty Supabase project to a Pi set up over Bluetooth and other devices following along. In short: run both migrations in Supabase, deploy `apps/web` to Vercel with `NEXT_PUBLIC_AUTOLAB_MODE=lab` and the Supabase URL and anon key, run only the gateway on the lab computer with your Vercel address in `ALLOWED_ORIGINS`, install the Pi with `devices/raspberry-pi/install.sh`, then open the site on the lab computer and click **Connect device**.
 
 ### A real Raspberry Pi
 
