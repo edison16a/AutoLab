@@ -10,12 +10,20 @@ import { StatusDot, type DotState } from "../ui/StatusDot";
 
 const SHOWN = 8;
 
-const KIND: Record<ActionKind, { label: string; icon: LucideIcon }> = {
-  capture_photo: { label: "Take photo", icon: Camera },
-  start_preview: { label: "Start preview", icon: Video },
-  stop_preview: { label: "Stop preview", icon: VideoOff },
-  analyze_image: { label: "Analyze image", icon: ScanSearch },
+const KIND: Record<ActionKind, { label: string; icon: LucideIcon; done: string }> = {
+  capture_photo: { label: "Take photo", icon: Camera, done: "Saved to Data" },
+  start_preview: { label: "Start preview", icon: Video, done: "Live view opened" },
+  stop_preview: { label: "Stop preview", icon: VideoOff, done: "Live view closed" },
+  analyze_image: { label: "Analyze image", icon: ScanSearch, done: "Objects found" },
 };
+
+/** One short line under the command: the failure's reason, or what is happening. */
+function detail(entry: ActionEntry) {
+  if (entry.error) return entry.error;
+  if (entry.status === "pending") return "Waiting for the Autolab";
+  if (entry.status === "running") return "The Autolab is on it";
+  return KIND[entry.kind].done;
+}
 
 const STATUS: Record<ActionStatus, { label: string; dot: DotState }> = {
   pending: { label: "Waiting", dot: "idle" },
@@ -28,8 +36,6 @@ const STATUS: Record<ActionStatus, { label: string; dot: DotState }> = {
 function ActionRow({ entry, now }: { entry: ActionEntry; now: number }) {
   const { label, icon: Icon } = KIND[entry.kind];
   const state = STATUS[entry.status];
-  // A failure's reason says more than where the command came from.
-  const detail = entry.error || (entry.origin === "station" ? "From the lab computer" : "From another screen");
   const title = entry.image_id ? (
     <Link href={`/data/${entry.image_id}`} className="home-action__link">
       {label}
@@ -44,7 +50,7 @@ function ActionRow({ entry, now }: { entry: ActionEntry; now: number }) {
       </span>
       <span className="home-action__what">
         <span className="home-action__title">{title}</span>
-        <span className="home-action__detail">{detail}</span>
+        <span className="home-action__detail">{detail(entry)}</span>
       </span>
       <span className="home-action__state">
         <StatusDot state={state.dot} />
@@ -57,7 +63,7 @@ function ActionRow({ entry, now }: { entry: ActionEntry; now: number }) {
   );
 }
 
-/** Lab mode: the newest commands sent to this account's Autolabs, from any screen. */
+/** Lab mode: the newest commands sent to this account's Autolabs, from any screen, and how each ended. */
 export function ActionLog() {
   const { actions } = useAutolab();
   const now = useNow(10_000);
