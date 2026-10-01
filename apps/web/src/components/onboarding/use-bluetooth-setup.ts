@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { gatewayMode } from "@/lib/cloud";
 import { AutolabBluetooth, type ProvisionStatus } from "@/lib/provisioning/bluetooth";
+import { piGateway } from "@/lib/provisioning/pi-gateway";
 
 /** How often to ask the Pi how Wi-Fi is going, and when to give up. */
 const POLL_MS = 1500;
@@ -27,10 +29,11 @@ function wait(ms: number) {
 
 /**
  * Web Bluetooth setup: find the Pi's provisioning service, send it the
- * Wi-Fi details and setup PIN, then poll until it reports the gateway.
+ * Wi-Fi details, setup PIN and this app's gateway, then poll until the Pi
+ * reports it reached that gateway.
  * Nothing sent here is stored. The connection closes when the wizard does.
  */
-export function useBluetoothSetup(mode: "demo" | "cloud") {
+export function useBluetoothSetup(gateway: string) {
   const bluetooth = useRef<AutolabBluetooth | null>(null);
   const alive = useRef(true);
   // null until checked on the client, so the first render never guesses.
@@ -67,7 +70,9 @@ export function useBluetoothSetup(mode: "demo" | "cloud") {
     async (ssid: string, password: string, pin: string): Promise<GatewayResult> => {
       const link = bluetooth.current;
       if (!link) throw new Error("Bluetooth is disconnected. Select Find Autolab again.");
-      await link.provision(ssid, password, pin);
+      const target = await piGateway(gateway);
+      guard();
+      await link.provision(ssid, password, pin, target);
       const started = Date.now();
       while (Date.now() - started < TIMEOUT_MS) {
         await wait(POLL_MS);
@@ -77,13 +82,13 @@ export function useBluetoothSetup(mode: "demo" | "cloud") {
         setStatus(next);
         if (next.state === "error") throw new Error(next.message || "The Pi couldn't join Wi-Fi.");
         if (next.state !== "gateway_connected") continue;
-        if (next.mode !== mode) throw new Error(`The Pi and this app run in different modes. Set the Pi to ${mode} mode.`);
+        if (next.mode !== gatewayMode) throw new Error(`The Pi and this app run in different modes. Set the Pi to ${gatewayMode} mode.`);
         if (!next.device_id) throw new Error("The Pi didn't report its Device ID.");
         return { deviceId: next.device_id, claimCode: next.claim_code ?? "", claimed: !!next.claimed };
       }
       throw new Error("The Pi took too long to connect. Check it, then try again or use manual setup.");
     },
-    [guard, mode],
+    [guard, gateway],
   );
 
   const disconnect = useCallback(() => {

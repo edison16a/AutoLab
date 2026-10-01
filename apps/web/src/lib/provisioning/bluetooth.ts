@@ -37,11 +37,12 @@ export class AutolabBluetooth {
     const value = await this.status.readValue();
     return JSON.parse(new TextDecoder().decode(value));
   }
-  async provision(ssid: string, password: string, pin: string) {
+  /** `gateway` tells the Pi where to connect once it's on Wi-Fi. */
+  async provision(ssid: string, password: string, pin: string, gateway?: string) {
     if (!this.command || !this.device?.gatt?.connected)
       throw new Error("Reconnect Bluetooth before provisioning");
     const bytes = new TextEncoder().encode(
-      JSON.stringify({ ssid, password, pin }),
+      JSON.stringify({ ssid, password, pin, ...(gateway ? { gateway } : {}) }),
     );
     if (bytes.length > 2048)
       throw new Error("Provisioning request is too long");

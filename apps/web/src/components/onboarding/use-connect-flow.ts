@@ -25,7 +25,7 @@ function isChooserCancel(error: unknown) {
  */
 export function useConnectFlow() {
   const link = useDeviceLink();
-  const bluetooth = useBluetoothSetup(link.mode);
+  const bluetooth = useBluetoothSetup(link.gateway);
   const [step, setStep] = useState<StepIndex>(STEP.camera);
   const [path, setPath] = useState<SetupPath>("bluetooth");
   const [busy, setBusy] = useState(false);
