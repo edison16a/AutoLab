@@ -106,8 +106,8 @@ ${WIFI_NOTE:+
 $WIFI_NOTE
 }
 Next steps:
-1. Power the Pi off, then on again near the lab computer.
-2. On the lab computer, open the Autolab app and click Connect device.
+1. Power the Pi off, then on again.
+2. Nearby, open the Autolab site in Chrome and click Connect device.
 3. Click Find Autolab and pick Autolab-${DEVICE_ID:0:4}. Enter the Wi-Fi details and the PIN.
 
 Setup stays open for 10 minutes after each start. Power cycle the Pi to open it again.
