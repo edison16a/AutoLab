@@ -1,0 +1,5 @@
+# Lets the Supabase CLI use this folder. `npx supabase start` runs a local
+# copy in Docker with both migrations applied, which tests/run_lab_e2e.py
+# tests against. `npx supabase db push` applies the migrations to a linked
+# hosted project. Everything not set here keeps the CLI's defaults.
+project_id = "autolab"
