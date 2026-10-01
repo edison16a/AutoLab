@@ -19,11 +19,15 @@ export const gatewayMode: "demo" | "cloud" = cloudEnabled ? "cloud" : "demo";
 /** How Settings names each mode. */
 export const MODE_LABEL: Record<AppMode, string> = { demo: "Demo", cloud: "Cloud", lab: "Lab" };
 
+/** The project's address and public key. Lab mode hands both to the Pi during Bluetooth setup. */
+export function supabaseSettings() {
+  return { url: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "", key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "" };
+}
+
 let client: SupabaseClient | undefined;
 export function supabase() {
   if (!accountsEnabled) throw new Error("Accounts are off in demo mode");
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL,
-    key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const { url, key } = supabaseSettings();
   if (!url || !key)
     throw new Error("Set the Supabase public environment variables");
   return (client ??= createClient(url, key));

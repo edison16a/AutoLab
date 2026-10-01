@@ -4,7 +4,7 @@
  * every call to the signed in person's own rows.
  */
 import { supabase } from "../cloud";
-import type { Device, DeviceReport } from "@/model/types";
+import type { Device } from "@/model/types";
 
 const COLUMNS = "id,name,status,camera_online,last_seen_at,simulated,agent_version";
 
@@ -39,37 +39,24 @@ export async function listDevices(): Promise<Device[]> {
 }
 
 /**
- * Adds an Autolab to this account, or renames it if it's already ours. A
- * device id can only belong to one account: someone else's row is invisible,
- * so the insert hits the key and the follow up update changes nothing.
+ * Adds an Autolab to this account and links its Pi's login, or updates both
+ * if it's already ours. A device id can only belong to one account: someone
+ * else's row is invisible, so the insert hits the key and the follow up
+ * update changes nothing.
  */
-export async function saveDevice(id: string, name: string) {
+export async function saveDevice(id: string, name: string, agentId?: string) {
   const db = supabase();
-  const { error } = await db.from("devices").insert({ id, name });
+  const link = agentId ? { agent_id: agentId } : {};
+  const { error } = await db.from("devices").insert({ id, name, ...link });
   if (!error) return;
   if (error.code !== "23505") throw error;
-  const { data, error: renameError } = await db.from("devices").update({ name }).eq("id", id).select("id");
-  if (renameError) throw renameError;
+  const { data, error: updateError } = await db.from("devices").update({ name, ...link }).eq("id", id).select("id");
+  if (updateError) throw updateError;
   if (!data?.length) throw new Error("This Autolab is linked to another account.");
 }
 
 export async function renameDevice(id: string, name: string) {
   const { error } = await supabase().from("devices").update({ name }).eq("id", id);
-  if (error) throw error;
-}
-
-/** The lab computer's view of the Autolab, so remote screens can show it. */
-export async function reportDevice(id: string, report: DeviceReport) {
-  const { error } = await supabase()
-    .from("devices")
-    .update({
-      status: report.online ? "online" : "offline",
-      camera_online: report.camera_online,
-      last_seen_at: report.last_seen,
-      simulated: report.simulated,
-      agent_version: report.agent_version ?? null,
-    })
-    .eq("id", id);
   if (error) throw error;
 }
 

@@ -1,21 +1,19 @@
 /**
  * Lab mode's action log in Supabase. Every command sent to an Autolab gets a
- * row: the station logs what it does itself, and other screens add pending
- * rows that the station picks up, runs and closes.
+ * row. A photo command starts as pending and the Pi claims, runs and closes
+ * it. Preview and analysis are logged as already done.
  */
 import { supabase } from "../cloud";
-import type { ActionEntry, ActionKind, ActionStatus, Photo } from "@/model/types";
+import type { ActionEntry, ActionKind, ActionStatus } from "@/model/types";
 
-const COLUMNS = "id,device_id,kind,origin,status,error,image_id,created_at,completed_at";
+const COLUMNS = "id,device_id,kind,status,error,image_id,created_at,completed_at";
 
 export interface NewAction {
   device_id: string | null;
   kind: ActionKind;
-  origin: ActionEntry["origin"];
   status: ActionStatus;
   payload?: Record<string, unknown>;
   image_id?: string | null;
-  error?: string | null;
 }
 
 /** Records an action and returns its row. The database stamps every time on it. */
@@ -29,34 +27,14 @@ export async function addAction(action: NewAction): Promise<ActionEntry> {
   return data as ActionEntry;
 }
 
-export interface ActionUpdate {
-  status: ActionStatus;
-  error?: string | null;
-  image_id?: string | null;
-  result?: Record<string, unknown>;
-}
-
-/** How a photo command ended: done with its image, or failed with the reason. */
-export function captureResult(photo: Photo | null, stored: boolean): ActionUpdate {
-  if (photo && stored) return { status: "done", image_id: photo.id };
-  return { status: "failed", error: photo ? "The photo couldn't be saved." : "The Autolab didn't send a photo." };
-}
-
-/** Moves an action on. The database refuses changes to one that already ended. */
-export async function updateAction(id: string, update: ActionUpdate) {
-  const { error } = await supabase().from("actions").update(update).eq("id", id);
-  if (error) throw error;
-}
-
 /**
- * Takes a pending command, or expires one nobody took. Only a row still
- * pending changes, so two stations or a late station can't both act on it.
- * Resolves false when the row had already moved on.
+ * Expires a command nobody took. Only a row still pending changes, so a Pi
+ * that took it a moment ago keeps it. Resolves false when it had moved on.
  */
-export async function settlePending(id: string, status: "running" | "expired", error?: string) {
+export async function expirePending(id: string, error: string) {
   const { data, error: failure } = await supabase()
     .from("actions")
-    .update({ status, error: error ?? null })
+    .update({ status: "expired", error })
     .eq("id", id)
     .eq("status", "pending")
     .select("id");
@@ -75,18 +53,6 @@ export async function getAction(id: string): Promise<ActionEntry | null> {
   const { data, error } = await supabase().from("actions").select(COLUMNS).eq("id", id).maybeSingle();
   if (error) throw error;
   return data as ActionEntry | null;
-}
-
-/** Commands other screens left for this Autolab that nobody has picked up yet, oldest first. */
-export async function pendingActions(deviceId: string): Promise<ActionEntry[]> {
-  const { data, error } = await supabase()
-    .from("actions")
-    .select(COLUMNS)
-    .eq("device_id", deviceId)
-    .eq("status", "pending")
-    .order("created_at");
-  if (error) throw error;
-  return data as ActionEntry[];
 }
 
 /** Calls back with every new or changed action this account can see. Returns the unsubscribe. */
