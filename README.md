@@ -6,7 +6,7 @@
 
 Autolab is a low cost automated cell culture system for neuronal cultures, built by the Neurotech wet lab team. A desktop 3D printer gantry sits inside an insulated enclosure that holds 37 °C, 5% CO₂ and 85 to 95% humidity. The gantry carries a motorized P1000 pipette for media changes and a Raspberry Pi HQ camera for checking the culture, all run by a Raspberry Pi 4.
 
-This repository is the software. You sign in, connect your Autolab over Bluetooth, and then watch the live camera, take photos, run object detection and browse the results from anywhere. A 3D model of the whole machine shows every part and what state it's in.
+This repository is the software. You sign in, connect your Autolab over Bluetooth, and then watch the live camera, take photos, run object detection and browse the results. In lab mode a computer next to the Autolab saves everything to Supabase, so you can follow along and take photos from any other device. A 3D model of the whole machine shows every part and what state it's in.
 
 ## Screenshots
 
@@ -31,7 +31,8 @@ The library and statistics shots use sample images, since object detection can't
 - **Data** keeps every image with its detections. Filter, search by label, open an image, analyze it, download or delete.
 - **Statistics** charts captures per day and by hour, detected objects, confidence, inference time and sources.
 - **Hardware** is the 3D model. Click a part to fly to it, then **Inspect item** to see it on its own. **Exploded view** opens the enclosure and spreads the parts out, and **Live view** plays the same pipetting run as Home. Parts without a driver yet say so instead of showing made up readings.
-- **Connect device** walks through seating the camera ribbon and powering the Pi, then finds the Pi over Bluetooth and sends it your Wi-Fi details. Manual setup is there as a fallback.
+- **Connect device** walks through seating the camera ribbon and powering the Pi, then finds the Pi over Bluetooth and sends it your Wi-Fi details and the gateway's address. Manual setup is there as a fallback.
+- **Activity** on Home, in lab mode, logs every command sent to the Autolab from any screen and how it ended.
 - Light and dark mode, and it works on a phone.
 
 ## How it works
@@ -44,13 +45,18 @@ The Pi and the browser never talk to each other directly. Each one opens an outg
 
 Photos travel as one binary WebSocket message each: a small JSON header followed by the raw JPEG, so a header can never get separated from its image.
 
-There are two modes:
+There are three modes:
 
-| | Demo (default) | Cloud |
-| --- | --- | --- |
-| Sign in | The fixed demo login `ntabuser` / `ntabuser123` | Supabase email and password |
-| Connecting a Pi | Its Device ID | A one-time six-digit claim code |
-| Where images live | This browser (IndexedDB) | Private Supabase Storage |
+| | Demo (default) | Lab | Cloud |
+| --- | --- | --- | --- |
+| Sign in | The fixed demo login `ntabuser` / `ntabuser123` | Supabase email and password | Supabase email and password |
+| Where the gateway runs | Your computer | The lab computer next to the Autolab | An always-on host |
+| Connecting a Pi | Its Device ID | Bluetooth, or its Device ID | A one-time six-digit claim code |
+| Where images live | This browser (IndexedDB) | Private Supabase Storage | Private Supabase Storage |
+| Other devices | No | See everything and take photos through the lab computer | Full access through the hosted gateway |
+| Supabase secret key | None | None | On the gateway only |
+
+In lab mode the lab computer, the station, holds the WebSocket to the Pi and writes photos, status and a log of every command to Supabase as the signed in person. Other screens read from Supabase and leave commands there, which the station picks up over Realtime and runs. Row level security keeps every account to its own rows. See [lab mode](docs/lab-mode.md).
 
 ## Repository layout
 
@@ -61,6 +67,7 @@ There are two modes:
 | `devices/raspberry-pi` | The camera agent and the Bluetooth setup service | Raspberry Pi 4 |
 | `workers/ml` | Optional worker that saves analyses in cloud mode | Your computer |
 | `supabase/migrations` | Tables, security rules and the storage bucket | Supabase |
+| `supabase/tests` | Checks for the security rules on a plain Postgres | CI |
 | `tests` | Python tests and the browser end to end suite | CI |
 | `docs` | Setup and design notes | |
 
@@ -103,7 +110,13 @@ python -m autolab_agent.main --simulate --gateway ws://localhost:8000
 
 It prints a Device ID. In the app, click **Connect device**, go through the steps, choose **Use manual Wi-Fi setup** and paste the ID. The simulator sends clearly labeled synthetic images.
 
+### Lab mode
+
+[docs/lab-mode.md](docs/lab-mode.md) goes from an empty Supabase project to a Pi set up over Bluetooth and other devices following along. In short: run both migrations in Supabase, set `NEXT_PUBLIC_AUTOLAB_MODE=lab` with the Supabase URL and anon key on the lab computer, run the gateway there with `--host 0.0.0.0`, install the Pi with `devices/raspberry-pi/install.sh`, then click **Connect device**.
+
 ### A real Raspberry Pi
+
+The quickest way is the installer, which sets up everything for Bluetooth setup and prints the Device ID and setup PIN. See [Bluetooth setup](docs/bluetooth-provisioning.md). To set it up by hand instead:
 
 1. Flash Raspberry Pi OS Lite (64-bit) with Raspberry Pi Imager and set the username, Wi-Fi, SSH and hostname there.
 2. With the Pi powered off, connect the camera ribbon to the **CSI camera** connector (not the display connector), contacts facing the connector's contacts.
@@ -162,9 +175,16 @@ npx playwright install chromium
 .venv/bin/python tests/run_e2e.py
 ```
 
-The end to end run starts the gateway, the production web app and the Pi simulator, then drives a real browser through sign in, connecting a device, the live camera, capture, detection on a real street photo, the library, the 3D hardware view, statistics, settings, phone layouts and the no-WebGL fallback. Ports 3000 and 8000 must be free. CI runs all of this on every push.
+The end to end run starts the gateway, the production web app and the Pi simulator, then drives a real browser through sign in, connecting a device, the live camera, capture, detection on a real street photo, the library, the 3D hardware view, statistics, settings, phone layouts and the no-WebGL fallback. Ports 3000 and 8000 must be free. CI runs all of this on every push, along with `supabase/tests/rls.sh`, which checks the database's security rules as two signed in people.
 
-The real CSI camera, Bluetooth radio pairing and a live Supabase project still need a check on real hardware and accounts.
+Lab mode has its own browser run against a local Supabase in Docker. It drives a lab computer, a remote screen and a stranger's account through photos, commands, analysis, deletes and an expired command:
+
+```bash
+npx supabase start
+.venv/bin/python tests/run_lab_e2e.py
+```
+
+The real CSI camera, Bluetooth radio pairing and a hosted Supabase project still need a check on real hardware and accounts.
 
 ## More
 
@@ -172,6 +192,7 @@ The real CSI camera, Bluetooth radio pairing and a live Supabase project still n
 - [Wire protocol](docs/protocol.md)
 - [The 3D model](docs/digital-twin.md)
 - [Browser object detection](docs/browser-detection.md)
+- [Lab mode](docs/lab-mode.md)
 - [Bluetooth setup](docs/bluetooth-provisioning.md)
-- [Supabase setup](docs/cloud.md)
+- [Cloud mode](docs/cloud.md)
 - [Deployment](docs/deployment.md)
