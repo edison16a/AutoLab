@@ -14,7 +14,7 @@ const KIND: Record<ActionKind, { label: string; icon: LucideIcon }> = {
   capture_photo: { label: "Take photo", icon: Camera },
   start_preview: { label: "Start preview", icon: Video },
   stop_preview: { label: "Stop preview", icon: VideoOff },
-  analyze_image: { label: "Find objects", icon: ScanSearch },
+  analyze_image: { label: "Analyze image", icon: ScanSearch },
 };
 
 const STATUS: Record<ActionStatus, { label: string; dot: DotState }> = {
