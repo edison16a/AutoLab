@@ -27,6 +27,9 @@ app.add_middleware(
     allow_origins=ORIGINS,
     allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
+    # A hosted web app reaching the gateway on the lab computer is a public page
+    # calling a private address. Chrome asks first, and the origin check still applies.
+    allow_private_network=True,
 )
 app.include_router(http_routes.router)
 app.include_router(socket_routes.router)

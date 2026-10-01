@@ -1,4 +1,4 @@
-"""HTTP routes. Everything except /health needs cloud mode, and most need an owner.
+"""HTTP routes. All but /health and /lan need cloud mode, and most need an owner.
 
 Route notes are comments, not docstrings, because FastAPI publishes route
 docstrings in the OpenAPI schema.
@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from . import state
 from .cloud import digest
 from .config import MODE
+from .lan import lan_addresses
 from .limits import rate
 from .models import Claim, Registration, Rename
 from .protocol import uid
@@ -27,6 +28,15 @@ async def user(request: Request) -> str:
 @router.get("/health")
 async def health():
     return {"ok": True, "mode": MODE}
+
+
+@router.get("/lan")
+def lan(request: Request):
+    # Open in every mode. The lab station's web app reads this computer's LAN
+    # address here and hands it to a Pi over Bluetooth. A plain def, so FastAPI
+    # runs the address lookups in a worker thread.
+    port = request.url.port or 8000
+    return {"urls": [f"ws://{ip}:{port}" for ip in lan_addresses()]}
 
 
 @router.post("/devices/register")
