@@ -1,4 +1,5 @@
 "use client";
+import { MODE_LABEL } from "@/lib/cloud";
 import { useAutolab } from "@/providers/autolab-context";
 import { SettingsRow, SettingsSection } from "./SettingsSection";
 
@@ -8,7 +9,7 @@ export function AboutSection() {
   return (
     <SettingsSection title="About">
       <SettingsRow label="Mode">
-        <span className="settings-row__value">{mode === "demo" ? "Demo" : "Cloud"}</span>
+        <span className="settings-row__value">{MODE_LABEL[mode]}</span>
       </SettingsRow>
       <SettingsRow label="Object detector">
         <span className="settings-row__value" aria-live="polite">

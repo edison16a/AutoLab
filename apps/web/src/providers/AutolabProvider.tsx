@@ -5,7 +5,7 @@
  * library survive navigation between screens.
  */
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { cloudEnabled } from "@/lib/cloud";
+import { appMode } from "@/lib/cloud";
 import { disposeDetector, watchDetector } from "@/lib/detection";
 import { downloadPhoto } from "@/lib/download";
 import { errorText } from "@/lib/errors";
@@ -101,7 +101,7 @@ export function AutolabProvider({ user, children }: { user: User; children: Reac
   const value = useMemo<AutolabValue>(
     () => ({
       user,
-      mode: cloudEnabled ? "cloud" : "demo",
+      mode: appMode,
       ...devices,
       connection: channel.connection,
       status: channel.status,

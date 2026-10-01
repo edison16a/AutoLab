@@ -6,7 +6,7 @@
  * backoff when the network drops. Only one device is connected at a time.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { cloudEnabled, token } from "@/lib/cloud";
+import { gatewayMode, token } from "@/lib/cloud";
 import { errorText } from "@/lib/errors";
 import { frameFromEnvelope, photoFromCapture } from "@/lib/channel-messages";
 import { unpackEnvelope } from "@/lib/protocol";
@@ -71,7 +71,7 @@ export function useDeviceChannel(deviceId: string | null, gateway: string, urls:
 
     function onJson(m: Record<string, unknown>, ws: WebSocket) {
       if (m.type === "ready") {
-        if (m.mode !== (cloudEnabled ? "cloud" : "demo")) {
+        if (m.mode !== gatewayMode) {
           on.current.notify("The web app and gateway are running in different modes.", "error");
           ws.close();
           return;

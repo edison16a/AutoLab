@@ -1,11 +1,12 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import { ChevronRight, LoaderCircle } from "lucide-react";
+import type { AppMode } from "@/lib/cloud";
 import { DeviceNameField, WaitingRow } from "./DeviceParts";
 import { StepFrame } from "./StepFrame";
 
 interface ManualFormProps {
-  mode: "demo" | "cloud";
+  mode: AppMode;
   gateway: string;
   busy: boolean;
   waiting: boolean;

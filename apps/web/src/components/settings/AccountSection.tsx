@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LogOut } from "lucide-react";
+import { MODE_LABEL } from "@/lib/cloud";
 import { errorText } from "@/lib/errors";
 import { useAuth } from "@/providers/AuthProvider";
 import { useAutolab } from "@/providers/autolab-context";
@@ -37,7 +38,7 @@ export function AccountSection() {
         <div className="settings-account__who">
           <span className="settings-account__name">
             <span className="settings-account__text">{name}</span>
-            <span className="badge">{mode === "demo" ? "Demo" : "Cloud"}</span>
+            <span className="badge">{MODE_LABEL[mode]}</span>
           </span>
           {email ? <span className="settings-row__hint">{email}</span> : null}
         </div>

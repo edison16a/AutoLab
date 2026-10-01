@@ -13,7 +13,7 @@ function safeDestination(next: string | null) {
 }
 
 /**
- * Sign in, and in cloud mode create an account. Demo mode asks for the fixed
+ * Sign in, and with Supabase accounts create one. Demo mode asks for the fixed
  * demo username instead of an email.
  */
 export function LoginScreen() {
@@ -80,7 +80,7 @@ export function LoginScreen() {
             autoComplete={creating ? "new-password" : "current-password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            minLength={mode === "cloud" ? 8 : undefined}
+            minLength={mode === "demo" ? undefined : 8}
             required
           />
         </label>
@@ -94,7 +94,7 @@ export function LoginScreen() {
           {busy ? <LoaderCircle size={16} className="spin" aria-hidden="true" /> : null}
           {creating ? "Create account" : "Sign in"}
         </button>
-        {mode === "cloud" ? (
+        {mode !== "demo" ? (
           <p className="auth__switch muted">
             {creating ? "Already have an account?" : "New here?"}{" "}
             <button type="button" className="auth__link" onClick={() => setCreating((v) => !v)}>

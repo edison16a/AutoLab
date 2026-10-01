@@ -6,11 +6,12 @@
  */
 import { createContext, useContext, type RefObject } from "react";
 import type { Analysis, Connection, Device, DeviceStatus, Frame, Notice, NoticeKind, Photo, PhotoSource } from "@/model/types";
+import type { AppMode } from "@/lib/cloud";
 import type { User } from "./AuthProvider";
 
 export interface AutolabValue {
   user: User;
-  mode: "demo" | "cloud";
+  mode: AppMode;
 
   gateway: string;
   setGateway: (url: string) => void;
