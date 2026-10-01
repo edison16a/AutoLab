@@ -24,8 +24,10 @@ function previewLabel(preview: boolean, ready: boolean) {
 
 /** The bar under the Autolab stage: shutter, preview toggle and detection. */
 export function LiveControls({ ready, onTakePhoto, onPause, onResume }: LiveControlsProps) {
-  const { preview, capturing, liveDetect, setLiveDetect, detectorStatus, liveFrame } = useAutolab();
+  const { role, preview, capturing, liveDetect, setLiveDetect, detectorStatus, liveFrame } = useAutolab();
   const analysis = liveDetect ? liveFrame?.analysis : undefined;
+  // A remote screen gets no frames, so only the shutter works there.
+  const streams = ready && role !== "remote";
 
   function toggleDetect(on: boolean) {
     // Detection needs frames, so turning it on also clears a pause.
@@ -52,13 +54,13 @@ export function LiveControls({ ready, onTakePhoto, onPause, onResume }: LiveCont
           )}
           Take photo
         </button>
-        <button type="button" className="btn btn--lg" onClick={preview ? onPause : onResume} disabled={!ready}>
+        <button type="button" className="btn btn--lg" onClick={preview ? onPause : onResume} disabled={!streams}>
           {preview ? (
             <Pause size={18} strokeWidth={1.8} aria-hidden="true" />
           ) : (
             <Play size={18} strokeWidth={1.8} aria-hidden="true" />
           )}
-          {previewLabel(preview, ready)}
+          {previewLabel(preview, streams)}
         </button>
       </div>
       <div className="live-controls__summary">{analysis ? <DetectionSummary analysis={analysis} showTiming={false} /> : null}</div>
@@ -67,7 +69,7 @@ export function LiveControls({ ready, onTakePhoto, onPause, onResume }: LiveCont
           Detect objects
           {liveDetect ? <span className="live-controls__status">{detectorStatus}</span> : null}
         </span>
-        <Switch label="Detect objects" checked={liveDetect} onChange={toggleDetect} disabled={!ready} />
+        <Switch label="Detect objects" checked={liveDetect} onChange={toggleDetect} disabled={!streams} />
       </label>
     </div>
   );

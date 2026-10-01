@@ -1,9 +1,10 @@
-import type { Connection, Device, DeviceStatus, Frame } from "@/model/types";
+import type { Connection, Device, DeviceStatus, Frame, Role } from "@/model/types";
 
 /** What the Autolab stage shows, from most to least blocking. */
-export type StageState = "no-device" | "connecting" | "offline" | "no-camera" | "paused" | "waiting" | "live";
+export type StageState = "no-device" | "remote" | "connecting" | "offline" | "no-camera" | "paused" | "waiting" | "live";
 
 interface StageInputs {
+  role: Role;
   device: Device | null;
   connection: Connection;
   status: DeviceStatus;
@@ -16,8 +17,10 @@ interface StageInputs {
  * matters: there's no point asking someone to start the preview when the Pi
  * itself is offline.
  */
-export function stageState({ device, connection, status, preview, frame }: StageInputs): StageState {
+export function stageState({ role, device, connection, status, preview, frame }: StageInputs): StageState {
   if (!device) return "no-device";
+  // Frames only reach the lab computer, so a remote screen explains that instead.
+  if (role === "remote") return "remote";
   if (connection !== "connected") return "connecting";
   if (!status.online) return "offline";
   if (!status.camera_online) return "no-camera";
