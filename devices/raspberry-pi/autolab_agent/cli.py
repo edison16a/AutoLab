@@ -34,7 +34,7 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     if not allowed_gateway(args.gateway):
-        parser.error("Use WSS for remote gateways")
+        parser.error("Use wss:// unless the gateway is on this machine or the local network")
     try:
         asyncio.run(run(args))
     except KeyboardInterrupt:
