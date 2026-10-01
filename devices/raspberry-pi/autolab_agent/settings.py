@@ -51,13 +51,16 @@ def load_gateway(credentials_path: str | Path) -> str | None:
 
 
 def save_gateway(credentials_path: str | Path, gateway: str) -> None:
+    write_private_json(settings_path(credentials_path), {"gateway": gateway})
+
+
+def write_private_json(path: Path, data: dict) -> None:
     """Replace the file atomically, readable by the folder's owner only.
 
     Root writes here into a folder the normal user owns. So the temp file is
     made fresh and never through a symlink, and it is handed to that user
     before it takes the real name.
     """
-    path = settings_path(credentials_path)
     folder = path.parent.stat()
     temp = path.with_suffix(".tmp")
     with contextlib.suppress(FileNotFoundError):
@@ -66,5 +69,5 @@ def save_gateway(credentials_path: str | Path, gateway: str) -> None:
     with os.fdopen(os.open(temp, flags, 0o600), "w") as output:
         if os.geteuid() == 0:
             os.fchown(output.fileno(), folder.st_uid, folder.st_gid)
-        json.dump({"gateway": gateway}, output)
+        json.dump(data, output)
     os.replace(temp, path)
