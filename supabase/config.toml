@@ -3,3 +3,8 @@
 # tests against. `npx supabase db push` applies the migrations to a linked
 # hosted project. Everything not set here keeps the CLI's defaults.
 project_id = "autolab"
+
+[auth]
+# Each Pi signs in as an anonymous user, which its owner then links to their
+# Autolab. On a hosted project, turn this on under Authentication, Sign In / Providers.
+enable_anonymous_sign_ins = true
