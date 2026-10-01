@@ -59,16 +59,16 @@ async function withUrls(rows: ImageRow[]) {
   });
 }
 
-/** One page of this account's photos, newest first. */
-export async function listImages(offset: number) {
+/** `count` of this account's photos from `offset`, newest first. */
+export async function listImages(offset: number, count = LAB_PAGE_SIZE) {
   const { data, error } = await supabase()
     .from("images")
     .select(COLUMNS)
     .order("captured_at", { ascending: false })
-    .range(offset, offset + LAB_PAGE_SIZE - 1);
+    .range(offset, offset + count - 1);
   if (error) throw error;
   const rows = data as unknown as ImageRow[];
-  return { photos: await withUrls(rows), hasMore: rows.length === LAB_PAGE_SIZE };
+  return { photos: await withUrls(rows), hasMore: rows.length === count };
 }
 
 export async function fetchImage(id: string) {
