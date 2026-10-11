@@ -1,7 +1,8 @@
 /*
-  The wizard's forms and inline states: fields, the collapsible command
-  blocks, the Bluetooth support note, errors, the Pi's reported state and
-  the waiting row. Errors stay neutral, marked by an icon and words.
+  The wizard's forms and inline states: fields, the keep Wi-Fi switch, the
+  collapsible command blocks, the Bluetooth support note, errors, the Pi's
+  reported state and the waiting row. Errors stay neutral, marked by an icon
+  and words.
 */
 
 /* Grows to pin the actions to the bottom, but never shrinks: the panel scrolls instead, so Back stays below them. */
@@ -16,6 +17,46 @@
   flex-direction: column;
   gap: 14px;
   margin-top: 4px;
+}
+
+/* The whole row toggles the switch, like the other labelled switches in the app. */
+.onboarding-keep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.onboarding-keep > svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.onboarding-keep__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.onboarding-keep__label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* A network name can be 32 characters with no spaces. */
+.onboarding-keep__hint {
+  color: var(--text-muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.onboarding-keep:has(.switch:disabled) {
+  cursor: not-allowed;
 }
 
 .onboarding-details {

@@ -18,7 +18,8 @@ class ProvisioningSession:
 
     BLE writes arrive in small chunks and a request ends with a newline. Each
     peer gets its own buffer, so one phone cannot splice bytes into another's
-    request. `status` is what the status characteristic serves. `gateway` and
+    request. `report()` is what the status characteristic serves: `status`,
+    plus whether the Pi is online and which Wi-Fi it is on. `gateway` and
     `supabase` are what the last valid request handed over, if anything.
     """
 
@@ -36,11 +37,20 @@ class ProvisioningSession:
         # (url, public key) of the Supabase project the Pi should sign in to, in lab mode.
         self.supabase: tuple[str, str] | None = None
         self.status: dict = {"state": "ready", "device_id": device_id}
+        # What NetworkManager said at the last check. The SSID is on the air
+        # anyway, so anyone nearby may read it.
+        self.online = False
+        self.wifi_ssid: str | None = None
+
+    def report(self) -> dict:
+        """The status as the status characteristic serves it."""
+        return {**self.status, "online": self.online, "wifi_ssid": self.wifi_ssid}
 
     def receive(self, peer: str, chunk: bytes) -> tuple[str, str] | None:
         """Take one chunk. Returns (ssid, password) once a full valid request arrives.
 
-        Raises ValueError with a message that is safe to show the phone.
+        Both are empty when the request keeps the Wi-Fi the Pi is on. Raises
+        ValueError with a message that is safe to show the phone.
         """
         self._check_open(peer, chunk)
         buffer = self.buffers.setdefault(peer, bytearray())
@@ -81,21 +91,12 @@ class ProvisioningSession:
         if not secrets.compare_digest(str(data.get("pin", "")), self.pin):
             self.attempts += 1
             raise ValueError("Setup PIN is incorrect")
-        ssid = data.get("ssid")
-        password = data.get("password")
-        # 802.11 SSIDs are 1 to 32 bytes. WPA passphrases are 8 to 63 characters.
-        if (
-            not isinstance(ssid, str)
-            or not 1 <= len(ssid.encode("utf-8")) <= 32
-            or "\x00" in ssid
-        ):
-            raise ValueError("SSID must be 1 to 32 UTF-8 bytes")
-        if (
-            not isinstance(password, str)
-            or not 8 <= len(password) <= 63
-            or "\x00" in password
-        ):
-            raise ValueError("WPA password must be 8 to 63 characters")
+        ssid = data.get("ssid", "")
+        password = data.get("password", "")
+        # Both left out or empty keeps the Wi-Fi the Pi is on. Setup checks
+        # that it is online before going on.
+        if ssid != "" or password != "":
+            _check_wifi(ssid, password)
         # Optional. Leaving it out keeps the gateway the Pi already has.
         gateway = data.get("gateway")
         if gateway is not None and not valid_gateway(gateway):
@@ -109,3 +110,25 @@ class ProvisioningSession:
         self.gateway = gateway
         self.supabase = (url.rstrip("/"), key) if url else None
         return ssid, password
+
+
+def _check_wifi(ssid, password) -> None:
+    """A name without a password, or the other way round, is a mistake."""
+    if ssid == "" or password == "":
+        raise ValueError(
+            "Enter both the Wi-Fi name and password, or leave both empty to keep "
+            "the current Wi-Fi"
+        )
+    # 802.11 SSIDs are 1 to 32 bytes. WPA passphrases are 8 to 63 characters.
+    if (
+        not isinstance(ssid, str)
+        or not 1 <= len(ssid.encode("utf-8")) <= 32
+        or "\x00" in ssid
+    ):
+        raise ValueError("SSID must be 1 to 32 UTF-8 bytes")
+    if (
+        not isinstance(password, str)
+        or not 8 <= len(password) <= 63
+        or "\x00" in password
+    ):
+        raise ValueError("WPA password must be 8 to 63 characters")

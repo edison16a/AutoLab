@@ -9,8 +9,9 @@ from dbus_next.aio import MessageBus
 from .dbus_proxy import proxy
 from .gatt import ROOT, SERVICE_PATH, Advertisement, Application, Characteristic, Service
 from .pairing import PairingAgent
+from .radio import switch_on
 from .session import ProvisioningSession
-from .setup_flow import provision
+from .setup_flow import provision, refresh_network
 
 ADAPTER = "org.bluez.Adapter1"
 PROPERTIES = "org.freedesktop.DBus.Properties"
@@ -33,16 +34,25 @@ async def run(args, session: ProvisioningSession) -> None:
         tasks.add(task)
         task.add_done_callback(tasks.discard)
 
+    async def check_network() -> None:
+        await refresh_network(session, bus)
+
     props = await proxy(bus, "org.bluez", args.adapter, PROPERTIES)
     previous_power = (await props.call_get(ADAPTER, "Powered")).value
     previous_pairable = (await props.call_get(ADAPTER, "Pairable")).value
-    await props.call_set(ADAPTER, "Powered", Variant("b", True))
+    await switch_on(lambda: props.call_set(ADAPTER, "Powered", Variant("b", True)))
     await props.call_set(ADAPTER, "Pairable", Variant("b", True))
     for path, obj in [
         (ROOT, Application()),
         (SERVICE_PATH, Service()),
-        (SERVICE_PATH + "/command", Characteristic("command", session, start_setup)),
-        (SERVICE_PATH + "/status", Characteristic("status", session, start_setup)),
+        (
+            SERVICE_PATH + "/command",
+            Characteristic("command", session, start_setup, check_network),
+        ),
+        (
+            SERVICE_PATH + "/status",
+            Characteristic("status", session, start_setup, check_network),
+        ),
         (ADVERTISEMENT_PATH, Advertisement(session.device_id)),
         (AGENT_PATH, PairingAgent(session)),
     ]:

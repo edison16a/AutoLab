@@ -32,7 +32,7 @@ If you plugged in an SSD in a USB case, not a microSD card: a Pi 4 can start fro
    - **Hostname**: `autolab1`. This is the Pi's name on the network.
    - **Localisation**: pick your country's capital city, then check the time zone. This also switches Wi-Fi on for your country, so don't skip it.
    - **User**: username `autolab` (lowercase), and a password you'll remember.
-   - **Wi-Fi**: the network name and password, exactly as written. Both are case sensitive. Your Mac must be on this same network for step 4.
+   - **Wi-Fi**: the network name and password, exactly as written. Both are case sensitive. Your Mac must be on this same network for step 4. Bluetooth setup in step 6 keeps this Wi-Fi unless you pick another.
    - **Remote Access**: turn on **Enable SSH** and pick **Use password authentication**.
    - **Raspberry Pi Connect**: leave it off.
 5. Click **Write**. Your Mac may ask for its own password. Writing and checking takes 5 to 15 minutes. When Imager says it's done, take the card out.
@@ -107,27 +107,24 @@ Write the PIN on a sticker and put it on the machine. The site asks for it in st
 Check the camera while you're here:
 
 ```bash
-rpicam-still --list-cameras
+rpicam-hello --list-cameras
 ```
 
 It should list `imx477`, the HQ Camera's sensor. `No cameras available!` means the ribbon isn't seated. Run `sudo shutdown now`, unplug the Pi once the green light stops, and reseat both ends.
 
 ## 6. Connect it to the site over Bluetooth
 
-1. Restart the Pi:
+Bluetooth setup is open for 10 minutes from when the installer finishes.
 
-   ```bash
-   sudo reboot
-   ```
+1. On your Mac, open **Chrome**, not Safari, and go to [auto-lab-web.vercel.app](https://auto-lab-web.vercel.app). Sign in.
+2. Click **Connect device**, then **Find Autolab**. If macOS asks whether Chrome may use Bluetooth, click **Allow**.
+3. Pick `Autolab-XXXX` from the list and click **Pair**.
+4. The site says **This Autolab is already on** and the Wi-Fi you set in Imager, with **Keep this Wi-Fi** switched on. Leave it on, enter the PIN from the sticker and click **Connect device**. The Pi stays on its Wi-Fi.
+5. Wait for **Ready**. Then open **Live** and the camera should be streaming.
 
-   Terminal says the connection closed, which is expected. Bluetooth setup opens for 10 minutes after every start.
-2. Wait a minute. On your Mac, open **Chrome**, not Safari, and go to [auto-lab-web.vercel.app](https://auto-lab-web.vercel.app). Sign in.
-3. Click **Connect device**, then **Find Autolab**. If macOS asks whether Chrome may use Bluetooth, click **Allow**.
-4. Pick `Autolab-XXXX` from the list and click **Pair**.
-5. Enter the Wi-Fi name, the Wi-Fi password and the PIN from the sticker. This is the Wi-Fi the Pi uses from now on, so give it the network where the machine will live. The rules from step 1 apply.
-6. Wait for **Ready**. Then open **Live** and the camera should be streaming.
+To put the Pi on another network, for example the one where the machine will live, turn **Keep this Wi-Fi** off and enter that Wi-Fi's name and password. The rules from step 1 apply. The Pi drops its current Wi-Fi to join the new one, so check what you typed first. It won't leave for a network it can't see, but a wrong password still takes it off its Wi-Fi for a while. Every password and PIN field on the site has an eye button at its right that shows what you typed. If the Pi isn't on Wi-Fi at all, there's no switch and the site always asks for the name and password.
 
-Missed the 10 minutes? Unplug the Pi, plug it back in and try again.
+Missed the 10 minutes? Run `sudo systemctl restart autolab-setup` on the Pi, or unplug it and plug it back in. Setup opens again for 10 minutes after every start.
 
 ## When something is off
 
@@ -141,7 +138,10 @@ Missed the 10 minutes? Unplug the Pi, plug it back in and try again.
 | `ssh` says `Permission denied` | Wrong username or password | The username is lowercase. Forgot the password? Write the card again |
 | `ssh` says `REMOTE HOST IDENTIFICATION HAS CHANGED` | You wrote the card again, so the Pi has a new key | Run `ssh-keygen -R autolab1.local`, then `ssh` again |
 | **Find Autolab** lists nothing | The 10 minutes ran out, or Chrome can't use Bluetooth | Unplug and replug the Pi. In System Settings, Privacy & Security, Bluetooth, turn on Google Chrome |
-| Setup stops after "On Wi-Fi, signing in" | That Wi-Fi has no internet, or needs a sign in page | Use another network, like a phone hotspot |
+| Chrome only says **Scanning**, even within the 10 minutes | The setup service stopped. Usually Bluetooth is blocked on a fresh card | On the Pi, run `journalctl -u autolab-setup -n 20`. `Bluetooth did not switch on` means Bluetooth is blocked. Run `sudo rfkill unblock bluetooth` and `sudo systemctl restart bluetooth`, then `sudo systemctl reset-failed autolab-setup` and `sudo systemctl restart autolab-setup` |
+| The site says "Could not join" and your Wi-Fi's name | The Pi couldn't see that network and stayed where it was, or couldn't get on it and went back to the one it had | Check the name and password with the eye button. Both are case sensitive. On an iPhone hotspot, keep the Personal Hotspot screen open while the Pi joins, since an iPhone often only lets new devices on while it shows. Once the Pi is back on its old Wi-Fi, the site offers **Keep this Wi-Fi** again within a few seconds |
+| The site says "This Autolab isn't on Wi-Fi yet" | The Pi lost its Wi-Fi before setup ran | The form now asks for the Wi-Fi name and password. Enter them and the PIN, then click **Connect Wi-Fi** |
+| The site says "The Pi is on Wi-Fi but could not reach Supabase" | That Wi-Fi has no internet, or needs a sign in page | Use another network, like a phone hotspot |
 
 To turn the Pi off safely, run `sudo shutdown now` and unplug it once the green light stops. Pulling the plug while it's running can damage the card.
 

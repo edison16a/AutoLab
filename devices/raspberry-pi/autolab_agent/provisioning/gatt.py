@@ -5,7 +5,7 @@ so those strings are wire types, not Python type hints.
 """
 
 import json
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 
 from dbus_next import DBusError, PropertyAccess, Variant
 from dbus_next.service import ServiceInterface, dbus_property, method
@@ -46,7 +46,8 @@ class Characteristic(ServiceInterface):
     """The write-only command or the read-only status characteristic.
 
     `on_request` gets (ssid, password) once a full request with the right PIN
-    has arrived.
+    has arrived. `on_read` asks NetworkManager again before status is read,
+    so it says whether the Pi is online and on which Wi-Fi right now.
     """
 
     def __init__(
@@ -54,11 +55,13 @@ class Characteristic(ServiceInterface):
         kind: str,
         session: ProvisioningSession,
         on_request: Callable[[str, str], None],
+        on_read: Callable[[], Awaitable[None]],
     ) -> None:
         super().__init__("org.bluez.GattCharacteristic1")
         self.kind = kind
         self.session = session
         self.on_request = on_request
+        self.on_read = on_read
 
     @dbus_property(access=PropertyAccess.READ)
     def UUID(self) -> "s":
@@ -73,17 +76,20 @@ class Characteristic(ServiceInterface):
         return _flags(self.kind)
 
     @method()
-    def ReadValue(self, options: "a{sv}") -> "ay":
+    async def ReadValue(self, options: "a{sv}") -> "ay":
         if self.kind != "status":
             raise DBusError("org.bluez.Error.NotPermitted", "Write-only characteristic")
-        data = dict(self.session.status)
+        # Long reads arrive in pieces, each asking from an offset. Only the
+        # first piece checks the network, so the pieces still fit together.
+        offset = options.get("offset", Variant("q", 0)).value
+        if not offset:
+            await self.on_read()
+        data = self.session.report()
         # Anyone nearby can read status. Only the phone that knew the PIN sees the code.
         peer = options.get("device", Variant("o", "/")).value
         if peer != self.session.authorized_peer:
             data.pop("claim_code", None)
-        value = json.dumps(data).encode()
-        # Long reads arrive in pieces, each asking from an offset.
-        return value[options.get("offset", Variant("q", 0)).value :]
+        return json.dumps(data).encode()[offset:]
 
     @method()
     def WriteValue(self, value: "ay", options: "a{sv}"):

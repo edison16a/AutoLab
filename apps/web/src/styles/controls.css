@@ -136,6 +136,36 @@
   color: var(--text-muted);
 }
 
+/* A password input with its show button inside the right edge. */
+.password-field {
+  position: relative;
+}
+
+.password-field .input {
+  padding-right: 42px;
+}
+
+/* Edge draws its own reveal button. One is enough. */
+.password-field .input::-ms-reveal {
+  display: none;
+}
+
+.password-field__toggle {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: var(--text-muted);
+}
+
+.password-field__toggle:hover:not(:disabled) {
+  color: var(--text);
+}
+
+/* Inside the input's border, so the ring can't spill past the field. */
+.password-field__toggle:focus-visible {
+  outline-offset: -2px;
+}
+
 /* An on/off switch. The knob slides; that's the only motion. */
 .switch {
   position: relative;

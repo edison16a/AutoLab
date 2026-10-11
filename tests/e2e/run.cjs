@@ -30,11 +30,14 @@ let page;
     console.log(`flow: ${name}`);
     await require(`./flows/${name}.cjs`)(page);
   }
-  console.log("flow: fallback");
-  await require("./flows/fallback.cjs")(browser, newPage, errors);
+  // These two open their own page, set up before the app loads.
+  for (const name of ["fallback", "bluetooth"]) {
+    console.log(`flow: ${name}`);
+    await require(`./flows/${name}.cjs`)(browser, newPage, errors);
+  }
   assert.deepEqual(errors, [], "No uncaught page errors");
   await browser.close();
-  console.log("PASS: sign in, connect, live, computer camera, data, hardware, statistics, settings, mobile, fallback.");
+  console.log("PASS: sign in, connect, live, computer camera, data, hardware, statistics, settings, mobile, fallback, bluetooth.");
 })().catch(async (error) => {
   console.error(error);
   await reportFailure(page);

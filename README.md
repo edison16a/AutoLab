@@ -31,7 +31,7 @@ The library and statistics shots use sample images, since object detection can't
 - **Data** keeps every image with its detections. Filter, search by label, open an image, analyze it, download or delete.
 - **Statistics** charts captures per day and by hour, detected objects, confidence, inference time and sources.
 - **Hardware** is the 3D model. Click a part to fly to it, then **Inspect item** to see it on its own. **Exploded view** opens the enclosure and spreads the parts out, and **Live view** plays the same pipetting run as Home. Parts without a driver yet say so instead of showing made up readings.
-- **Connect device** walks through seating the camera ribbon and powering the Pi, then finds the Pi over Bluetooth and sends it your Wi-Fi details and the gateway's address. Manual setup is there as a fallback.
+- **Connect device** walks through seating the camera ribbon and powering the Pi, then finds the Pi over Bluetooth and sends it the gateway's address. A Pi that's already on Wi-Fi keeps it by default; otherwise it gets your Wi-Fi details too. Manual setup is there as a fallback.
 - **Activity** on Home, in lab mode, logs every command sent to the Autolab from any screen and how it ended.
 - Light and dark mode, and it works on a phone.
 
@@ -116,7 +116,7 @@ It prints a Device ID. In the app, click **Connect device**, go through the step
 
 ### A real Raspberry Pi
 
-The quickest way is the installer, which sets up everything for Bluetooth setup and prints the Device ID and setup PIN. [Prepare a Raspberry Pi, step by step](docs/pi-setup.md) goes from a blank microSD card to a connected Autolab, and [Bluetooth setup](docs/bluetooth-provisioning.md) has the details. To set it up by hand instead:
+The quickest way is the installer, which sets up everything for Bluetooth setup and prints the Device ID and setup PIN. Setup then opens right away, for 10 minutes. [Prepare a Raspberry Pi, step by step](docs/pi-setup.md) goes from a blank microSD card to a connected Autolab, and [Bluetooth setup](docs/bluetooth-provisioning.md) has the details. To set it up by hand instead:
 
 1. Flash Raspberry Pi OS Lite (64-bit) with Raspberry Pi Imager and set the username, Wi-Fi, SSH and hostname there.
 2. With the Pi powered off, connect the camera ribbon to the **CSI camera** connector (not the display connector), contacts facing the connector's contacts.
@@ -175,7 +175,7 @@ npx playwright install chromium
 .venv/bin/python tests/run_e2e.py
 ```
 
-The end to end run starts the gateway, the production web app and the Pi simulator, then drives a real browser through sign in, connecting a device, the live camera, capture, detection on a real street photo, the library, the 3D hardware view, statistics, settings, phone layouts and the no-WebGL fallback. Ports 3000 and 8000 must be free. CI runs all of this on every push, along with `supabase/tests/rls.sh`, which checks the database's security rules as two signed in people and a Pi.
+The end to end run starts the gateway, the production web app and the Pi simulator, then drives a real browser through sign in, connecting a device, the live camera, capture, detection on a real street photo, the library, the 3D hardware view, statistics, settings, phone layouts, the no-WebGL fallback and Bluetooth setup with a fake Pi that's already on Wi-Fi. Ports 3000 and 8000 must be free. CI runs all of this on every push, along with `supabase/tests/rls.sh`, which checks the database's security rules as two signed in people and a Pi.
 
 Lab mode has its own browser run against a local Supabase in Docker, with a simulated Pi that signs in to Supabase by itself. It drives two screens and a stranger's account through linking the Pi, the live view, photos, analysis, deletes and a command that expires once the Pi stops:
 

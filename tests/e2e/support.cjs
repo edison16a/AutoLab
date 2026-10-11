@@ -68,4 +68,29 @@ async function shot(page, name) {
   }
 }
 
-module.exports = { BASE, SKIP_DETECTION, launch, newPage, openSection, assertNoSideScroll, shot, assert };
+/**
+ * A password field's eye button shows what was typed and hides it again.
+ * A click leaves focus and the caret in the field. `noun` is what the
+ * button names, like "password" or "PIN".
+ */
+async function assertShowButton(scope, input, noun) {
+  const show = scope.getByRole("button", { name: `Show ${noun}`, exact: true });
+  const hide = scope.getByRole("button", { name: `Hide ${noun}`, exact: true });
+  assert.equal(await input.getAttribute("type"), "password", `The ${noun} starts hidden`);
+  // The name says what a press does, so a pressed state would contradict it.
+  assert.equal(await show.getAttribute("aria-pressed"), null, `Show ${noun} has no pressed state`);
+  await input.evaluate((field) => {
+    field.focus();
+    field.setSelectionRange(2, 2);
+  });
+  await show.click();
+  assert.equal(await input.getAttribute("type"), "text", `Show ${noun} shows it`);
+  assert.equal(await hide.getAttribute("aria-pressed"), null, `Hide ${noun} has no pressed state`);
+  const caret = await input.evaluate((field) => [document.activeElement === field, field.selectionStart]);
+  assert.deepEqual(caret, [true, 2], `Show ${noun} leaves focus and the caret in the field`);
+  // From the keyboard too.
+  await hide.press("Enter");
+  assert.equal(await input.getAttribute("type"), "password", `Hide ${noun} hides it again`);
+}
+
+module.exports = { BASE, SKIP_DETECTION, launch, newPage, openSection, assertNoSideScroll, assertShowButton, shot, assert };

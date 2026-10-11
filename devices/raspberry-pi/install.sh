@@ -32,7 +32,7 @@ echo "Installing system packages"
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
   git python3-venv python3-pip python3-picamera2 python3-pil rpicam-apps \
-  bluez network-manager
+  bluez network-manager rfkill
 
 echo "Installing Python packages"
 # picamera2 only comes from apt, so the venv has to see system packages.
@@ -95,6 +95,20 @@ if [[ "$(sudo rfkill list wifi 2> /dev/null || true)" == *"Soft blocked: yes"* ]
 under Localisation Options, then WLAN Country."
 fi
 
+# A fresh image can have Bluetooth blocked too, and then BlueZ cannot switch it
+# on. BlueZ restarts after the unblock, so it starts over with the adapter. The
+# setup service also unblocks it each time it starts.
+if [[ "$(sudo rfkill list bluetooth 2> /dev/null || true)" == *"Soft blocked: yes"* ]]; then
+  sudo rfkill unblock bluetooth
+  sudo systemctl restart bluetooth.service
+fi
+
+echo "Opening Bluetooth setup"
+# Open the first window now, not at the next boot. reset-failed clears the
+# start limit in case earlier starts used it up.
+sudo systemctl reset-failed autolab-setup.service
+sudo systemctl restart autolab-setup.service
+
 cat << EOF
 
 Autolab is installed.
@@ -106,9 +120,10 @@ ${WIFI_NOTE:+
 $WIFI_NOTE
 }
 Next steps:
-1. Power the Pi off, then on again.
-2. Nearby, open the Autolab site in Chrome and click Connect device.
-3. Click Find Autolab and pick Autolab-${DEVICE_ID:0:4}. Enter the Wi-Fi details and the PIN.
+1. Nearby, open the Autolab site in Chrome and click Connect device.
+2. Click Find Autolab and pick Autolab-${DEVICE_ID:0:4}. Enter the PIN, and the Wi-Fi
+   details if the Pi isn't on Wi-Fi yet.
 
-Setup stays open for 10 minutes after each start. Power cycle the Pi to open it again.
+Setup is open now for 10 minutes. After that, restart the Pi or run
+sudo systemctl restart autolab-setup to open it again.
 EOF

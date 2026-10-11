@@ -1,11 +1,12 @@
-// Demo mode only accepts the fixed demo account.
-const { BASE, assert } = require("../support.cjs");
+// Demo mode only accepts the fixed demo account, and the password can be shown.
+const { BASE, assert, assertShowButton } = require("../support.cjs");
 
 module.exports = async function signIn(page) {
   await page.goto(BASE);
   await page.waitForURL("**/login");
   await page.getByLabel("Username", { exact: true }).fill("someone");
   await page.getByLabel("Password", { exact: true }).fill("wrong");
+  await assertShowButton(page, page.getByLabel("Password", { exact: true }), "password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.getByText("Wrong username or password.", { exact: true }).waitFor();
 

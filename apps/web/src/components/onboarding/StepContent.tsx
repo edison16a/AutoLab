@@ -32,6 +32,7 @@ export function StepContent({ flow, onClose }: { flow: ConnectFlow; onClose: () 
           waiting={flow.waiting}
           message={flow.message}
           state={flow.provisionState}
+          currentWifi={flow.currentWifi}
           onSubmit={flow.sendWifi}
           onManual={flow.chooseManual}
           onStop={flow.stopWaiting}

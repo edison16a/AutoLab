@@ -5,7 +5,7 @@ import { SetupCancelled, useBluetoothSetup } from "./use-bluetooth-setup";
 import { useDeviceLink } from "./use-device-link";
 import { STEP, type SetupPath, type StepIndex } from "./wizard-steps";
 
-/** What the Wi-Fi form sends to the Pi over Bluetooth. */
+/** What the Wi-Fi form sends to the Pi over Bluetooth. An empty ssid and password keep the Pi's Wi-Fi. */
 export interface WifiDetails {
   name: string;
   ssid: string;
@@ -125,8 +125,13 @@ export function useConnectFlow() {
     gateway: link.gateway,
     bluetoothSupported: bluetooth.supported,
     provisionState: bluetooth.status?.state ?? null,
-    /** For the 3D stage: the Pi is on Wi-Fi, and it reached the gateway. */
-    wifiLinked: link.online || ["wifi_connected", "gateway_connected"].includes(bluetooth.status?.state ?? ""),
+    /** The Wi-Fi the Pi is already on, which the form offers to keep. Null when it's offline or doesn't say. */
+    currentWifi: bluetooth.currentWifi,
+    /** For the 3D stage: the Pi is on Wi-Fi, and it reached the gateway. One joining another network has left its own. */
+    wifiLinked:
+      link.online ||
+      ["wifi_connected", "gateway_connected"].includes(bluetooth.status?.state ?? "") ||
+      (bluetooth.currentWifi !== null && bluetooth.status?.state !== "connecting"),
     gatewayLinked: link.online || bluetooth.status?.state === "gateway_connected",
     goTo,
     back,

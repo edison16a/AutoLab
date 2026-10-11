@@ -69,7 +69,7 @@ None of these are secret: anything starting with `NEXT_PUBLIC_` ends up in every
 
 Do this once per Pi. [Prepare a Raspberry Pi, step by step](pi-setup.md) walks through every screen and what each light means. [Bluetooth setup](bluetooth-provisioning.md) has the details.
 
-1. Write Raspberry Pi OS Lite (64-bit) to a microSD card with Raspberry Pi Imager. Set a user and the Wi-Fi, and turn on SSH so you can reach it this one time.
+1. Write Raspberry Pi OS Lite (64-bit) to a microSD card with Raspberry Pi Imager. Set a user and the Wi-Fi, and turn on SSH so you can reach it this one time. Bluetooth setup can keep that Wi-Fi later.
 2. With the Pi off, connect the camera ribbon to the **CSI camera** connector.
 3. On the Pi:
 
@@ -81,16 +81,16 @@ git clone https://github.com/edison16a/AutoLab.git
 
 The repository is public, so `git clone` needs no login.
 
-The installer prints the **Device ID** and a six digit **setup PIN**. Write the PIN on a sticker on the machine. Nothing about your Supabase project goes on the Pi here; Bluetooth setup hands it over.
+The installer prints the **Device ID** and a six digit **setup PIN**. Write the PIN on a sticker on the machine. Nothing about your Supabase project goes on the Pi here; Bluetooth setup hands it over. The installer also opens Bluetooth setup, so go straight on to step 4 without restarting the Pi.
 
 ## 4. Connect it over Bluetooth
 
 Use Chrome or Edge on any computer with Bluetooth, or Chrome on an Android phone. iPhones and Safari can't do Web Bluetooth.
 
-1. Power the Pi on nearby. Setup stays open for 10 minutes after every start.
+1. Stay near the Pi. Setup is open for 10 minutes after the installer finishes and after every start. If the time ran out, power cycle the Pi or run `sudo systemctl restart autolab-setup` on it.
 2. On the site, click **Connect device** and follow the steps. Click **Find Autolab** and pick `Autolab-XXXX`.
-3. Enter the lab Wi-Fi name and password and the sticker PIN.
-4. The site sends these along with your project's address and public key. The Pi joins the Wi-Fi, signs in to Supabase and reports its login, which the site links to your Autolab. **Ready** shows once the Pi reports its camera.
+3. Enter the sticker PIN. If the Pi is already on Wi-Fi, such as the one set in Imager, the site shows its name with **Keep this Wi-Fi** switched on, and that's all it needs. To move it to the lab Wi-Fi, turn that off and enter the lab Wi-Fi name and password. The eye button in each password and PIN field shows what you typed.
+4. The site sends these along with your project's address and public key. The Pi joins the new Wi-Fi if it got one, signs in to Supabase and reports its login, which the site links to your Autolab. **Ready** shows once the Pi reports its camera.
 
 Without Bluetooth, set up the Pi's Wi-Fi with Raspberry Pi Imager instead, then choose **Use manual Wi-Fi setup**. The step shows the command to run on the Pi. It prints a **setup code** to paste back into the site.
 
@@ -109,7 +109,7 @@ The preview only streams while a screen has Live open, and stops 12 seconds afte
 ## Day to day
 
 - The Pi starts by itself after a power cut and goes back online with the same login.
-- To change Wi-Fi, power cycle the Pi and run **Connect device** again within 10 minutes.
+- To change Wi-Fi, power cycle the Pi, run **Connect device** again within 10 minutes and turn off **Keep this Wi-Fi**.
 - To give an Autolab to another account, that account runs **Connect device** on it. Setup gives the Pi a fresh login each time, so the previous owner's access ends there. They can then delete the old row in **Table Editor**, then **devices**.
 - A second Autolab is just another **Connect device**. The menu at the top switches between them.
 
@@ -117,8 +117,11 @@ The preview only streams while a screen has Live open, and stops 12 seconds afte
 
 | What you see | What to check |
 | --- | --- |
+| Chrome only says **Scanning**, even within the 10 minutes | Run `journalctl -u autolab-setup -n 20` on the Pi. `Bluetooth did not switch on` means Bluetooth is blocked. Run `sudo rfkill unblock bluetooth` and `sudo systemctl restart bluetooth`, then `sudo systemctl reset-failed autolab-setup` and `sudo systemctl restart autolab-setup` |
+| "Could not join" and the Wi-Fi's name | The Pi couldn't see that network and stayed where it was, or couldn't get on it and went back to the one it had. Check the name and password with the eye button. A phone hotspot must be on, and an iPhone often only lets new devices join while its Personal Hotspot screen is open |
+| "This Autolab isn't on Wi-Fi yet" | The Pi lost its Wi-Fi before setup ran. Enter the Wi-Fi name and password the form now asks for, and the PIN, then retry |
+| "The Pi is on Wi-Fi but could not reach Supabase" | The Wi-Fi has no internet, or needs a sign in page. Try another network |
 | "Supabase refused the Pi's login: Anonymous sign-ins are disabled" | Turn on **Allow anonymous sign-ins** (step 1), then run **Connect device** again |
-| Setup stops after "On Wi-Fi, signing in" | The Wi-Fi has no internet, or needs a sign in page. Try another network |
 | "The Autolab didn't pick this up" | The Pi is off, or lost its network. Home shows when it last reported |
 | "This Autolab is linked to another account" | Someone else added it first. They can hand it over as above |
 | The site says demo mode | The Vercel variables aren't set, or the site wasn't redeployed after setting them |

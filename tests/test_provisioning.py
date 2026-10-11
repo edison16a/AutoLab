@@ -66,6 +66,43 @@ def test_invalid_network_parameters(changes):
     assert not session.busy
 
 
+@pytest.mark.parametrize("wifi", [{}, {"ssid": "", "password": ""}])
+def test_no_wifi_details_keeps_the_current_wifi(wifi):
+    session = ProvisioningSession("id", "123456")
+    request = (json.dumps({"pin": "123456", **wifi}) + "\n").encode()
+    assert session.receive("browser", request) == ("", "")
+    assert session.busy
+
+
+@pytest.mark.parametrize(
+    "wifi",
+    [
+        {"ssid": "Autolab Wi-Fi"},
+        {"password": "correct password"},
+        {"ssid": "Autolab Wi-Fi", "password": ""},
+        {"ssid": "", "password": "correct password"},
+    ],
+)
+def test_a_wifi_name_or_password_alone_is_rejected(wifi):
+    session = ProvisioningSession("id", "123456")
+    request = (json.dumps({"pin": "123456", **wifi}) + "\n").encode()
+    with pytest.raises(ValueError, match="both the Wi-Fi name and password"):
+        session.receive("browser", request)
+    assert not session.busy
+    assert session.attempts == 0
+
+
+def test_status_says_whether_the_pi_is_online_and_where():
+    session = ProvisioningSession("id", "123456")
+    assert session.report() == {"state": "ready", "device_id": "id", "online": False, "wifi_ssid": None}
+    session.online, session.wifi_ssid = True, "Edison"
+    session.status = {"state": "error", "device_id": "id", "message": "x"}
+    assert session.report()["online"] is True
+    assert session.report()["wifi_ssid"] == "Edison"
+    # Adding the facts never changes the status itself.
+    assert "online" not in session.status
+
+
 def test_gateway_is_optional():
     session = ProvisioningSession("id", "123456")
     session.receive("browser", framed())

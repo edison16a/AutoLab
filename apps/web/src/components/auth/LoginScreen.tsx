@@ -5,6 +5,7 @@ import { CircleAlert, LoaderCircle } from "lucide-react";
 import { errorText } from "@/lib/errors";
 import { useAuth } from "@/providers/AuthProvider";
 import { LogoMark } from "../ui/LogoMark";
+import { PasswordField } from "../ui/PasswordField";
 import { ThemeToggle } from "../ui/ThemeToggle";
 
 /** Only same site paths are allowed as a destination after sign in. */
@@ -72,18 +73,14 @@ export function LoginScreen() {
             autoFocus
           />
         </label>
-        <label className="field">
-          <span className="field__label">Password</span>
-          <input
-            className="input"
-            type="password"
-            autoComplete={creating ? "new-password" : "current-password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            minLength={mode === "demo" ? undefined : 8}
-            required
-          />
-        </label>
+        <PasswordField
+          label="Password"
+          autoComplete={creating ? "new-password" : "current-password"}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          minLength={mode === "demo" ? undefined : 8}
+          required
+        />
         {message ? (
           <p className={`auth__message ${message.error ? "auth__message--error" : ""}`} role={message.error ? "alert" : "status"}>
             {message.error ? <CircleAlert size={16} strokeWidth={1.8} aria-hidden="true" /> : null}

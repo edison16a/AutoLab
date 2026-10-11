@@ -13,11 +13,23 @@ export type ProvisionStatus = {
   mode?: string;
   /** Lab mode: the Pi's own Supabase login, for the account to link. */
   agent_id?: string;
+  /** NetworkManager says the Pi is connected. Older Pis leave this out. */
+  online?: boolean;
+  /** The Wi-Fi the Pi is on right now, or null when it has none. Older Pis leave this out. */
+  wifi_ssid?: string | null;
 };
 export class AutolabBluetooth {
   device?: BluetoothDevice;
   command?: BluetoothRemoteGATTCharacteristic;
   status?: BluetoothRemoteGATTCharacteristic;
+  // Android runs one GATT operation at a time and fails any that starts
+  // meanwhile, so reads and requests wait their turn.
+  private turn: Promise<unknown> = Promise.resolve();
+  private inTurn<T>(operation: () => Promise<T>): Promise<T> {
+    const result = this.turn.then(operation);
+    this.turn = result.catch(() => undefined);
+    return result;
+  }
   async connect() {
     if (!navigator.bluetooth || !window.isSecureContext)
       throw new Error(
@@ -34,14 +46,20 @@ export class AutolabBluetooth {
     this.status = await service.getCharacteristic(STATUS_UUID);
     return await this.read();
   }
-  async read(): Promise<ProvisionStatus> {
-    if (!this.status) throw new Error("Bluetooth is disconnected");
-    const value = await this.status.readValue();
-    return JSON.parse(new TextDecoder().decode(value));
+  read(): Promise<ProvisionStatus> {
+    return this.inTurn(async () => {
+      if (!this.status) throw new Error("Bluetooth is disconnected");
+      const value = await this.status.readValue();
+      return JSON.parse(new TextDecoder().decode(value));
+    });
   }
-  /** `extra` tells the Pi where to connect once it's on Wi-Fi: a gateway, or a Supabase project in lab mode. */
+  /**
+   * `extra` tells the Pi where to connect once it's on Wi-Fi: a gateway, or a Supabase project in lab mode.
+   * An empty `ssid` and `password` keep the Wi-Fi the Pi is on.
+   */
   async provision(ssid: string, password: string, pin: string, extra: Record<string, string> = {}) {
-    if (!this.command || !this.device?.gatt?.connected)
+    const command = this.command;
+    if (!command || !this.device?.gatt?.connected)
       throw new Error("Reconnect Bluetooth before provisioning");
     const bytes = new TextEncoder().encode(
       JSON.stringify({ ssid, password, pin, ...extra }),
@@ -52,8 +70,10 @@ export class AutolabBluetooth {
     const framed = new Uint8Array(bytes.length + 1);
     framed.set(bytes);
     framed[bytes.length] = 10;
-    for (let i = 0; i < framed.length; i += 20)
-      await this.command.writeValueWithResponse(framed.slice(i, i + 20));
+    await this.inTurn(async () => {
+      for (let i = 0; i < framed.length; i += 20)
+        await command.writeValueWithResponse(framed.slice(i, i + 20));
+    });
   }
   disconnect() {
     this.device?.gatt?.disconnect();
