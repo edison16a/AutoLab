@@ -6,7 +6,7 @@ Bluetooth setup needs Chrome or Edge on a computer, or Chrome on Android. Other 
 
 ## Prepare a Pi once
 
-Flash Raspberry Pi OS Bookworm (64-bit, Lite) with Raspberry Pi Imager. Set a user, and turn on SSH or plug in Ethernet so you can reach it this one time. Then on the Pi:
+Write Raspberry Pi OS Lite (64-bit), Bookworm or later, with Raspberry Pi Imager. Set a user, and turn on SSH or plug in Ethernet so you can reach it this one time. [Prepare a Raspberry Pi, step by step](pi-setup.md) shows every screen. Then on the Pi:
 
 ```bash
 sudo apt update && sudo apt install -y git

@@ -67,9 +67,9 @@ None of these are secret: anything starting with `NEXT_PUBLIC_` ends up in every
 
 ## 3. Prepare the Pi
 
-Do this once per Pi. [Bluetooth setup](bluetooth-provisioning.md) has the details.
+Do this once per Pi. [Prepare a Raspberry Pi, step by step](pi-setup.md) walks through every screen and what each light means. [Bluetooth setup](bluetooth-provisioning.md) has the details.
 
-1. Flash Raspberry Pi OS Bookworm (64-bit, Lite) with Raspberry Pi Imager. Set a user, and turn on SSH so you can reach it this one time.
+1. Write Raspberry Pi OS Lite (64-bit) to a microSD card with Raspberry Pi Imager. Set a user and the Wi-Fi, and turn on SSH so you can reach it this one time.
 2. With the Pi off, connect the camera ribbon to the **CSI camera** connector.
 3. On the Pi:
 

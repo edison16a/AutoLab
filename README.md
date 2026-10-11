@@ -116,7 +116,7 @@ It prints a Device ID. In the app, click **Connect device**, go through the step
 
 ### A real Raspberry Pi
 
-The quickest way is the installer, which sets up everything for Bluetooth setup and prints the Device ID and setup PIN. See [Bluetooth setup](docs/bluetooth-provisioning.md). To set it up by hand instead:
+The quickest way is the installer, which sets up everything for Bluetooth setup and prints the Device ID and setup PIN. [Prepare a Raspberry Pi, step by step](docs/pi-setup.md) goes from a blank microSD card to a connected Autolab, and [Bluetooth setup](docs/bluetooth-provisioning.md) has the details. To set it up by hand instead:
 
 1. Flash Raspberry Pi OS Lite (64-bit) with Raspberry Pi Imager and set the username, Wi-Fi, SSH and hostname there.
 2. With the Pi powered off, connect the camera ribbon to the **CSI camera** connector (not the display connector), contacts facing the connector's contacts.
@@ -148,7 +148,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now autolab-agent
 ```
 
-For Bluetooth setup from the app, see [Bluetooth setup](docs/bluetooth-provisioning.md). The Pi's identity file is created once with owner-only permissions; keep it when you update. Never put a Supabase key on the Pi.
+For Bluetooth setup from the app, see [Bluetooth setup](docs/bluetooth-provisioning.md). The Pi's identity file is created once with owner-only permissions; keep it when you update. Never put the Supabase secret or service_role key on the Pi.
 
 ### Cloud mode (Supabase)
 
@@ -193,6 +193,7 @@ The real CSI camera, Bluetooth radio pairing and a hosted Supabase project still
 - [The 3D model](docs/digital-twin.md)
 - [Browser object detection](docs/browser-detection.md)
 - [Lab mode](docs/lab-mode.md)
+- [Prepare a Raspberry Pi, step by step](docs/pi-setup.md)
 - [Bluetooth setup](docs/bluetooth-provisioning.md)
 - [Cloud mode](docs/cloud.md)
 - [Deployment](docs/deployment.md)

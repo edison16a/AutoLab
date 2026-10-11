@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Install Autolab on a Raspberry Pi so it can be set up over Bluetooth.
 #
-# Expects Raspberry Pi OS Bookworm (64-bit, Lite), this repository cloned on
+# Expects Raspberry Pi OS Lite (64-bit), Bookworm or later, this repository cloned on
 # the Pi, and a normal user with sudo rights. Run it as that user:
 #
 #   ~/AutoLab/devices/raspberry-pi/install.sh
