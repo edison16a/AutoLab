@@ -60,6 +60,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=the key from step 1
 ```
 
+None of these are secret: anything starting with `NEXT_PUBLIC_` ends up in every visitor's browser, and the anon key is public by design. If Vercel marks them **Sensitive**, it won't save them with the **Development** environment ticked. Turn **Sensitive** off, or untick **Development** and keep **Production** and **Preview**.
+
 2. Redeploy, since these are read when the site is built. Until then the site stays in demo mode.
 3. Open the site, click **Create an account** and sign in.
 
@@ -77,7 +79,7 @@ git clone https://github.com/edison16a/AutoLab.git
 ~/AutoLab/devices/raspberry-pi/install.sh
 ```
 
-While the repository is private, `git clone` asks for a username and password. Give your GitHub username and, as the password, a personal access token with read access to this repository.
+The repository is public, so `git clone` needs no login.
 
 The installer prints the **Device ID** and a six digit **setup PIN**. Write the PIN on a sticker on the machine. Nothing about your Supabase project goes on the Pi here; Bluetooth setup hands it over.
 
