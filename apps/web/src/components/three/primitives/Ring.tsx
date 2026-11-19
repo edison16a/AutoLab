@@ -1,6 +1,6 @@
 "use client";
 import { unitGeometry } from "../geometries";
-import { getMaterial, type MaterialKey } from "../materials";
+import { getMaterial, receivesShadow, type MaterialKey } from "../materials";
 import type { Placement } from "../types";
 
 export interface RingProps extends Placement {
@@ -21,7 +21,7 @@ export function Ring({ radius = 0.05, thin = false, material = "aluminium", posi
       position={position}
       rotation={rotation}
       scale={radius}
-      receiveShadow
+      receiveShadow={receivesShadow(material)}
       dispose={null}
     />
   );
@@ -41,7 +41,7 @@ export function Sphere({ radius = 0.05, material = "plasticGrey", position, rota
       rotation={rotation}
       scale={radius}
       castShadow
-      receiveShadow
+      receiveShadow={receivesShadow(material)}
       dispose={null}
     />
   );

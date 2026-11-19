@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo } from "react";
 import { CatmullRomCurve3, TubeGeometry, Vector3 } from "three";
-import { castsShadow, getMaterial, type MaterialKey } from "../../materials";
+import { castsShadow, getMaterial, receivesShadow, type MaterialKey } from "../../materials";
 import { usePoseFrame } from "../../motion/use-pose-frame";
 import type { Vec3 } from "../../types";
 import { CORE_RADIUS, FLOW_PERIOD, getFlowMaterial, showFlow, stillFlow, type FlowLine } from "./flow";
@@ -46,7 +46,7 @@ export function FlowTube({ points, line, towardHead, radius, shell = "tygon", se
   return (
     <group>
       <mesh geometry={core} material={getFlowMaterial(line)} dispose={null} />
-      <mesh geometry={tube} material={getMaterial(shell)} castShadow={castsShadow(shell)} receiveShadow renderOrder={1} dispose={null} />
+      <mesh geometry={tube} material={getMaterial(shell)} castShadow={castsShadow(shell)} receiveShadow={receivesShadow(shell)} renderOrder={1} dispose={null} />
     </group>
   );
 }

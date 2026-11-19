@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { Object3D, type InstancedMesh } from "three";
 import { unitGeometry } from "../../geometries";
-import { castsShadow, getMaterial } from "../../materials";
+import { castsShadow, getMaterial, receivesShadow } from "../../materials";
 import { usePoseFrame } from "../../motion/use-pose-frame";
 import { FULL_RACK, TIP_RACK, tipSocket } from "./labware-layout";
 
@@ -52,5 +52,5 @@ export function RackTips() {
     return () => mesh?.dispose();
   }, []);
 
-  return <instancedMesh ref={collars} args={[unitGeometry("cylinder"), getMaterial("tipBlue"), COUNT]} castShadow={castsShadow("tipBlue")} receiveShadow dispose={null} />;
+  return <instancedMesh ref={collars} args={[unitGeometry("cylinder"), getMaterial("tipBlue"), COUNT]} castShadow={castsShadow("tipBlue")} receiveShadow={receivesShadow("tipBlue")} dispose={null} />;
 }

@@ -1,7 +1,7 @@
 "use client";
 import { useRef } from "react";
 import type { Group } from "three";
-import { castsShadow, getMaterial } from "../materials";
+import { castsShadow, getMaterial, receivesShadow } from "../materials";
 import { usePoseFrame } from "../motion/use-pose-frame";
 import { Block, Repeat, TextDecal, type RepeatItem } from "../primitives";
 import type { Vec3 } from "../types";
@@ -85,7 +85,7 @@ export function WellPlateModel() {
         material={getMaterial("polystyrene")}
         position={[0, BOTTOM + SKIRT + DECK.height / 2, 0]}
         castShadow={castsShadow("polystyrene")}
-        receiveShadow
+        receiveShadow={receivesShadow("polystyrene")}
         dispose={null}
       />
       <WellMedia />

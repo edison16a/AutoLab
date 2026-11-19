@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo } from "react";
 import { CatmullRomCurve3, TubeGeometry, Vector3 } from "three";
-import { castsShadow, getMaterial, type MaterialKey } from "../materials";
+import { castsShadow, getMaterial, receivesShadow, type MaterialKey } from "../materials";
 import type { Vec3 } from "../types";
 
 export interface TubeProps {
@@ -27,6 +27,6 @@ export function Tube({ points, radius = 0.025, material = "plasticWhite", segmen
   }, [key, radius, segments]);
   useEffect(() => () => geometry.dispose(), [geometry]);
   return (
-    <mesh geometry={geometry} material={getMaterial(material)} castShadow={castsShadow(material)} receiveShadow dispose={null} />
+    <mesh geometry={geometry} material={getMaterial(material)} castShadow={castsShadow(material)} receiveShadow={receivesShadow(material)} dispose={null} />
   );
 }

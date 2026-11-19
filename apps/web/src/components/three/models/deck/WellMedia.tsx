@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { Object3D, type InstancedMesh } from "three";
 import { unitGeometry } from "../../geometries";
-import { castsShadow, getMaterial } from "../../materials";
+import { castsShadow, getMaterial, receivesShadow } from "../../materials";
 import { WELL_COUNT } from "../../motion/pose";
 import { usePoseFrame } from "../../motion/use-pose-frame";
 import { mm } from "../details/units";
@@ -57,7 +57,7 @@ export function WellMedia() {
       ref={mesh}
       args={[unitGeometry("cylinder"), getMaterial("mediaPink"), WELL_COUNT]}
       castShadow={castsShadow("mediaPink")}
-      receiveShadow
+      receiveShadow={receivesShadow("mediaPink")}
       dispose={null}
     />
   );

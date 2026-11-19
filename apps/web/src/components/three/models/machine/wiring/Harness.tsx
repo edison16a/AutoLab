@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, type ReactNode } from "react";
-import { getMaterial } from "../../../materials";
+import { castsShadow, getMaterial, receivesShadow } from "../../../materials";
 import { Rig } from "../../../motion/Rig";
 import { Repeat } from "../../../primitives";
 import { getFlowMaterial } from "../../fluidics/flow";
@@ -32,7 +32,7 @@ export function Harness({ runs }: { runs: WireRun[] }) {
     <group>
       {parts.map(({ material, geometry }) => (
         // Skinned vertices move away from the static bounds, and the whole harness is cheap to draw, so skip culling.
-        <skinnedMesh key={material} ref={bind} geometry={geometry} material={getMaterial(material)} castShadow receiveShadow frustumCulled={false} dispose={null} />
+        <skinnedMesh key={material} ref={bind} geometry={geometry} material={getMaterial(material)} castShadow={castsShadow(material)} receiveShadow={receivesShadow(material)} frustumCulled={false} dispose={null} />
       ))}
       {ties.map(({ carrier, bands, heads }) => (
         <Carried key={carrier} carrier={carrier}>

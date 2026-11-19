@@ -55,7 +55,7 @@ function Solenoid({ x }: { x: number }) {
       <Cylinder position={[0, (BODY.bottom + BODY.top) / 2, 0]} radius={BODY.radius} height={BODY.top - BODY.bottom} material="plasticBlack" />
       <Ring position={[0, BODY.top, 0]} radius={0.055} material="steel" />
       <Block position={[0, SLOT_Y, 0]} size={[0.12, 0.09, 0.14]} radius={0.012} material="plasticWhite" />
-      {/* The plunger's slot, where it pinches the tube shut. */}
+      {/* The slot where the solenoid pinches the tube shut. */}
       <Block position={[0, SLOT_Y + 0.03, 0]} size={[0.125, 0.015, 0.145]} material="plasticGrey" />
       {/* Two leads out of the back of the coil, down to the platform. */}
       {(["wireRed", "wireBlack"] as const).map((wire, i) => (

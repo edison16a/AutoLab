@@ -1,6 +1,6 @@
 "use client";
 import { roundedBoxGeometry, unitGeometry } from "../geometries";
-import { castsShadow, getMaterial, type MaterialKey } from "../materials";
+import { castsShadow, getMaterial, receivesShadow, type MaterialKey } from "../materials";
 import type { Placement, Vec3 } from "../types";
 
 export interface BlockProps extends Placement {
@@ -31,7 +31,7 @@ export function Block({ size = [1, 1, 1], radius = 0, material = "plasticGrey", 
       rotation={rotation}
       scale={rounded ? 1 : size}
       castShadow={castShadow ?? castsShadow(material)}
-      receiveShadow
+      receiveShadow={receivesShadow(material)}
       // Geometry and material are shared, so React must never dispose them.
       dispose={null}
     />

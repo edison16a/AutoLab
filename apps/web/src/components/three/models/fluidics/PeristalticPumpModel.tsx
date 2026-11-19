@@ -15,6 +15,8 @@ const HEAD_BACK = FLANGE_FRONT + HEAD.boss;
 const HEAD_FRONT = HEAD_BACK + HEAD.depth;
 /** The head's round top: as wide as the head, its top edge where the drawing puts it. */
 const LOBE = { radius: HEAD.width / 2, y: HEAD.top - HEAD.width / 2 } as const;
+/** The clear cover's back and front faces. */
+const COVER = { back: HEAD_BACK + 0.046, front: HEAD_FRONT - 0.004 } as const;
 /** The rotor's plane, a little behind the clear cover. */
 const ROTOR_Z = HEAD_BACK + HEAD.depth * 0.55;
 const ROLLER = { radius: 0.022, length: 0.08, at: 0.07 } as const;
@@ -137,7 +139,8 @@ function PMST100Pump({ label, angle, line }: PumpProps) {
       <Block position={[0, (HEAD.top - 0.03 - HEAD.bottom + 0.03) / 2, FLANGE_FRONT + HEAD.boss / 2]} size={[HEAD.width - 0.05, HEAD.top + HEAD.bottom - 0.06, HEAD.boss]} radius={0.02} material="plasticBlack" />
       <Cylinder position={[0, LOBE.y, HEAD_BACK + 0.02]} rotation={[Math.PI / 2, 0, 0]} radius={LOBE.radius} height={0.04} material="plasticBlack" />
       <Block position={[0, BLOCK_TOP - lowerHeight / 2, (HEAD_BACK + HEAD_FRONT) / 2]} size={[HEAD.width, lowerHeight, HEAD.depth]} radius={0.025} material="plasticBlack" />
-      <Cylinder position={[0, LOBE.y, (HEAD_BACK + 0.04 + HEAD_FRONT) / 2]} rotation={[Math.PI / 2, 0, 0]} radius={LOBE.radius - 0.004} height={HEAD_FRONT - HEAD_BACK - 0.04} material="polystyrene" />
+      {/* The clear cover stops just short of the back plate and the head's front face, so no two faces share a plane and flicker. */}
+      <Cylinder position={[0, LOBE.y, (COVER.back + COVER.front) / 2]} rotation={[Math.PI / 2, 0, 0]} radius={LOBE.radius - 0.004} height={COVER.front - COVER.back} material="polystyrene" />
       <Ring position={[0, LOBE.y, HEAD_FRONT]} rotation={[0, 0, 0]} radius={LOBE.radius - 0.003} thin material="plasticBlack" />
       {/* The cover's two thumb screws. */}
       {[-1, 1].map((side) => (

@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import { Object3D, type BufferGeometry, type EulerOrder, type InstancedMesh } from "three";
 import { unitGeometry, type UnitShape } from "../geometries";
-import { castsShadow, getMaterial, type MaterialKey } from "../materials";
+import { castsShadow, getMaterial, receivesShadow, type MaterialKey } from "../materials";
 import type { Vec3 } from "../types";
 
 /** One copy of the repeated shape. Scale falls back to the shared `scale` prop. */
@@ -74,7 +74,7 @@ export function Repeat({ items, shape = "box", geometry, material = "plasticGrey
       ref={ref}
       args={[geometry ?? unitGeometry(shape), getMaterial(material), items.length]}
       castShadow={castsShadow(material)}
-      receiveShadow
+      receiveShadow={receivesShadow(material)}
       dispose={null}
     />
   );

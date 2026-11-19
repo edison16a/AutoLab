@@ -113,6 +113,15 @@ export function castsShadow(key: MaterialKey) {
   return !getMaterial(key).transparent;
 }
 
+/**
+ * Nor do they receive them. Light goes through a clear cover or a tube, and
+ * the shadow map is far too coarse for a thin see through shell: drawn on
+ * one, it shows as a pattern of dark blocks.
+ */
+export function receivesShadow(key: MaterialKey) {
+  return !getMaterial(key).transparent;
+}
+
 registerDisposer(() => {
   cache.forEach((material) => material.dispose());
   cache.clear();

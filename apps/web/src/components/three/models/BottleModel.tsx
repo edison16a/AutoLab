@@ -2,7 +2,7 @@
 import { useRef } from "react";
 import type { Mesh } from "three";
 import { unitGeometry } from "../geometries";
-import { getMaterial, type MaterialKey } from "../materials";
+import { getMaterial, receivesShadow, type MaterialKey } from "../materials";
 import type { MachinePose } from "../motion/pose";
 import { usePoseFrame } from "../motion/use-pose-frame";
 import { Cylinder, Repeat, Ring, TextDecal, Tube, type RepeatItem } from "../primitives";
@@ -139,7 +139,7 @@ function Liquid({ material, rest, read }: { material: MaterialKey; rest: number;
       material={getMaterial(material)}
       position={[0, LIFT + 0.01 + height / 2, 0]}
       scale={[R - 0.015, height, R - 0.015]}
-      receiveShadow
+      receiveShadow={receivesShadow(material)}
       dispose={null}
     />
   );

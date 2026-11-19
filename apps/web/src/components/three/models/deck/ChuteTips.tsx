@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { Euler, Matrix4, Quaternion, Vector3, type InstancedMesh } from "three";
 import { taperGeometry } from "../../geometries";
-import { castsShadow, getMaterial } from "../../materials";
+import { castsShadow, getMaterial, receivesShadow } from "../../materials";
 import { usePoseFrame } from "../../motion/use-pose-frame";
 import { CHUTE_SLOTS } from "./chute-slots";
 import { TIP_SHAPE } from "./labware-layout";
@@ -54,5 +54,5 @@ export function ChuteTips() {
     return () => mesh?.dispose();
   }, []);
 
-  return <instancedMesh ref={cones} args={[taperGeometry(taper), getMaterial("tipBlue"), COUNT]} castShadow={castsShadow("tipBlue")} receiveShadow dispose={null} />;
+  return <instancedMesh ref={cones} args={[taperGeometry(taper), getMaterial("tipBlue"), COUNT]} castShadow={castsShadow("tipBlue")} receiveShadow={receivesShadow("tipBlue")} dispose={null} />;
 }

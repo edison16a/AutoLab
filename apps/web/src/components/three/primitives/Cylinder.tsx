@@ -1,6 +1,6 @@
 "use client";
 import { taperGeometry, unitGeometry } from "../geometries";
-import { castsShadow, getMaterial, type MaterialKey } from "../materials";
+import { castsShadow, getMaterial, receivesShadow, type MaterialKey } from "../materials";
 import type { Placement } from "../types";
 
 export interface CylinderProps extends Placement {
@@ -24,7 +24,7 @@ export function Cylinder({ radius = 0.1, height = 0.2, taper = 1, low = false, m
       rotation={rotation}
       scale={[radius, height, radius]}
       castShadow={castsShadow(material)}
-      receiveShadow
+      receiveShadow={receivesShadow(material)}
       dispose={null}
     />
   );
