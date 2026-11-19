@@ -27,6 +27,13 @@ def hello_message(creds: dict, camera: Camera, simulated: bool) -> dict:
     }
 
 
-def heartbeat_message(camera: Camera) -> dict:
-    """Sent every few seconds. The gateway drops a Pi that goes quiet."""
-    return {"type": "heartbeat", "camera_online": camera.online, **metadata()}
+def heartbeat_message(camera: Camera, components: list[dict] | None = None) -> dict:
+    """Sent every few seconds. The gateway drops a Pi that goes quiet.
+
+    Components go in only when hardware is configured. Leaving the key out
+    lets the gateway keep whatever list it had.
+    """
+    message = {"type": "heartbeat", "camera_online": camera.online, **metadata()}
+    if components is not None:
+        message["components"] = components
+    return message

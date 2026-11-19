@@ -9,8 +9,9 @@ import uuid
 from datetime import datetime, timezone
 
 from ..camera import Camera
+from ..hardware.station import Station
 from ..telemetry import AGENT_VERSION
-from .api import Supabase
+from .api import Supabase, SupabaseError
 from .channel import DeviceChannel
 
 log = logging.getLogger("agent")
@@ -27,10 +28,13 @@ MAX_RETRY = 30
 
 
 class LabAgent:
-    def __init__(self, api: Supabase, camera: Camera, device_id: str) -> None:
+    def __init__(self, api: Supabase, camera: Camera, device_id: str, hardware: Station | None = None) -> None:
         self.api = api
         self.camera = camera
         self.device_id = device_id
+        self.hardware = hardware
+        # Cleared if the database has no components column yet (docs/firmware.md).
+        self.send_components = hardware is not None
         self.owner_id: str | None = None
         self.channel = DeviceChannel(api.session.url, api.session.key, device_id, self._token)
         self.wake = asyncio.Event()
@@ -65,15 +69,35 @@ class LabAgent:
                 told = True
             await asyncio.sleep(5)
 
+    def status_fields(self) -> dict:
+        fields = {
+            "status": "online",
+            "camera_online": self.camera.online,
+            "simulated": self.camera.simulate,
+            "agent_version": AGENT_VERSION,
+        }
+        if self.send_components:
+            fields["components"] = self.hardware.components()
+        return fields
+
+    async def report_status(self) -> None:
+        fields = self.status_fields()
+        try:
+            await self.api.report(self.device_id, fields)
+        except SupabaseError as exc:
+            if "components" not in fields:
+                raise
+            # Likely a database without the column, or without the grant to write it.
+            # If the rest goes through, stop sending parts; the status matters more.
+            fields.pop("components")
+            await self.api.report(self.device_id, fields)
+            self.send_components = False
+            log.warning("Supabase won't take the parts list, so it isn't reported (%s)", exc)
+
     async def status(self) -> None:
         while True:
             try:
-                await self.api.report(self.device_id, {
-                    "status": "online",
-                    "camera_online": self.camera.online,
-                    "simulated": self.camera.simulate,
-                    "agent_version": AGENT_VERSION,
-                })
+                await self.report_status()
             except Exception as exc:
                 log.warning("Status report failed (%s)", exc)
             await asyncio.sleep(STATUS_EVERY)

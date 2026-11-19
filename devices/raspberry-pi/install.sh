@@ -30,9 +30,23 @@ fi
 
 echo "Installing system packages"
 sudo apt-get update
+# python3-gpiozero and python3-lgpio drive the heater, fan and CO2 valve. They
+# come from apt so they match the kernel's GPIO interface; the venv sees them.
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
   git python3-venv python3-pip python3-picamera2 python3-pil rpicam-apps \
-  bluez network-manager rfkill
+  bluez network-manager rfkill python3-gpiozero python3-lgpio
+
+# The hardware drivers need I2C on, and the agent's user needs the serial
+# (Pico, Marlin), I2C and GPIO groups. Both are harmless when no hardware is
+# configured, and nothing is driven until .env says so.
+if command -v raspi-config > /dev/null; then
+  sudo raspi-config nonint do_i2c 0
+fi
+for group in dialout i2c gpio; do
+  if getent group "$group" > /dev/null; then
+    sudo usermod -aG "$group" "$RUN_USER"
+  fi
+done
 
 echo "Installing Python packages"
 # picamera2 only comes from apt, so the venv has to see system packages.

@@ -8,6 +8,7 @@ from websockets.asyncio.client import ClientConnection
 
 from . import commands, preview
 from .camera import Camera
+from .hardware.station import Station
 from .protocol import heartbeat_message
 
 HEARTBEAT_INTERVAL = 10
@@ -21,9 +22,10 @@ class DeviceLink:
     has a timeout, so a stalled network ends the session instead of hanging it.
     """
 
-    def __init__(self, ws: ClientConnection, camera: Camera) -> None:
+    def __init__(self, ws: ClientConnection, camera: Camera, hardware: Station | None = None) -> None:
         self.ws = ws
         self.camera = camera
+        self.hardware = hardware
         self.preview = False  # set by the gateway when a viewer wants frames
         self._send_lock = asyncio.Lock()
 
@@ -37,7 +39,8 @@ class DeviceLink:
 
     async def heartbeat(self) -> None:
         while True:
-            await self.send(heartbeat_message(self.camera))
+            parts = self.hardware.components() if self.hardware else None
+            await self.send(heartbeat_message(self.camera, parts))
             await asyncio.sleep(HEARTBEAT_INTERVAL)
 
     async def serve(self) -> None:

@@ -2,3 +2,6 @@ websockets>=14,<17
 httpx>=0.28,<1
 pillow>=11,<13
 python-dotenv>=1,<2
+# Hardware drivers (autolab_agent/hardware). Imported only when hardware is configured.
+pyserial>=3.5,<4
+smbus2>=0.5,<1

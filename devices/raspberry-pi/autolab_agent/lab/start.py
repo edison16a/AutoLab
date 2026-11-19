@@ -8,6 +8,7 @@ import httpx
 
 from ..camera import Camera
 from ..credentials import load_or_create
+from ..hardware.station import Station
 from . import session as auth
 from .api import Supabase
 from .runner import MAX_RETRY, LabAgent
@@ -43,6 +44,8 @@ async def run_lab(args: argparse.Namespace) -> None:
     creds = load_or_create(args.credentials)
     camera = Camera(args.simulate)
     print(f"Device ID: {creds['device_id']}", flush=True)
+    # None unless hardware is configured in .env.
+    hardware = await asyncio.to_thread(Station.start)
     delay = 1
     try:
         async with httpx.AsyncClient(timeout=30) as client:
@@ -57,6 +60,8 @@ async def run_lab(args: argparse.Namespace) -> None:
                     delay = min(MAX_RETRY, delay * 2)
             print(f"Setup code: {setup_code(creds['device_id'], session.user_id)}", flush=True)
             api = Supabase(client, session, lambda fresh: auth.save(args.credentials, fresh))
-            await LabAgent(api, camera, creds["device_id"]).run()
+            await LabAgent(api, camera, creds["device_id"], hardware).run()
     finally:
         camera.close()
+        if hardware:
+            await asyncio.to_thread(hardware.close)

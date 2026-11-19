@@ -10,6 +10,7 @@ from websockets.asyncio.client import connect
 from .camera import Camera
 from .credentials import load_or_create
 from .endpoints import device_socket_url
+from .hardware.station import Station
 from .link import DeviceLink
 from .protocol import hello_message
 from .registration import register
@@ -26,16 +27,20 @@ async def run(args: argparse.Namespace) -> None:
     creds = load_or_create(args.credentials)
     camera = Camera(args.simulate)
     print(f"Device ID: {creds['device_id']}", flush=True)
+    # None unless hardware is configured in .env.
+    hardware = await asyncio.to_thread(Station.start)
     try:
         if args.mode == "cloud":
             await register(args.gateway, creds, args.credentials)
-        await stay_connected(args, creds, camera)
+        await stay_connected(args, creds, camera, hardware)
     finally:
         camera.close()
+        if hardware:
+            await asyncio.to_thread(hardware.close)
 
 
 async def stay_connected(
-    args: argparse.Namespace, creds: dict, camera: Camera
+    args: argparse.Namespace, creds: dict, camera: Camera, hardware: Station | None = None
 ) -> None:
     """Reconnect forever. The Pi only dials out, so it must never give up.
 
@@ -54,7 +59,7 @@ async def stay_connected(
             ) as ws:
                 await ws.send(json.dumps(hello_message(creds, camera, args.simulate)))
                 delay = 1
-                await DeviceLink(ws, camera).serve()
+                await DeviceLink(ws, camera, hardware).serve()
         except Exception as exc:
             log.warning("Disconnected (%s). Retrying in %ss", type(exc).__name__, delay)
         await asyncio.sleep(delay)
