@@ -30,7 +30,7 @@ module.exports = async function hardware(page) {
   await page.getByLabel("Search components", { exact: true }).fill("pico");
   assert.equal(await rows.count(), 1, "Search narrows the parts list");
   await page.getByLabel("Search components", { exact: true }).fill("fluidics");
-  assert.equal(await rows.count(), 5, "The fluidics group holds the head, both pumps and both valves");
+  assert.equal(await rows.count(), 7, "The fluidics group holds the head, both pumps, their controllers and both valves");
   await page.locator('[data-component-id="aspiration_pump"]').click();
   await page.getByRole("complementary", { name: "Aspiration pump details" }).waitFor();
   await page.getByLabel("Search components", { exact: true }).fill("");

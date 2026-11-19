@@ -7,6 +7,8 @@
  * here: the scene reads the pose it fills.
  */
 import { BOTTLE_REST, FULL_RACK, NOSE_TIP } from "../models/deck/labware-layout";
+import { FLOW_LINES, FLOW_PER_RADIAN, FLOW_PERIOD, LINE_INDEX, type FlowLine } from "../models/fluidics/flow";
+import { PMST100 } from "../models/fluidics/pump-spec";
 import { LOOP_SECONDS, LOOPS_PER_RACK, MEDIA_PER_LOOP, WASTE_PER_LOOP, WELLS_PER_LOOP, buildCycle } from "./cycle";
 import { BIN, HEAD_AXIS, TIP_ORDER } from "./deck";
 import type { MachinePose } from "./pose";
@@ -17,9 +19,9 @@ const FAN_RATE = Math.PI * 2 * 1.3;
 const FAN_SPIN_UP = 1.2;
 /** Seven blades, so turning by a seventh looks the same; keeps the angle small forever. */
 const BLADE_TURN = (Math.PI * 2) / 7;
-/** Pump rotor speed while it runs, about 70 rpm, and its three rollers' symmetry. */
-const PUMP_RATE = Math.PI * 2 * 1.2;
-const ROLLER_TURN = (Math.PI * 2) / 3;
+/** Pump rotor speed while it runs, the PMST100's top 75 RPM, and its four rollers' symmetry. */
+const PUMP_RATE = (Math.PI * 2 * PMST100.maxRpm) / 60;
+const ROLLER_TURN = (Math.PI * 2) / PMST100.rollers;
 /** How much of the tip shows spent media while the line draws through it. */
 const TIP_FLOW = 0.4;
 
@@ -67,23 +69,41 @@ function pumpTurn(step: Step, u: number): [number, number] {
   }
 }
 
-/** How far each rotor turns over a whole loop; the same every loop, since only the wells change. */
-let loopTurn: [number, number] | null = null;
+/**
+ * The lines a step moves liquid through: everything between its pump and
+ * the head, and the bottle line its valve has open. Rotor travel in the
+ * pump becomes the same travel of liquid along each of them.
+ */
+const ADDITION_LINES: Record<"media" | "waste", FlowLine[]> = { media: ["addHead", "addCommon", "addMedia"], waste: ["addHead", "addCommon", "addWaste"] };
+const ASPIRATION_LINES: FlowLine[] = ["aspHead", "aspCommon", "aspWaste"];
 
-function perLoopTurn(): [number, number] {
-  if (!loopTurn) {
-    loopTurn = [0, 0];
-    for (const step of buildCycle(0)) {
-      const [a, b] = pumpTurn(step, 1);
-      loopTurn[0] += a;
-      loopTurn[1] += b;
-    }
-  }
-  return loopTurn;
+function linesFor(step: Step): FlowLine[] {
+  const effect = step.effect;
+  if (!effect) return [];
+  if (effect.kind === "dispense") return ADDITION_LINES.media;
+  if (effect.kind === "aspirate") return ASPIRATION_LINES;
+  if (effect.kind === "suction") return effect.pump === "addition" ? ADDITION_LINES.waste : ASPIRATION_LINES;
+  return [];
 }
 
-/** Keeps a rotor angle small and positive; three rollers look the same every third of a turn. */
-const wrap = (angle: number) => ((angle % ROLLER_TURN) + ROLLER_TURN) % ROLLER_TURN;
+/** How far each rotor turns, and the liquid in each line moves, over a whole loop; the same every loop, since only the wells change. */
+let loopTotals: { turn: [number, number]; flow: Float32Array } | null = null;
+
+function perLoop() {
+  if (!loopTotals) {
+    loopTotals = { turn: [0, 0], flow: new Float32Array(FLOW_LINES.length) };
+    for (const step of buildCycle(0)) {
+      const [a, b] = pumpTurn(step, 1);
+      loopTotals.turn[0] += a;
+      loopTotals.turn[1] += b;
+      for (const line of linesFor(step)) loopTotals.flow[LINE_INDEX[line]] += (a + b) * FLOW_PER_RADIAN;
+    }
+  }
+  return loopTotals;
+}
+
+/** Keeps a value small and positive within one period; four rollers look the same every quarter turn, and the bands every band period. */
+const wrapTo = (value: number, period: number) => ((value % period) + period) % period;
 
 /** The labware as it stands when loop `index` begins. */
 function startOfLoop(pose: MachinePose, index: number) {
@@ -100,9 +120,10 @@ function startOfLoop(pose: MachinePose, index: number) {
   pose.fill = 0;
   pose.drop = -1;
   pose.flash = 0;
-  const [a, b] = perLoopTurn();
-  pose.additionPump = wrap(a * index);
-  pose.aspirationPump = wrap(b * index);
+  const totals = perLoop();
+  pose.additionPump = wrapTo(totals.turn[0] * index, ROLLER_TURN);
+  pose.aspirationPump = wrapTo(totals.turn[1] * index, ROLLER_TURN);
+  for (let i = 0; i < FLOW_LINES.length; i++) pose.flow[i] = wrapTo(totals.flow[i] * index, FLOW_PERIOD);
 }
 
 /** What only lasts while a step runs: open valves, liquid in the tip, the needle's stream. */
@@ -111,6 +132,7 @@ function clearTransients(pose: MachinePose) {
   pose.aspirationValve = -1;
   pose.stream = 0;
   pose.fill = 0;
+  pose.flowing.fill(0);
 }
 
 /** A soft rise at the start of a pump run and a fall at its end, for things that flow while it runs. */
@@ -126,6 +148,11 @@ function apply(pose: MachinePose, step: Step, u: number) {
   pose.additionPump += a;
   pose.aspirationPump += b;
   const running = u < 1;
+  for (const line of linesFor(step)) {
+    const i = LINE_INDEX[line];
+    pose.flow[i] += (a + b) * FLOW_PER_RADIAN;
+    if (running) pose.flowing[i] = 1;
+  }
   switch (effect.kind) {
     case "pick":
       if (running) return;

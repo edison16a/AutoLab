@@ -1,5 +1,6 @@
 "use client";
 import { FallingTip } from "./deck/FallingTip";
+import { FlowDriver } from "./fluidics/FlowTube";
 import { ChamberFixtures } from "./machine/ChamberFixtures";
 import { FluidicsPlatform } from "./machine/FluidicsPlatform";
 import { PiPlatform } from "./machine/PiPlatform";
@@ -28,6 +29,7 @@ export function PrinterFrameModel() {
       <FluidicsPlatform />
       <Wiring />
       <FallingTip />
+      <FlowDriver />
     </group>
   );
 }

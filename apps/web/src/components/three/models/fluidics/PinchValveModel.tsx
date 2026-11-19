@@ -2,11 +2,14 @@
 import { useRef } from "react";
 import type { Mesh } from "three";
 import { unitGeometry } from "../../geometries";
-import { getMaterial, type MaterialKey } from "../../materials";
+import { getMaterial } from "../../materials";
 import { ADDITION_PORTS, ASPIRATION_PORTS, type MachinePose } from "../../motion/pose";
 import { usePoseFrame } from "../../motion/use-pose-frame";
 import { Block, Cylinder, Ring, TextDecal, Tube } from "../../primitives";
 import type { Vec3 } from "../../types";
+import type { FlowLine } from "./flow";
+import { FlowTube } from "./FlowTube";
+import { PMST100 } from "./pump-spec";
 
 const PITCH = 0.2;
 /** Height of the tubes as they pass through the pinch heads on top of the solenoids. */
@@ -17,8 +20,7 @@ const MANIFOLD_Z = 0.19;
 const BACK_Z = -0.13;
 const COMMON_Z = 0.26;
 
-/** Liquid colour of each port's line. */
-const PORT_TUBE: Record<string, MaterialKey> = { media: "tubeMedia", cleaner: "tubeCleaner", waste: "tubeSpent" };
+const TUBE = PMST100.tubeRadius;
 const PORT_LABEL: Record<string, string> = { media: "Media", cleaner: "Cleaner", waste: "Waste" };
 
 /** Where each pinch valve stands across the block. The addition valve keeps media nearest the enclosure, on the right. */
@@ -76,7 +78,9 @@ function Solenoid({ x }: { x: number }) {
 interface ValveProps {
   ports: readonly string[];
   xs: number[];
-  common: MaterialKey;
+  /** The fluid line through the common stub, and through each port's stub. */
+  common: FlowLine;
+  lines: FlowLine[];
   read: (pose: MachinePose) => number;
 }
 
@@ -88,7 +92,7 @@ interface ValveProps {
  * with all of them shut nothing flows. Each solenoid has a green light that
  * shows when its port is open. Origin at the middle of the base plate.
  */
-function PinchValve({ ports, xs, common, read }: ValveProps) {
+function PinchValve({ ports, xs, common, lines, read }: ValveProps) {
   const width = ports.length * PITCH;
   return (
     <group>
@@ -99,12 +103,12 @@ function PinchValve({ ports, xs, common, read }: ValveProps) {
         <Block key={side} position={[side * (width / 2 - 0.05), (SLOT_Y + 0.02) / 2, MANIFOLD_Z]} size={[0.03, SLOT_Y - 0.04, 0.03]} material="plaGrey" />
       ))}
       <Cylinder position={[0, SLOT_Y, MANIFOLD_Z + 0.055]} rotation={[Math.PI / 2, 0, 0]} radius={0.02} height={0.05} low material="plasticWhite" />
-      <Tube points={[[0, SLOT_Y, MANIFOLD_Z + 0.04], [0, SLOT_Y, COMMON_Z]]} radius={0.024} material={common} segments={4} />
+      <FlowTube points={[[0, SLOT_Y, MANIFOLD_Z + 0.04], [0, SLOT_Y, COMMON_Z]]} line={common} towardHead radius={TUBE} segments={4} />
       {ports.map((port, i) => (
         <group key={port}>
           <Solenoid x={xs[i]} />
           <OpenLight x={xs[i]} index={i} read={read} />
-          <Tube points={[[xs[i], SLOT_Y, MANIFOLD_Z - 0.02], [xs[i], SLOT_Y, 0.06], [xs[i], SLOT_Y, BACK_Z]]} radius={0.024} material={PORT_TUBE[port]} segments={8} />
+          <FlowTube points={[[xs[i], SLOT_Y, MANIFOLD_Z - 0.02], [xs[i], SLOT_Y, 0.06], [xs[i], SLOT_Y, BACK_Z]]} line={lines[i]} towardHead={false} radius={TUBE} segments={8} />
           <TextDecal text={PORT_LABEL[port]} position={[xs[i], 0.021, 0.125]} width={0.17} height={0.04} ink="dark" weight={600} />
         </group>
       ))}
@@ -117,10 +121,10 @@ const aspirationPort = (pose: MachinePose) => pose.aspirationValve;
 
 /** The "3-way valve" in the sketch: the addition pump's line to fresh media, cleaner or waste. */
 export function AdditionValveModel() {
-  return <PinchValve ports={ADDITION_PORTS} xs={ADDITION_X} common="tubeMedia" read={additionPort} />;
+  return <PinchValve ports={ADDITION_PORTS} xs={ADDITION_X} common="addCommon" lines={["addMedia", "addCleaner", "addWaste"]} read={additionPort} />;
 }
 
 /** The "2-way valve" in the sketch: the aspiration pump's line to waste or cleaner. */
 export function AspirationValveModel() {
-  return <PinchValve ports={ASPIRATION_PORTS} xs={ASPIRATION_X} common="tubeSpent" read={aspirationPort} />;
+  return <PinchValve ports={ASPIRATION_PORTS} xs={ASPIRATION_X} common="aspCommon" lines={["aspWaste", "aspCleaner"]} read={aspirationPort} />;
 }

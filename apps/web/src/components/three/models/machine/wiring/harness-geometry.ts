@@ -7,6 +7,7 @@
  * skinned buffer can flex wherever a run crosses a moving joint.
  */
 import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, Quaternion, Euler, Uint16BufferAttribute, Vector3 } from "three";
+import { FLOW_PERIOD, type FlowLine } from "../../fluidics/flow";
 import type { MaterialKey } from "../../../materials";
 import type { RepeatItem } from "../../../primitives";
 import type { Vec3 } from "../../../types";
@@ -25,7 +26,15 @@ export interface WireRun {
   ties?: number;
   /** What each stretch is fastened to. Leave out for a run fixed to the frame all the way. */
   ride?: Ride[];
+  /** For a fluid line: true when its points run toward the dispense head, so its liquid's bands move the right way. */
+  towardHead?: boolean;
 }
+
+/** A fluid line's liquid core: the same as a wire run, keyed by the line instead of a material. */
+export type FlowRun = Omit<WireRun, "wires"> & { wires: FlowLine[] };
+
+/** Anything the harness can lay out: wires keyed by material, liquid cores keyed by line. */
+type AnyRun = Omit<WireRun, "wires"> & { wires: readonly string[] };
 
 const WIRE_RADIUS = 0.009;
 const SIDES = 6;
@@ -50,6 +59,7 @@ function spread(count: number, radius: number) {
 interface Arrays {
   positions: number[];
   normals: number[];
+  uvs: number[];
   indices: number[];
   bones: number[];
   weights: number[];
@@ -58,7 +68,7 @@ interface Arrays {
 const blend: Blend = { a: 0, b: 0, weight: 0 };
 
 /** Appends one wire's tube, following the bundle's frames with its own offset and twist. */
-function addWire(out: Arrays, run: WireRun, index: number) {
+function addWire(out: Arrays, run: AnyRun, index: number) {
   const curve = curveOf(run.points);
   const length = curve.getLength();
   const segments = Math.max(8, Math.ceil(length / STEP));
@@ -71,6 +81,8 @@ function addWire(out: Arrays, run: WireRun, index: number) {
   const centre = new Vector3();
   const normal = new Vector3();
   const last = run.points.length - 1;
+  // U runs along the wire in liquid band periods, pointing toward the head (see fluidics/flow.ts).
+  const along = (run.towardHead === false ? -1 : 1) / FLOW_PERIOD;
   for (let j = 0; j <= segments; j++) {
     const u = j / segments;
     curve.getPointAt(u, centre);
@@ -86,6 +98,7 @@ function addWire(out: Arrays, run: WireRun, index: number) {
       normal.set(0, 0, 0).addScaledVector(n, Math.cos(a)).addScaledVector(b, Math.sin(a));
       out.positions.push(cx + radius * normal.x, cy + radius * normal.y, cz + radius * normal.z);
       out.normals.push(normal.x, normal.y, normal.z);
+      out.uvs.push(u * length * along, k / sides);
       out.bones.push(blend.a, blend.b, 0, 0);
       out.weights.push(1 - blend.weight, blend.weight, 0, 0);
     }
@@ -100,22 +113,23 @@ function addWire(out: Arrays, run: WireRun, index: number) {
     }
 }
 
-/** One merged buffer per wire colour for all the runs. */
-export function harnessGeometries(runs: WireRun[]): { material: MaterialKey; geometry: BufferGeometry }[] {
-  const byMaterial = new Map<MaterialKey, Arrays>();
+/** One merged buffer per key (a wire's material, or a fluid line) for all the runs. */
+export function harnessGeometries<K extends string>(runs: (Omit<WireRun, "wires"> & { wires: readonly K[] })[]): { material: K; geometry: BufferGeometry }[] {
+  const byMaterial = new Map<K, Arrays>();
   for (const run of runs)
     run.wires.forEach((material, index) => {
       let arrays = byMaterial.get(material);
       if (!arrays) {
-        arrays = { positions: [], normals: [], indices: [], bones: [], weights: [] };
+        arrays = { positions: [], normals: [], uvs: [], indices: [], bones: [], weights: [] };
         byMaterial.set(material, arrays);
       }
       addWire(arrays, run, index);
     });
-  return [...byMaterial.entries()].map(([material, { positions, normals, indices, bones, weights }]) => {
+  return [...byMaterial.entries()].map(([material, { positions, normals, uvs, indices, bones, weights }]) => {
     const geometry = new BufferGeometry();
     geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
     geometry.setAttribute("normal", new Float32BufferAttribute(normals, 3));
+    geometry.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
     geometry.setAttribute("skinIndex", new Uint16BufferAttribute(bones, 4));
     geometry.setAttribute("skinWeight", new Float32BufferAttribute(weights, 4));
     geometry.setIndex(indices);

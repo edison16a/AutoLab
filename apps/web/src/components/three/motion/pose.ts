@@ -8,6 +8,7 @@
  * `z` lifts the beam (scene Y, negative is down). All in scene units.
  */
 import { BOTTLE_REST } from "../models/deck/labware-layout";
+import { FLOW_LINES } from "../models/fluidics/flow";
 
 export interface MachinePose {
   x: number;
@@ -36,6 +37,12 @@ export interface MachinePose {
   /** Which port each selector valve has open: an index into its ports, or -1 when every pinch valve is shut. */
   additionValve: number;
   aspirationValve: number;
+  /**
+   * How far the liquid in each fluid line (see models/fluidics/flow.ts) has
+   * moved toward the head, in scene units, and whether it is moving now.
+   */
+  flow: Float32Array;
+  flowing: Uint8Array;
   /** Media leaving the addition needle: 0 none, 1 a full stream. */
   stream: number;
   /** Fan blade angle in radians. */
@@ -69,6 +76,8 @@ export function createPose(): MachinePose {
     aspirationPump: 0,
     additionValve: -1,
     aspirationValve: -1,
+    flow: new Float32Array(FLOW_LINES.length),
+    flowing: new Uint8Array(FLOW_LINES.length),
     stream: 0,
     fan: 0,
     flash: 0,

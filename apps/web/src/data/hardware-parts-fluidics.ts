@@ -1,7 +1,8 @@
 /**
  * The fluidics that replace the pipette, from the fluidics team's sketch,
- * and the enclosure upgrade around them. Two reversible peristaltic pumps
- * do the liquid handling: pump 1 (addition) pushes fresh media out of a
+ * and the enclosure upgrade around them. Two Simply Pumps PMST100 stepper
+ * peristaltic pumps, each run by its own SMC10 controller, do the liquid
+ * handling: pump 1 (addition) pushes fresh media out of a
  * needle on the dispense head, and pump 2 (aspiration) draws spent media up
  * through a disposable tip on the same head. Behind each pump a selector
  * valve picks which bottle it's connected to: a 3-way valve for addition
@@ -15,6 +16,7 @@
  * into a disposal bin beside it.
  */
 import { STRIPPER, TROUGHS } from "@/components/three/models/deck/labware-layout";
+import { BOTTLE_Z, CONTROLLER_Z, PUMP_PANEL, PUMP_X, VALVE_Z } from "@/components/three/models/machine/fluidics-layout";
 import { FLUIDICS, TOOL } from "@/components/three/models/machine/layout";
 import type { PartDefinition } from "./hardware-parts-types";
 
@@ -22,19 +24,18 @@ import type { PartDefinition } from "./hardware-parts-types";
 const HEAD_X = TOOL.x;
 const HEAD_Z = TOOL.z;
 const DECK = FLUIDICS.top;
-/** Where the rows of pumps, valves and bottles stand on the fluidics platform, front to back, and its right and left columns. */
-const PUMP_Z = FLUIDICS.z + 1.0;
-const VALVE_Z = FLUIDICS.z + 0.1;
-const BOTTLE_Z = FLUIDICS.z - 0.9;
-const RIGHT = FLUIDICS.x + 0.4;
-const LEFT = FLUIDICS.x - 0.4;
-const PUMP_SIZE = { size: [0.8, 0.66, 0.92] as [number, number, number], center: [0.06, 0.33, -0.12] as [number, number, number] };
+/** A PMST100 from its flange to its fitting tips and from its motor's back to its head's front, around its shaft axis. */
+const PUMP_SIZE = { size: [0.86, 1.06, 1.11] as [number, number, number], center: [0, -0.1, -0.2] as [number, number, number] };
 /** From the front left: from the front right the enclosure's corner post stands in the way. */
-const PUMP_VIEW: [number, number, number] = [-0.55, 0.5, 1];
-/** From above on the left, over the pumps in front of them. */
-const VALVE_VIEW: [number, number, number] = [-0.9, 1.2, 0.35];
+const PUMP_VIEW: [number, number, number] = [-0.45, 0.35, 1];
+/** Low from the front, under the pump panel: the valves sit under the motors. */
+const VALVE_VIEW: [number, number, number] = [-0.25, 0.2, 1];
+/** From above on the left and behind, clear of the motors in front of them. */
+const CONTROLLER_VIEW: [number, number, number] = [-0.8, 1.3, -0.45];
 /** From the left, clear of the pumps and the enclosure. */
 const BOTTLE_VIEW: [number, number, number] = [-0.9, 0.5, 0.4];
+/** The SMC10's board, terminals toward the motor. */
+const CONTROLLER_SIZE = { size: [0.72, 0.33, 0.82] as [number, number, number], center: [0, 0.16, 0] as [number, number, number] };
 
 export const FLUIDICS_PARTS: PartDefinition[] = [
   {
@@ -56,31 +57,61 @@ export const FLUIDICS_PARTS: PartDefinition[] = [
   },
   {
     id: "addition_pump",
-    name: "Peristaltic pump 1 (addition)",
+    name: "Simply Pumps PMST100 (addition)",
     shortName: "Addition pump",
     category: "Fluidics",
-    purpose: "Reversible pump. Pushes fresh media out of the needle into each well, then runs back so the line doesn't drip.",
-    connection: "Stepper driver on the Pico",
+    purpose: "Stepper peristaltic pump, 4 rollers, panel mount. Pushes fresh media out of the needle into each well, then runs back so the line doesn't drip.",
+    connection: "SMC10 controller",
     model: "addition_pump",
     liveNow: false,
-    position: [RIGHT, DECK, PUMP_Z],
+    // Through the pump panel at the front of the fluidics platform; the origin is the shaft's axis on the panel's face.
+    position: [PUMP_X.addition, PUMP_PANEL.axisY, PUMP_PANEL.z],
     ...PUMP_SIZE,
-    exploded: [0, 0.6, 0],
+    // Straight out of the panel, the way it comes off.
+    exploded: [0, 0, 0.85],
     view: PUMP_VIEW,
   },
   {
     id: "aspiration_pump",
-    name: "Peristaltic pump 2 (aspiration)",
+    name: "Simply Pumps PMST100 (aspiration)",
     shortName: "Aspiration pump",
     category: "Fluidics",
-    purpose: "Reversible pump. Draws spent media up through the tip to waste, and runs the other way to flush the line with cleaner.",
-    connection: "Stepper driver on the Pico",
+    purpose: "Stepper peristaltic pump, 4 rollers, panel mount. Draws spent media up through the tip to waste, and runs the other way to flush the line with cleaner.",
+    connection: "SMC10 controller",
     model: "aspiration_pump",
     liveNow: false,
-    position: [LEFT, DECK, PUMP_Z],
+    position: [PUMP_X.aspiration, PUMP_PANEL.axisY, PUMP_PANEL.z],
     ...PUMP_SIZE,
-    exploded: [0, 0.6, 0],
+    exploded: [0, 0, 0.85],
     view: PUMP_VIEW,
+  },
+  {
+    id: "addition_controller",
+    name: "Simply Pumps SMC10 (addition)",
+    shortName: "Addition controller",
+    category: "Fluidics",
+    purpose: "Stepper motor controller for the addition pump. The Pico sets its enable, direction and 0 to 5 V speed inputs.",
+    connection: "Enable, direction and speed from the Pico",
+    model: "addition_controller",
+    liveNow: false,
+    position: [PUMP_X.addition, DECK, CONTROLLER_Z],
+    ...CONTROLLER_SIZE,
+    exploded: [0, 0.5, 0],
+    view: CONTROLLER_VIEW,
+  },
+  {
+    id: "aspiration_controller",
+    name: "Simply Pumps SMC10 (aspiration)",
+    shortName: "Aspiration controller",
+    category: "Fluidics",
+    purpose: "Stepper motor controller for the aspiration pump. The Pico sets its enable, direction and 0 to 5 V speed inputs.",
+    connection: "Enable, direction and speed from the Pico",
+    model: "aspiration_controller",
+    liveNow: false,
+    position: [PUMP_X.aspiration, DECK, CONTROLLER_Z],
+    ...CONTROLLER_SIZE,
+    exploded: [0, 0.5, 0],
+    view: CONTROLLER_VIEW,
   },
   {
     id: "addition_valve",
@@ -91,10 +122,12 @@ export const FLUIDICS_PARTS: PartDefinition[] = [
     connection: "Valve outputs on the Pico",
     model: "addition_valve",
     liveNow: false,
-    position: [RIGHT, DECK, VALVE_Z],
+    // Under the addition pump's motor.
+    position: [PUMP_X.addition, DECK, VALVE_Z],
     size: [0.62, 0.42, 0.44],
     center: [0, 0.2, 0.06],
-    exploded: [0, 0.75, 0],
+    // Up, once the pump above it has come out of the panel.
+    exploded: [0, 0.6, 0],
     view: VALVE_VIEW,
   },
   {
@@ -106,10 +139,10 @@ export const FLUIDICS_PARTS: PartDefinition[] = [
     connection: "Valve outputs on the Pico",
     model: "aspiration_valve",
     liveNow: false,
-    position: [LEFT, DECK, VALVE_Z],
+    position: [PUMP_X.aspiration, DECK, VALVE_Z],
     size: [0.42, 0.42, 0.44],
     center: [0, 0.2, 0.06],
-    exploded: [0, 0.75, 0],
+    exploded: [0, 0.6, 0],
     view: VALVE_VIEW,
   },
   {
@@ -138,7 +171,7 @@ export const FLUIDICS_PARTS: PartDefinition[] = [
     connection: "",
     model: "cleaner_bottle",
     liveNow: false,
-    position: [RIGHT - 0.05, DECK, BOTTLE_Z],
+    position: [PUMP_X.addition - 0.05, DECK, BOTTLE_Z],
     size: [0.62, 1.12, 0.66],
     center: [0, 0.56, -0.02],
     exploded: [0, 0.55, 0],
@@ -153,7 +186,7 @@ export const FLUIDICS_PARTS: PartDefinition[] = [
     connection: "Float switch to the Pico",
     model: "waste_container",
     liveNow: false,
-    position: [LEFT + 0.05, DECK, BOTTLE_Z],
+    position: [PUMP_X.aspiration + 0.05, DECK, BOTTLE_Z],
     size: [0.62, 1.12, 0.66],
     center: [0, 0.56, -0.02],
     exploded: [0, 0.55, 0],

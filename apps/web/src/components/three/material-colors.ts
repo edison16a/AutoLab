@@ -79,10 +79,8 @@ export const COLOR_RECIPES = {
   tipRackBlue: () => standard("#2d6ad6", 0.4),
   polystyrene: () => tinted("#f3f6fa", 0.32, 0.12),
   tubing: () => tinted("#eef3f6", 0.5, 0.25),
-  // Silicone fluid lines, tinted by what usually runs in them, like the colour key in the fluidics sketch.
-  tubeMedia: () => tinted("#e8728f", 0.72, 0.3),
-  tubeSpent: () => tinted("#d49a4e", 0.72, 0.3),
-  tubeCleaner: () => tinted("#5fbf8a", 0.68, 0.3),
+  // The fluid lines' 1/16" ID Tygon: clear enough that the liquid inside shows its colour.
+  tygon: () => tinted("#f2f6f7", 0.26, 0.15),
   mediaPink: () => tinted("#e2607f", 0.7, 0.15),
   wasteAmber: () => tinted("#d9a55a", 0.6, 0.2),
   // 70% ethanol with a drop of disinfectant: almost clear, with the faint green of the team's cleaner.

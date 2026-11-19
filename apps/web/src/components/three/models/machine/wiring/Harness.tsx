@@ -3,7 +3,8 @@ import { useEffect, useMemo, type ReactNode } from "react";
 import { getMaterial } from "../../../materials";
 import { Rig } from "../../../motion/Rig";
 import { Repeat } from "../../../primitives";
-import { harnessGeometries, tiePlacements, type WireRun } from "./harness-geometry";
+import { getFlowMaterial } from "../../fluidics/flow";
+import { harnessGeometries, tiePlacements, type FlowRun, type WireRun } from "./harness-geometry";
 import type { Carrier } from "./harness-rig";
 import { useRigSkeleton } from "./use-rig-skeleton";
 
@@ -38,6 +39,25 @@ export function Harness({ runs }: { runs: WireRun[] }) {
           <Repeat items={bands} shape="cylinderLow" material="plasticBlack" />
           <Repeat items={heads} material="plasticBlack" />
         </Carried>
+      ))}
+    </group>
+  );
+}
+
+/**
+ * The liquid inside the fluid lines that run with the harness: one skinned
+ * core per line, bound to the same rig bones as the tubing round it, in the
+ * line's flow material, whose bands move with the Home demo (see
+ * fluidics/flow.ts).
+ */
+export function FlowHarness({ runs }: { runs: FlowRun[] }) {
+  const parts = useMemo(() => harnessGeometries(runs), [runs]);
+  const bind = useRigSkeleton();
+  useEffect(() => () => parts.forEach(({ geometry }) => geometry.dispose()), [parts]);
+  return (
+    <group>
+      {parts.map(({ material: line, geometry }) => (
+        <skinnedMesh key={line} ref={bind} geometry={geometry} material={getFlowMaterial(line)} frustumCulled={false} dispose={null} />
       ))}
     </group>
   );

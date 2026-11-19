@@ -18,6 +18,7 @@ import { DisposalBinModel } from "./fluidics/DisposalBinModel";
 import { HepaFilterModel } from "./fluidics/HepaFilterModel";
 import { AdditionPumpModel, AspirationPumpModel } from "./fluidics/PeristalticPumpModel";
 import { AdditionValveModel, AspirationValveModel } from "./fluidics/PinchValveModel";
+import { AdditionControllerModel, AspirationControllerModel } from "./fluidics/SMC10Model";
 import { HeatedPlatformModel } from "./HeatedPlatformModel";
 import type { PartModelProps } from "./model-props";
 import { PHModuleModel } from "./PHModuleModel";
@@ -51,6 +52,8 @@ export const PART_MODELS: Record<PartModelKey, ComponentType<PartModelProps>> = 
   dispense_head: DispenseHeadModel,
   addition_pump: AdditionPumpModel,
   aspiration_pump: AspirationPumpModel,
+  addition_controller: AdditionControllerModel,
+  aspiration_controller: AspirationControllerModel,
   addition_valve: AdditionValveModel,
   aspiration_valve: AspirationValveModel,
   media_bottle: MediaBottleModel,

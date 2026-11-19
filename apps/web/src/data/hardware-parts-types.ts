@@ -30,6 +30,8 @@ export type PartModelKey =
   | "dispense_head"
   | "addition_pump"
   | "aspiration_pump"
+  | "addition_controller"
+  | "aspiration_controller"
   | "addition_valve"
   | "aspiration_valve"
   | "media_bottle"

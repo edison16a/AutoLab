@@ -10,8 +10,23 @@ import type { Vec3 } from "../../types";
 const VALVE: Vec3 = [-1.95, 4.41, 1.45];
 const at = (dx: number, dy: number, dz: number): Vec3 => [VALVE[0] + dx, VALVE[1] + dy, VALVE[2] + dz];
 
-/** Supply from the regulator: up the outside of the left wall and into the valve's left fitting. */
-const SUPPLY: Vec3[] = [at(-0.26, 0.08, 0), at(-0.4, 0.07, 0), at(-0.47, -0.2, 0), at(-0.47, -2.2, 0.02), at(-0.47, -4.1, 0.05), at(-0.44, -4.32, 0.2)];
+/**
+ * Supply from the regulator: up the outside of the back left post, forward
+ * along the outside of the left top rail and into the valve's left fitting.
+ * It keeps clear of the front left corner, where the fluid lines pass the
+ * pump panel.
+ */
+const SUPPLY: Vec3[] = [
+  at(-0.26, 0.08, 0),
+  at(-0.4, 0.07, 0),
+  at(-0.47, -0.08, -0.12),
+  [-2.42, 4.34, 0.4],
+  [-2.42, 4.34, -1.6],
+  [-2.42, 4.15, -1.99],
+  [-2.42, 2.2, -1.99],
+  [-2.42, 0.35, -1.99],
+  [-2.4, 0.09, -2.16],
+];
 /** Dosing line: out of the right fitting, through the roof grommet and down beside the front left post. */
 const DOSING: Vec3[] = [at(0.26, 0.08, 0), at(0.34, 0.06, 0), at(0.33, -0.3, 0.06), at(0.1, -0.7, 0.16), at(-0.12, -1.3, 0.21), at(-0.12, -3.3, 0.21), at(-0.1, -3.74, 0.18)];
 /** Clips that hold the dosing line to the post on its way down. */
@@ -20,7 +35,7 @@ const DIFFUSER = at(-0.1, -3.8, 0.18);
 
 /**
  * The CO₂ gas lines in clear PU tubing: the supply up the outside of the
- * left wall, and the dosing line clipped down the front left post to a
+ * back left post and along the left top rail, and the dosing line clipped down the front left post to a
  * diffuser stone just above the chamber floor, as in the system design
  * sketch.
  */

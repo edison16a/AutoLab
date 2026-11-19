@@ -43,14 +43,15 @@ export const TOOL = { x: -0.35, z: 0.05 } as const;
 
 /**
  * The white plate outside the enclosure on the left, where the fluidics
- * live: the two pumps at the front, the two selector valves behind them,
- * the Pico and its driver board in the middle, and the cleaner and waste
- * bottles at the back. Its front edge lines up with the door, so the usual
+ * live: the two pumps through a panel at the front with their selector
+ * valves under their motors, the two motor controllers behind them, the
+ * Pico and its interface board, and the cleaner and waste bottles at the
+ * back. Its front edge lines up with the door, so the usual
  * front right view sees it beside the enclosure rather than behind it.
  * Centre and size in scene units; `top` is the height of its top face,
  * where those parts stand. Every fluidics position follows from it.
  */
-export const FLUIDICS = { x: -3.25, z: 0.6, width: 1.5, depth: 2.7, top: 0.06 } as const;
+export const FLUIDICS = { x: -3.35, z: 0.35, width: 1.75, depth: 3.2, top: 0.06 } as const;
 
 /**
  * A 20 mm extrusion drawn 0.16 units wide (13 mm at scale). The enclosure

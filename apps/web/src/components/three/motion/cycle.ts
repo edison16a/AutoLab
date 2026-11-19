@@ -15,13 +15,14 @@
  */
 import { BIN, HEAD_AXIS, HOME, REACHABLE_WELLS, TIP_ORDER, TIP_SEAT, WASH, WELL, needleAt, needleSpot, socketSpot, tipAt, wellSpot } from "./deck";
 import { NEEDLE, NOSE_TIP } from "../models/deck/labware-layout";
+import { PMST100_MAX_FLOW } from "../models/fluidics/pump-spec";
 import { Script, type Step } from "./script";
 
 /** Each well gives up and gets back this many millilitres, a third of its usual 1 mL. */
 export const DOSE = 0.3;
 export const WELLS_PER_LOOP = 3;
 /** Every loop runs this long, so any moment maps straight to a loop and a time within it. */
-export const LOOP_SECONDS = 60;
+export const LOOP_SECONDS = 80;
 /** A loop uses a tip per well; once the reachable ones are gone the rack and bin are swapped for fresh ones. */
 export const LOOPS_PER_RACK = TIP_ORDER.length / WELLS_PER_LOOP;
 /**
@@ -32,11 +33,15 @@ export const LOOPS_PER_RACK = TIP_ORDER.length / WELLS_PER_LOOP;
 export const MEDIA_PER_LOOP = 0.06;
 export const WASTE_PER_LOOP = 0.06;
 
-/** How long each pump runs per well in the demo. The real protocol runs for as long as the volume takes at a gentle flow. */
-export const ASPIRATE_SECONDS = 1.4;
-export const DISPENSE_SECONDS = 1.2;
+/**
+ * How long each pump runs per well: as long as a dose really takes the
+ * PMST100 at its top speed (75 RPM on 1/16" tubing, about 81 µL a second),
+ * so the rotors, the liquid in the lines and the wells all agree.
+ */
+export const ASPIRATE_SECONDS = (DOSE * 1000) / PMST100_MAX_FLOW;
+export const DISPENSE_SECONDS = (DOSE * 1000) / PMST100_MAX_FLOW;
 /** The suction that clears a line, ten seconds on the machine, shortened for the demo. */
-export const SUCTION_SECONDS = 1.6;
+export const SUCTION_SECONDS = 3;
 
 /** A few millimetres over the plate's top: the safe height for short hops between wells. */
 const HOP = tipAt(WELL.top + 0.05);
