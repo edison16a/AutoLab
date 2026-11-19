@@ -23,7 +23,8 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     center: [0, 0.075, 0],
     // Pulled forward off the back wall rail.
     exploded: [0, 0, 0.55],
-    view: [0.25, 0.15, 1],
+    // From the front left: straight from the front the right Z lead screw stands in the way.
+    view: [-0.45, 0.15, 1],
   },
   {
     id: "co2_sensor",
@@ -40,7 +41,8 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     center: [0, 0, 0.055],
     // Pulled forward off its plate on the back wall rail.
     exploded: [0, 0, 0.5],
-    view: [-0.1, 0.15, 1],
+    // From high on the front left, over the X motor and the cables, which hide it from level.
+    view: [-0.6, 1.0, 1],
     inspectRotation: [Math.PI / 2, 0, 0],
   },
   {
@@ -57,8 +59,8 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     center: [-0.09, 0.12, 0],
     // Pulled out of its clip, into the chamber.
     exploded: [0.45, 0, 0],
-    // Along the left wall from the front right, clear of the Z lead screw.
-    view: [1, 0.3, 0.45],
+    // From the front right and level, under the X beam and clear of the Z lead screw.
+    view: [0.8, -0.05, 1],
   },
   {
     id: "heated_platform",

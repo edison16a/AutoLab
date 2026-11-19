@@ -152,7 +152,8 @@ export const MOTION_PARTS: PartDefinition[] = [
     size: [0.22, 0.24, 0.42],
     center: [0, 0.1, 0],
     exploded: [0, 0.35, 0],
-    view: [0.4, 0.8, 1],
+    // From inside the chamber along the back wall: from the front the gantry's left foot plate covers it.
+    view: [1, 0.45, 0.2],
   },
   {
     id: "z_endstop",
@@ -171,7 +172,8 @@ export const MOTION_PARTS: PartDefinition[] = [
     rig: "gantry",
     // Off the upright, into the chamber.
     exploded: [0.4, 0, 0],
-    view: [1, 0.4, 0.6],
+    // From the front right, clear of the Z lead screw and the Z carriage beside it.
+    view: [0.6, 0.3, 1],
     inspectRotation: [0, 0, 0],
   },
 ];
