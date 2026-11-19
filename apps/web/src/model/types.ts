@@ -47,6 +47,8 @@ export interface DeviceReport {
   last_seen: string | null;
   simulated: boolean;
   agent_version?: string;
+  /** The parts the Pi's hardware drivers have seen answer (supabase/migrations/003_components.sql). */
+  components?: ComponentReport[];
 }
 
 export type ActionKind = "capture_photo" | "start_preview" | "stop_preview" | "analyze_image";
@@ -74,8 +76,10 @@ export interface Frame {
 }
 
 /**
- * A part the Pi agent reports on through its heartbeat. Today only the Pi and
- * camera report; sensors will use the same shape once they have drivers.
+ * A part the Pi agent reports on through its heartbeat, or in lab mode its
+ * status row. The Pi and camera always report; the fluidics, sensors and
+ * outputs report once their drivers are configured and they answer (see
+ * docs/firmware.md).
  */
 export interface ComponentReport {
   id: string;

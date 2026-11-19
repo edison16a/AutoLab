@@ -4,9 +4,13 @@
  * every call to the signed in person's own rows.
  */
 import { supabase } from "../cloud";
-import type { Device } from "@/model/types";
+import type { ComponentReport, Device } from "@/model/types";
 
 const COLUMNS = "id,name,status,camera_online,last_seen_at,simulated,agent_version";
+/** The Pi's parts list, from supabase/migrations/003_components.sql. Projects that haven't applied it yet are read without it. */
+const WITH_COMPONENTS = `${COLUMNS},components`;
+/** Postgres' "undefined column". */
+const NO_SUCH_COLUMN = "42703";
 
 interface DeviceRow {
   id: string;
@@ -16,6 +20,7 @@ interface DeviceRow {
   last_seen_at: string | null;
   simulated: boolean;
   agent_version: string | null;
+  components?: ComponentReport[] | null;
 }
 
 function toDevice(row: DeviceRow): Device {
@@ -28,14 +33,17 @@ function toDevice(row: DeviceRow): Device {
       last_seen: row.last_seen_at,
       simulated: row.simulated,
       agent_version: row.agent_version ?? undefined,
+      components: Array.isArray(row.components) ? row.components : undefined,
     },
   };
 }
 
 export async function listDevices(): Promise<Device[]> {
-  const { data, error } = await supabase().from("devices").select(COLUMNS).order("created_at");
+  const read = (columns: string) => supabase().from("devices").select(columns).order("created_at");
+  let { data, error } = await read(WITH_COMPONENTS);
+  if (error?.code === NO_SUCH_COLUMN) ({ data, error } = await read(COLUMNS));
   if (error) throw error;
-  return (data as DeviceRow[]).map(toDevice);
+  return (data as unknown as DeviceRow[]).map(toDevice);
 }
 
 /**

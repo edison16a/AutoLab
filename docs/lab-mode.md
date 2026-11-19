@@ -16,12 +16,12 @@ The Pi needs internet on the lab Wi-Fi. Enterprise Wi-Fi and networks with a sig
 
 ## The database
 
-`supabase/migrations/001_autolab.sql` and `002_lab_mode.sql` make these:
+`supabase/migrations/001_autolab.sql`, `002_lab_mode.sql` and `003_components.sql` make these:
 
 | Table | What it holds |
 | --- | --- |
 | `profiles` | One row per person, made at sign up |
-| `devices` | Each Autolab, its owner, its Pi's login and the status the Pi last reported |
+| `devices` | Each Autolab, its owner, its Pi's login, the status the Pi last reported and, once its hardware drivers are on, the parts that answered |
 | `images` | One row per photo, pointing at its JPEG in the private `autolab-images` bucket |
 | `image_analysis` | Object detection results for a photo |
 | `actions` | The command log: every photo, preview start and stop and analysis, and how it ended |
@@ -37,7 +37,7 @@ The rules, enforced by Postgres itself:
 ## 1. Set up Supabase
 
 1. Sign in at [supabase.com](https://supabase.com) and create a project. Pick the region nearest the lab and keep the database password somewhere safe.
-2. Open **SQL Editor**, paste all of `supabase/migrations/001_autolab.sql` and run it. Then do the same with `002_lab_mode.sql`. Both must run, in that order.
+2. Open **SQL Editor**, paste all of `supabase/migrations/001_autolab.sql` and run it. Then do the same with `002_lab_mode.sql`, then `003_components.sql`. All three must run, in that order. A project set up before `003_components.sql` existed only needs that one; until then the site and the Pi simply leave the parts list out.
 3. Open **Authentication**, then **Sign In / Providers**:
    - check that **Email** is on;
    - turn on **Allow anonymous sign-ins**. Each Pi signs in this way. Anonymous logins can't add Autolabs or send commands, and can only use an Autolab once its owner links them;

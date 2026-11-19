@@ -63,6 +63,7 @@ export function useLabChannel(device: Device | null, _gateway: string, urls: Obj
       simulated: !!report?.simulated,
       last_seen: report?.last_seen ?? null,
       agent_version: report?.agent_version,
+      components: fresh && report?.online ? report.components : [],
     }),
     [fresh, report],
   );
