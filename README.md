@@ -4,7 +4,7 @@
 
 <h1 align="center">Autolab</h1>
 
-Autolab is a low cost automated cell culture system for neuronal cultures, built by the Neurotech wet lab team. A desktop 3D printer gantry sits inside an insulated enclosure that holds 37 °C, 5% CO₂ and 85 to 95% humidity. The gantry carries a motorized P1000 pipette for media changes and a Raspberry Pi HQ camera for checking the culture, all run by a Raspberry Pi 4.
+Autolab is a low cost automated cell culture system for neuronal cultures, built by the Neurotech wet lab team. A desktop 3D printer gantry sits inside an insulated enclosure that holds 37 °C, 5% CO₂ and 85 to 95% humidity. The gantry carries a dispense head for media changes and a Raspberry Pi HQ camera for checking the culture. Two reversible peristaltic pumps do the liquid handling, a HEPA fan filter unit keeps a laminar downflow over the plate, and it's all run by a Raspberry Pi 4 with a Pico for the fluidics.
 
 This repository is the software. You sign in, connect your Autolab over Bluetooth, and then watch the live camera, take photos, run object detection and browse the results. In lab mode the Pi talks to Supabase itself, so you can watch, take photos and follow along from any phone or laptop, with no computer kept on next to the machine. A 3D model of the whole machine shows every part and what state it's in.
 
@@ -12,7 +12,7 @@ This repository is the software. You sign in, connect your Autolab over Bluetoot
 
 ![Home: the Autolab in 3D running a media change, with device status and headline numbers](docs/screenshots/home.png)
 
-![Hardware: a part focused on the 3D machine, with its details on the right](docs/screenshots/hardware.png)
+![Hardware: the dispense head focused on the 3D machine, with its details on the right](docs/screenshots/hardware.png)
 
 | Live camera | Image library |
 | --- | --- |
@@ -26,7 +26,7 @@ The library and statistics shots use sample images, since object detection can't
 
 ## What it does
 
-- **Home** shows the whole machine in 3D, running a demo media change (picking up tips, drawing and dispensing media, ejecting tips), next to the device status, a few numbers and your latest photos.
+- **Home** shows the whole machine in 3D, running a demo media change (a fresh tip for each well, the aspiration pump drawing spent media to waste, tips stripped into the disposal bin, then the addition pump feeding each well from the needle), next to the device status, a few numbers and your latest photos.
 - **Live** streams the Pi camera at about 4 frames a second, takes full resolution stills and can run object detection on the stream. It can also use your computer's camera or an uploaded photo.
 - **Data** keeps every image with its detections. Filter, search by label, open an image, analyze it, download or delete.
 - **Statistics** charts captures per day and by hour, detected objects, confidence, inference time and sources.
@@ -64,7 +64,8 @@ In lab mode the Pi signs in to Supabase as its own anonymous login, which its ow
 | --- | --- | --- |
 | `apps/web` | The web app. Routes in `app/`, everything else in `src/` by feature | Vercel or any Node host |
 | `services/gateway` | The WebSocket and HTTP gateway | Any always-on host |
-| `devices/raspberry-pi` | The camera agent and the Bluetooth setup service | Raspberry Pi 4 |
+| `devices/raspberry-pi` | The camera agent, the Bluetooth setup service and the hardware drivers | Raspberry Pi 4 |
+| `devices/pico` | The fluidics firmware: pumps, pinch valves, HEPA fan and waste float switch | Raspberry Pi Pico |
 | `workers/ml` | Optional worker that saves analyses in cloud mode | Your computer |
 | `supabase/migrations` | Tables, security rules and the storage bucket | Supabase |
 | `supabase/tests` | Checks for the security rules on a plain Postgres | CI |
@@ -112,7 +113,7 @@ It prints a Device ID. In the app, click **Connect device**, go through the step
 
 ### Lab mode
 
-[docs/lab-mode.md](docs/lab-mode.md) goes from an empty Supabase project to a Pi set up over Bluetooth and other devices following along. In short: run both migrations in Supabase and turn on anonymous sign ins, set `NEXT_PUBLIC_AUTOLAB_MODE=lab` and the Supabase URL and anon key on the Vercel site (https://auto-lab-web.vercel.app), install the Pi with `devices/raspberry-pi/install.sh`, then open the site in Chrome and click **Connect device**.
+[docs/lab-mode.md](docs/lab-mode.md) goes from an empty Supabase project to a Pi set up over Bluetooth and other devices following along. In short: run the migrations in Supabase and turn on anonymous sign ins, set `NEXT_PUBLIC_AUTOLAB_MODE=lab` and the Supabase URL and anon key on the Vercel site (https://auto-lab-web.vercel.app), install the Pi with `devices/raspberry-pi/install.sh`, then open the site in Chrome and click **Connect device**.
 
 ### A real Raspberry Pi
 
@@ -184,13 +185,14 @@ npx supabase start
 .venv/bin/python tests/run_lab_e2e.py
 ```
 
-The real CSI camera, Bluetooth radio pairing and a hosted Supabase project still need a check on real hardware and accounts.
+The Pico firmware and the hardware drivers are tested against fake hardware: `tests/test_pico_firmware.py` runs the firmware's own logic under CPython. The real CSI camera, Bluetooth radio pairing, the pumps, valves, sensors and gantry, and a hosted Supabase project still need a check on real hardware and accounts.
 
 ## More
 
 - [Architecture and limits](docs/architecture.md)
 - [Wire protocol](docs/protocol.md)
 - [The 3D model](docs/digital-twin.md)
+- [Firmware and hardware drivers](docs/firmware.md)
 - [Browser object detection](docs/browser-detection.md)
 - [Lab mode](docs/lab-mode.md)
 - [Prepare a Raspberry Pi, step by step](docs/pi-setup.md)

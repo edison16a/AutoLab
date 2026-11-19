@@ -45,13 +45,15 @@ In lab mode there is no gateway. The Pi signs in to Supabase as its own anonymou
 
 `services/gateway/autolab_gateway` is split by job: `config`, `protocol` (the binary envelope), `peers` and `rooms` (connections and their queues), `limits`, `sweeper` (timeouts), `http_routes`, `socket_routes` with one module per role under `handlers/`, and `cloud` (the Supabase adapter, the only code that holds the service key). `main.py` stays a thin entry point, so `uvicorn main:app` works as before.
 
-`devices/raspberry-pi/autolab_agent` holds the camera agent (`cli`, `agent`, `link`, `preview`, `commands`, `camera`, `telemetry`, `credentials`, `registration`) and the optional Bluetooth setup service under `provisioning/`. `python -m autolab_agent.main` and `python -m autolab_agent.provisioning` are unchanged.
+`devices/raspberry-pi/autolab_agent` holds the camera agent (`cli`, `agent`, `link`, `preview`, `commands`, `camera`, `telemetry`, `credentials`, `registration`), the optional Bluetooth setup service under `provisioning/`, and the hardware drivers under `hardware/`: the Pico client, the I²C sensors and GPIO outputs, the Marlin client and the media change routines. `python -m autolab_agent.main` and `python -m autolab_agent.provisioning` are unchanged.
+
+`devices/pico` is the Pico's MicroPython firmware for the fluidics: both pump steppers, the pinch valves, the HEPA fan and the waste float switch, behind a line based JSON protocol over USB serial with its own safety rules. See [firmware](firmware.md).
 
 `workers/ml/autolab_worker` is the optional ML worker for cloud mode (`cli`, `worker`, `auth`, `detector`), started with `python main.py`.
 
 ## Scope
 
-Today the live hardware is the Pi and its camera. The 3D model shows the whole machine from the design (gantry, pipette tool, sensors, environment control), and every part that has no driver yet says "Not installed" instead of showing made up readings. Motion, pipetting and environment control need their own protocol and safety design before they're wired in. The pipetting animation on Home is a demo drawn in the browser; it sends nothing to the machine. The real camera uses whichever sensor Picamera2 finds; check sensor support and memory use on the 1 GB Pi.
+Today the live hardware is the Pi and its camera. The 3D model shows the whole machine from the design (gantry, dispense head and pump fluidics, HEPA unit, sensors, environment control), and every part that hasn't reported says "Not installed" instead of showing made up readings. The Pico firmware and the Pi's drivers for the fluidics, sensors, outputs and gantry are written and tested against fakes, and stay off until `.env` turns them on; none of it has run on the real hardware yet (see [firmware](firmware.md)). The media change animation on Home is a demo drawn in the browser; it sends nothing to the machine. The real camera uses whichever sensor Picamera2 finds; check sensor support and memory use on the 1 GB Pi.
 
 The object detector is a general COCO model. It proves the capture, analyze and review loop, and it does not measure cells.
 

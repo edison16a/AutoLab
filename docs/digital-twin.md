@@ -8,33 +8,51 @@ The web app draws the whole Autolab in 3D with Three.js, React Three Fiber and D
 - **Hardware** is the full workspace. The machine stands still here so every part can be inspected, until you press **Live view**.
 - The **Connect device** wizard reuses the same models to show where the camera ribbon goes, how the Pi is powered and, at the end, the assembled machine.
 
+## What's on the machine
+
+The model follows the system design sketch, the fluidics sketch and the enclosure plan:
+
+- **The enclosure**: a black V-slot frame on the blue base, closed by clear acrylic panels on the back, left, right and roof and the gasketed front door. A **HEPA fan filter unit** sits in the roof and pushes filtered air down through the chamber in an even, laminar flow, so particles are swept away from the open plate.
+- **The gantry**: the converted Ender-3 motion system, carrying the camera dock and the **dispense head**.
+- **The dispense head** replaces the pipette. Its stainless nose takes a disposable tip for aspiration, and a blunt needle beside it is the end of the addition line. It has no motor or electronics; the pumps do the work.
+- **The fluidics platform**, outside on the left so bleach fumes and motor heat stay out of the chamber, holds what the fluidics sketch calls the combined system:
+  - **Pump 1 (addition)**, a reversible peristaltic pump. Behind it the **3-way valve** connects it to fresh media, cleaner or waste.
+  - **Pump 2 (aspiration)**, the same pump. Behind it the **2-way valve** connects it to waste or cleaner.
+  - The **cleaner** bottle (70% ethanol) and the **waste bottle and bleach trap**, shared by both valves. The waste has a float switch, so the pumps stop before it's full.
+  - The **Pico** and its driver board, which run all of the above.
+- **Inside the chamber**: the heated platform with the 24-well plate, the wash station and the **tip disposal bin** with its stripper, the tip rack, and the **media bottle**, kept at 37 °C, whose line runs out to the 3-way valve.
+- **The Pi platform** on the right with the Pi and the pH board, and the environment sensors and outputs around the chamber.
+
+The fluid lines are coloured by what usually runs in them, like the sketch's key: pink for fresh media, amber for spent media and waste, green for cleaner.
+
 ## Using the Hardware screen
 
 1. Click a part in the model or in the list on the left. The camera flies in close to it, and the rest of the machine stays visible around it.
 2. The panel on the right shows what the part is, how it connects and its live state.
 3. **Inspect item** shows the part on its own, centred, so you can turn it over. **Back to machine** returns to it in place.
-4. **Exploded view** moves the door and side panel out and each part along the way it's mounted. **Live view** plays the Home demo here; press it again to pause, and it turns Exploded view off while it runs. **Connections** draws the links between parts. **Reset view** flies back to the whole machine.
+4. **Exploded view** moves the door, the panels and the roof with its HEPA unit out, and each part along the way it's mounted. **Live view** plays the Home demo here; press it again to pause, and it turns Exploded view off while it runs. **Connections** draws the links between parts. **Reset view** flies back to the whole machine.
 
 Drag to orbit and right drag (or two fingers) to pan. The scroll wheel and trackpad pinch zoom toward the pointer, so whatever is under the cursor stays under it. `/hardware?part=<id>` opens with that part selected, which is how Home links in.
 
 ## What the Home demo does
 
-Home runs a looping media change, the same one the real machine is built for:
+Home runs a looping media change on three wells, the protocol from the fluidics sketch:
 
-1. The tool travels to the tip rack, lowers slowly and presses onto a tip.
-2. It visits three wells, draws off spent media (the tip fills amber) and empties it into the tip chute, then ejects that tip.
-3. It takes a fresh tip, draws warm media from the reservoir (the tip fills pink) and gives each well its share back.
-4. It parks, the camera's LED blinks for a picture, and the loop starts again with other wells.
+1. **Aspiration**, for each well: the head presses onto a fresh tip, lowers it into the well, and the aspiration pump runs with its valve open to waste, so the spent media goes up through the tip (it shows amber) and the well empties. The head lifts away from the plate, slides the nose into the stripper's slot over the disposal bin and lifts, and the tip drops into the bin.
+2. The aspiration pump runs on over the wash station to clear its line (ten seconds on the machine, shortened in the demo).
+3. **Addition**: the 3-way valve opens to media and the addition pump pushes fresh media out of the needle into each well in turn, from just above the plate. A thin pink stream falls into the well and the media bottle goes down.
+4. The addition pump runs back with its valve open to waste, so the line doesn't drip.
+5. The head parks, the camera's LED blinks for a picture, and the loop starts again with other wells.
 
-Z always lifts to a safe height before any X or Y travel. Travel is quick with eased starts and stops, and moves onto a tip or into liquid are slow. Lead screws, pulleys and motor shafts turn with their axes, the drag chain rolls, the cables bend across the moving joints and the circulation fan spins.
+Z always lifts to a safe height before any X or Y travel. Travel is quick with eased starts and stops, and moves onto a tip or into liquid are slow. Lead screws, pulleys and motor shafts turn with their axes, the drag chain rolls, the cables and fluid lines bend across the moving joints, and the circulation and HEPA fans spin. Each pump's rotor turns while it runs, one way to push toward the head and the other to draw back, and each pinch valve's green light shows which port is open.
 
 The demo pauses when the model is scrolled out of view or the tab is hidden. On Home it's off entirely when the system asks for reduced motion. The Hardware screen runs it only when you press **Live view**, and then it plays whatever the motion setting, since you asked for it.
 
 ## Telling the truth about parts
 
-Only the Raspberry Pi and its camera are wired into the software today. Their state comes from the device itself: heartbeat, agent version, network and whether a camera was found. The simulator is labelled as a simulator everywhere. Every other part shows **Not installed** and no readings, rather than made up numbers.
+The Raspberry Pi and its camera always report. Their state comes from the device itself: heartbeat, agent version, network and whether a camera was found. The simulator is labelled as a simulator everywhere. Every other part shows **Not installed** and no readings, rather than made up numbers, until its driver reports it.
 
-When a driver for another part exists, the Pi can report it in its heartbeat and the details panel picks it up with no app changes:
+The drivers for the fluidics, sensors, outputs and gantry are written (see [firmware](firmware.md)) and stay off until the Pi's `.env` turns them on. Then the Pi lists each part that really answered in its heartbeat, or in lab mode its status row, and the details panel picks it up with no app changes:
 
 ```json
 {
@@ -59,28 +77,28 @@ That's an example of the format only. Nothing in the app or the agent sends samp
 
 | Where | What's in it |
 | --- | --- |
-| `src/data/hardware-parts-*.ts` | The parts registry. Each part has an id, a name, what it's for, how it connects, its model, where it sits, its exploded offset, its hit boxes and the camera angle it's framed from. |
-| `src/data/hardware-connections.ts` | The links the Connections overlay draws. |
+| `src/data/hardware-parts-*.ts` | The parts registry, by area: electronics, chamber, fluidics and motion. Each part has an id, a name, what it's for, how it connects, its model, where it sits, its exploded offset, its hit boxes and the camera angle it's framed from. |
+| `src/data/hardware-connections.ts` | The links the Connections overlay draws: wiring and tubing. |
 | `src/components/hardware` | The Hardware screen: the list, the details panel, the toolbar and `MachineView`, the one component every screen embeds. |
 | `src/components/hardware/scene` | The canvas, the scene, each selectable part node, camera framing and the Connections overlay. |
 | `src/components/three` | The shared 3D kit: the stage, lighting and shadows, materials and colours, primitives, camera controls and picking. |
-| `src/components/three/models` | One model per part, with shared board details (chips, headers, connectors), the machine body, labware, and the wiring under `machine/wiring`. |
-| `src/components/three/motion` | The demo. `script.ts` and `cycle.ts` write the loop as a robot program, `timeline.ts` turns a time into a machine pose, and the moving parts read that pose each frame. |
+| `src/components/three/models` | One model per part, with shared board details (chips, headers, connectors), the machine body, labware, the fluidics under `fluidics/`, and the wiring and tubing under `machine/wiring`. |
+| `src/components/three/motion` | The demo. `script.ts` and `cycle.ts` write the loop as a robot program, `timeline.ts` turns a time into a machine pose (axes, pump rotors, open valve ports, liquid levels), and the moving parts read that pose each frame. |
 
-To change where a part sits, edit its registry entry. The model, its hit boxes, the camera framing, the exploded view and the demo's reach all follow from it. To swap a hand built model for a GLB file, keep the model's origin and scale and replace its body.
+To change where a part sits, edit its registry entry. The model, its hit boxes, the camera framing, the exploded view and the demo's reach all follow from it, and so do the ends of its fluid lines. The whole fluidics platform moves with `FLUIDICS` in `machine/layout.ts`. To swap a hand built model for a GLB file, keep the model's origin and scale and replace its body.
 
-Materials live in `materials.ts` and their colours in `material-colors.ts`. The UI uses only the accent blue plus black and white, and the 3D models use real colours: a green Pi on a white platform, an open black frame, a blue powder coated base with the team logo engraved in black, and colour coded wiring.
+Materials live in `materials.ts` and their colours in `material-colors.ts`. The UI uses only the accent blue plus black and white, and the 3D models use real colours: a green Pi on a white platform, a black frame behind clear panels, a blue powder coated base with the team logo engraved in black, colour coded wiring and tinted fluid lines.
 
 ## Performance
 
 - three.js loads only when a 3D view mounts, and never on the server.
 - The canvas renders on demand. It draws while something moves and otherwise sits idle.
 - Shadows are frozen until geometry moves. The demo redraws them five times a second instead of every frame.
-- Repeated pieces (pins, screws, chain links, cable ties) are instanced, and each wire colour is one mesh.
+- Repeated pieces (pins, screws, chain links, cable ties, diffuser holes) are instanced, and each wire and tube colour is one mesh.
 - Only one full machine renders at a time. Home drops its canvas while the Connect device wizard draws its own.
 - On a software renderer (no usable GPU, a virtual machine, headless CI) the view drops shadows and antialiasing and keeps the Home demo still, so the page stays responsive. Set `localStorage["autolab:render"] = "full"` to keep the full look, for example when taking screenshots.
 - When WebGL is missing or lost, the view says so, and the parts list and device actions keep working.
 
 ## Checks
 
-The end to end suite selects parts, inspects one, goes back, searches the list and checks the no-WebGL fallback, all with reduced motion on, so the demo stays still in tests. The Pi's Bluetooth radio pairing, NetworkManager activation and the real CSI camera still need a check on the target Raspberry Pi.
+The end to end suite selects parts, inspects one, goes back, searches the list and checks the no-WebGL fallback, all with reduced motion on, so the demo stays still in tests. The Pi's Bluetooth radio pairing, NetworkManager activation, the real CSI camera and all of the fluidics hardware still need a check on the target machine.
