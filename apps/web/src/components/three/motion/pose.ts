@@ -7,29 +7,37 @@
  * beam (scene X), `y` rolls the whole gantry toward the door (scene +Z) and
  * `z` lifts the beam (scene Y, negative is down). All in scene units.
  */
+import { BOTTLE_REST } from "../models/deck/labware-layout";
+
 export interface MachinePose {
   x: number;
   y: number;
   z: number;
-  /** Plunger travel: 0 released, 0.8 the first stop, 1 blowout, a little past that ejects the tip. */
-  plunger: number;
-  /** A tip is on the pipette's nose. */
+  /** A tip is on the head's nose. */
   tip: boolean;
-  /** Share of the tip holding liquid, and whether that liquid is spent media rather than fresh. */
+  /** Share of the tip holding spent media while the aspiration line draws through it. */
   fill: number;
-  spent: boolean;
   /** One bit per tip rack socket that still holds a tip. */
   rack: number;
   /** Media in each of the 24 wells, 1 being the usual level. */
   wells: Float32Array;
-  /** Fresh media left in the reservoir, 1 when topped up. */
-  reservoir: number;
-  /** Used tips lying in the chute. */
+  /** Fresh media left in the media bottle and spent media in the waste bottle, as shares of what each holds. */
+  media: number;
+  waste: number;
+  /** Used tips lying in the disposal bin. */
   chuteTips: number;
-  /** A tip on its way down into the chute: 0 to 1 while it falls, -1 otherwise. */
+  /** A tip on its way down into the bin: 0 to 1 while it falls, -1 otherwise. */
   drop: number;
   /** Where the falling tip let go: its axis in scene X and Z, and its top edge's height. */
   dropAt: [number, number, number];
+  /** Rotor angles of the two peristaltic pumps, in radians. */
+  additionPump: number;
+  aspirationPump: number;
+  /** Which port each selector valve has open: an index into its ports, or -1 when every pinch valve is shut. */
+  additionValve: number;
+  aspirationValve: number;
+  /** Media leaving the addition needle: 0 none, 1 a full stream. */
+  stream: number;
   /** Fan blade angle in radians. */
   fan: number;
   /** Camera status LED, 0 dark to 1 fully lit for a capture. */
@@ -38,22 +46,30 @@ export interface MachinePose {
 
 export const WELL_COUNT = 24;
 
-/** A still machine: at rest, nothing on the nose, every well at its usual level. */
+/** The addition valve's ports, in the order its pinch valves sit, and the aspiration valve's. */
+export const ADDITION_PORTS = ["media", "cleaner", "waste"] as const;
+export const ASPIRATION_PORTS = ["waste", "cleaner"] as const;
+
+/** A still machine: at rest, nothing on the nose, every well at its usual level, every valve shut. */
 export function createPose(): MachinePose {
   return {
     x: 0,
     y: 0,
     z: 0,
-    plunger: 0,
     tip: false,
     fill: 0,
-    spent: false,
     rack: 0,
     wells: new Float32Array(WELL_COUNT).fill(1),
-    reservoir: 1,
+    media: BOTTLE_REST.media,
+    waste: BOTTLE_REST.waste,
     chuteTips: 0,
     drop: -1,
     dropAt: [0, 0, 0],
+    additionPump: 0,
+    aspirationPump: 0,
+    additionValve: -1,
+    aspirationValve: -1,
+    stream: 0,
     fan: 0,
     flash: 0,
   };

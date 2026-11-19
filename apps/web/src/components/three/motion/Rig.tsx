@@ -7,21 +7,17 @@ import type { MachinePose } from "./pose";
 
 /**
  * What a piece of the machine is carried by. The gantry rolls on Y, the
- * beam rides it up and down on Z, the carriage runs along the beam on X,
- * and the plunger drive moves down the carriage as the plunger is pressed.
- * Each rides everything above it in that list.
+ * beam rides it up and down on Z and the carriage, with the dispense head
+ * on it, runs along the beam on X. Each rides everything above it in that
+ * list.
  */
-export type RigName = "gantry" | "beam" | "carriage" | "plunger";
-
-/** How far the plunger drive moves down at full blowout, in scene units (about 8 mm). */
-export const PLUNGER_STROKE = 0.1;
+export type RigName = "gantry" | "beam" | "carriage";
 
 /** Writes how far something on `rig` has moved from rest, in scene axes. */
 export function rigOffset(pose: MachinePose, rig: RigName, out: Vector3) {
   const beam = rig === "gantry" ? 0 : pose.z;
-  const along = rig === "carriage" || rig === "plunger" ? pose.x : 0;
-  const press = rig === "plunger" ? pose.plunger * PLUNGER_STROKE : 0;
-  return out.set(along, beam - press, pose.y);
+  const along = rig === "carriage" ? pose.x : 0;
+  return out.set(along, beam, pose.y);
 }
 
 /**

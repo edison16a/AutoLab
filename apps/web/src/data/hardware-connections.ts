@@ -1,6 +1,7 @@
 /**
- * How the parts are wired, from the controls architecture sketch. Only the
- * camera link carries data today; everything else is planned.
+ * How the parts are wired and plumbed, from the controls architecture
+ * sketch and the fluidics sketch. Only the camera link carries data today;
+ * everything else is planned.
  */
 import type { PartConnection } from "./hardware-parts-types";
 
@@ -15,11 +16,21 @@ export const PART_CONNECTIONS: PartConnection[] = [
   { from: "heated_platform", to: "raspberry_pi", label: "Heater output", live: false },
   { from: "circulation_fan", to: "raspberry_pi", label: "Fan output", live: false },
   { from: "co2_valve", to: "raspberry_pi", label: "Valve output", live: false },
-  { from: "pipette_motor", to: "pico", label: "Stepper driver", live: false },
-  { from: "as5600", to: "pico", label: "I²C", live: false },
-  { from: "pipette_home", to: "pico", label: "Digital input", live: false },
-  { from: "hx711", to: "pico", label: "Digital", live: false },
-  { from: "load_cell", to: "hx711", label: "Bridge", live: false },
+  { from: "hepa_filter", to: "pico", label: "Fan PWM", live: false },
+  { from: "addition_pump", to: "pico", label: "Stepper driver", live: false },
+  { from: "aspiration_pump", to: "pico", label: "Stepper driver", live: false },
+  { from: "addition_valve", to: "pico", label: "Valve outputs", live: false },
+  { from: "aspiration_valve", to: "pico", label: "Valve outputs", live: false },
+  { from: "waste_container", to: "pico", label: "Float switch", live: false },
+  { from: "dispense_head", to: "addition_pump", label: "Addition line", live: false },
+  { from: "dispense_head", to: "aspiration_pump", label: "Aspiration line", live: false },
+  { from: "addition_pump", to: "addition_valve", label: "Tubing", live: false },
+  { from: "aspiration_pump", to: "aspiration_valve", label: "Tubing", live: false },
+  { from: "addition_valve", to: "media_bottle", label: "Media line", live: false },
+  { from: "addition_valve", to: "cleaner_bottle", label: "Cleaner line", live: false },
+  { from: "addition_valve", to: "waste_container", label: "Waste line", live: false },
+  { from: "aspiration_valve", to: "waste_container", label: "Waste line", live: false },
+  { from: "aspiration_valve", to: "cleaner_bottle", label: "Cleaner line", live: false },
   { from: "x_endstop", to: "printer_controller", label: "Endstop", live: false },
   { from: "y_endstop", to: "printer_controller", label: "Endstop", live: false },
   { from: "z_endstop", to: "printer_controller", label: "Endstop", live: false },

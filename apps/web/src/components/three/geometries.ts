@@ -52,7 +52,7 @@ export function roundedBoxGeometry(width: number, height: number, depth: number,
 }
 
 /**
- * A tapered cylinder of height 1 and bottom radius 1, for pipette tips,
+ * A tapered cylinder of height 1 and bottom radius 1, for tips,
  * bottle shoulders and nozzles. Scale it like the unit cylinder.
  */
 export function taperGeometry(topRatio: number, segments = 32) {

@@ -1,20 +1,22 @@
 /**
  * The Autolab parts registry: every part the 3D views can show, where it
- * sits on the machine, and how it's wired. The original 16 parts keep the
- * ids and names from the owner's parts list; the rest come from the system
- * design sketch. Split by area into the hardware-parts-*.ts files.
+ * sits on the machine, and how it's wired. The original parts keep the ids
+ * and names from the owner's parts list; the rest come from the system
+ * design sketch, the fluidics sketch and the enclosure plan. Split by area
+ * into the hardware-parts-*.ts files.
  */
 import { CHAMBER_PARTS } from "./hardware-parts-chamber";
 import { ELECTRONICS_PARTS } from "./hardware-parts-electronics";
+import { FLUIDICS_PARTS } from "./hardware-parts-fluidics";
 import { MOTION_PARTS } from "./hardware-parts-motion";
 import type { PartCategory, PartDefinition, PartHitBox, Vec3 } from "./hardware-parts-types";
 
 export type { PartCategory, PartConnection, PartDefinition, PartHitBox, PartModelKey } from "./hardware-parts-types";
 
 /** List order on the Hardware screen: what's live first, then by area. */
-export const PART_CATEGORIES: PartCategory[] = ["Computer", "Imaging", "Environment", "Pipette", "Control", "Motion", "Labware"];
+export const PART_CATEGORIES: PartCategory[] = ["Computer", "Imaging", "Environment", "Fluidics", "Control", "Motion", "Labware"];
 
-export const HARDWARE_PARTS: PartDefinition[] = [...ELECTRONICS_PARTS, ...CHAMBER_PARTS, ...MOTION_PARTS];
+export const HARDWARE_PARTS: PartDefinition[] = [...ELECTRONICS_PARTS, ...CHAMBER_PARTS, ...FLUIDICS_PARTS, ...MOTION_PARTS];
 
 export const partById: Record<string, PartDefinition> = Object.fromEntries(HARDWARE_PARTS.map((part) => [part.id, part]));
 

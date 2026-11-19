@@ -11,7 +11,7 @@ const FOCUS: Record<StepIndex, CameraFocus> = {
   [STEP.power]: { target: [-0.45, 0.5, 0.1], radius: 1.2, direction: [-0.45, 0.7, 1], fill: 0.88 },
   [STEP.discover]: { target: [0.25, 0.42, -0.25], radius: 1.65, direction: [0.1, 0.55, 1], fill: 0.9 },
   [STEP.device]: { target: [0.85, 0.7, -0.5], radius: 2.35, direction: [0.1, 0.5, 1], fill: 0.92 },
-  [STEP.ready]: { target: [0.55, 2.05, 0.1], radius: 3.5, direction: [0.95, 0.55, 1.5], fill: 0.9 },
+  [STEP.ready]: { target: [-0.1, 2.2, 0.1], radius: 4.15, direction: [0.3, 0.5, 1.5], fill: 0.9 },
 };
 
 export function stepFocus(step: StepIndex): CameraFocus {

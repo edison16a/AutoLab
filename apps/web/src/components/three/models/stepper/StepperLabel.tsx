@@ -14,9 +14,9 @@ const axis = new Vector3();
 
 /**
  * The white rating label stuck across the stator on the -Z face, over the
- * lamination ridges. The same motor hangs shaft down on the pipette and
- * stands shaft up on the Z axis, so on mount the label checks which way
- * the motor points in the scene and turns its print to read upright.
+ * lamination ridges. The same motor stands shaft up on the Z axis and lies
+ * on its side behind each pump, so on mount the label checks which way the
+ * motor points in the scene and turns its print to read upright.
  */
 export function StepperLabel({ z }: { z: number }) {
   const ref = useRef<Group>(null);

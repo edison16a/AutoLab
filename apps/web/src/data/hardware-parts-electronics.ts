@@ -1,10 +1,12 @@
 /**
- * The computer, camera and controller boards. The Pi, Pico and pH module
- * sit bare on a white platform outside the enclosure at the bottom right,
- * as in the system design sketch. The camera sits in its dock on
- * the right of the gantry and its ribbon runs down the right wall and out
- * to the Pi.
+ * The computer, camera and controller boards. The Pi and pH module sit
+ * bare on a white platform outside the enclosure at the bottom right, as
+ * in the system design sketch, and the Pico sits with the fluidics it
+ * drives on the platform on the left. The camera sits in its dock on the
+ * right of the gantry and its ribbon runs down the right wall and out to
+ * the Pi.
  */
+import { BREADBOARD } from "@/components/three/models/machine/fluidics-layout";
 import type { PartDefinition } from "./hardware-parts-types";
 
 export const ELECTRONICS_PARTS: PartDefinition[] = [
@@ -70,15 +72,18 @@ export const ELECTRONICS_PARTS: PartDefinition[] = [
     name: "Raspberry Pi Pico",
     shortName: "Pico",
     category: "Control",
-    purpose: "Future local controller for time-sensitive pipette I/O.",
+    purpose: "Fluidics controller. Drives both pump steppers and the pinch valves, runs the HEPA fan and watches the waste float switch.",
     connection: "USB serial",
     model: "pico",
     liveNow: false,
-    position: [2.82, 0.2, 0.86],
-    size: [0.3, 0.18, 0.66],
+    // In its breadboard on the fluidics platform, USB end toward the platform's left edge.
+    position: [BREADBOARD.x, 0.2, BREADBOARD.z],
+    rotation: [0, -Math.PI / 2, 0],
+    size: [0.66, 0.18, 0.3],
     center: [0, -0.05, 0],
     exploded: [0, 0.45, 0],
-    view: [0.45, 1.1, 0.8],
+    // From above on the left, between the valves and the bottles.
+    view: [-0.5, 1.3, 0.35],
   },
   {
     id: "ph_sensor",

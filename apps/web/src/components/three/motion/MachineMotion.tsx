@@ -84,8 +84,8 @@ function MotionClock({ pose }: { pose: MachinePose }) {
 
 /**
  * Runs the Home demo for everything inside it while `active`: the gantry,
- * the pipette and the labware follow a looping media change, and the fan
- * spins. It pauses when the canvas leaves the screen or the tab is hidden.
+ * the dispense head, the pumps, valves and labware follow a looping media
+ * change, and the fans spin. It pauses when the canvas leaves the screen or the tab is hidden.
  * Inactive, it hands out no pose and the machine stands at rest; the tree
  * is the same either way, so switching never remounts the machine.
  */

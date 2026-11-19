@@ -34,7 +34,7 @@ const RINGS: RepeatItem[] = WELLS.map(({ x, z }) => ({ position: [x, PLATE.heigh
 const RING_SCALE: Vec3 = [WELL_RADIUS + mm(0.6), WELL_RADIUS + mm(0.6), mm(4)];
 
 /**
- * The clear lid, drawn as its top sheet and four skirt walls. The pipette
+ * The clear lid, drawn as its top sheet and four skirt walls. The head
  * can't reach the wells through it, so it is off for the whole Home demo,
  * as if taken off before the run; the still machine shows it on.
  */

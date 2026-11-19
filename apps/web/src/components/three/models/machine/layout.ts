@@ -35,11 +35,22 @@ export const MOTION = {
 } as const;
 
 /**
- * The pipette tool on the X carriage. `x` and `z` are the pipette's own
- * axis, `driveZ` is the motor and lead screw just behind it. These match
- * TOOL_X, TOOL_Z and DRIVE_Z in hardware-parts-motion.ts.
+ * The dispense head on the X carriage: `x` and `z` are the nose's axis,
+ * where a tip goes on. These match HEAD_X and HEAD_Z in
+ * hardware-parts-fluidics.ts.
  */
-export const TOOL = { x: -0.35, z: 0.05, driveZ: -0.1 } as const;
+export const TOOL = { x: -0.35, z: 0.05 } as const;
+
+/**
+ * The white plate outside the enclosure on the left, where the fluidics
+ * live: the two pumps at the front, the two selector valves behind them,
+ * the Pico and its driver board in the middle, and the cleaner and waste
+ * bottles at the back. Its front edge lines up with the door, so the usual
+ * front right view sees it beside the enclosure rather than behind it.
+ * Centre and size in scene units; `top` is the height of its top face,
+ * where those parts stand. Every fluidics position follows from it.
+ */
+export const FLUIDICS = { x: -3.25, z: 0.6, width: 1.5, depth: 2.7, top: 0.06 } as const;
 
 /**
  * A 20 mm extrusion drawn 0.16 units wide (13 mm at scale). The enclosure
@@ -57,9 +68,10 @@ export const CHAMBER_FLOOR = ENCLOSURE.floor + 0.02;
 export const Y_RAIL_Y = CHAMBER_FLOOR + 0.1;
 
 /**
- * How far the door and the side panel move out in the exploded view, along
- * their own normals, so the chamber opens up around the parts. The right
- * panel goes furthest, past the boards lifting off the Pi platform beside
- * it. The CO₂ valve plate on the top rails lifts by `roof`.
+ * How far the door and the panels move out in the exploded view, along
+ * their own normals, so the chamber opens up around the parts. The side
+ * panels go furthest, past the boards and fluidics lifting off the
+ * platforms beside them. The roof panel and the CO₂ valve plate on the top
+ * rails lift by `roof`.
  */
-export const WALL_EXPLODE = { roof: 1, door: 1, right: 1.6 } as const;
+export const WALL_EXPLODE = { roof: 1, door: 1, right: 1.6, left: 1.9, back: 1 } as const;

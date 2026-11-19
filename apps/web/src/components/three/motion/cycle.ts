@@ -1,27 +1,49 @@
 /**
  * One loop of the Home demo: a small media change on three wells, written
- * the way a lab would program it. A first tip takes spent media off each
- * well and empties it into the chute; a fresh tip draws warm media from
- * the reservoir and gives each well its share back; then the machine
- * parks and the camera takes a picture. Each loop picks other wells.
+ * the way the fluidics team wrote the protocol.
+ *
+ * Aspiration, for each well: put on a fresh tip, lower it into the well and
+ * run the aspiration pump so the spent media goes up the line to waste,
+ * move the head away from the plate and strip the tip into the disposal
+ * bin. Then the aspiration line runs its suction over the wash station so
+ * nothing is left in it.
+ *
+ * Addition: the addition pump pushes fresh media out of the needle into
+ * each well in turn, then runs back over the wash station so the line
+ * doesn't drip. Then the machine parks and the camera takes a picture.
+ * Each loop picks other wells.
  */
-import { CHUTE, HOME, REACHABLE_WELLS, RESERVOIR, TIP_ORDER, TIP_SEAT, WELL, socketSpot, tipAt, wellSpot } from "./deck";
-import { BLOWOUT, EJECT, FIRST_STOP, Script, plungerFor, type Step } from "./script";
+import { BIN, HEAD_AXIS, HOME, REACHABLE_WELLS, TIP_ORDER, TIP_SEAT, WASH, WELL, needleAt, needleSpot, socketSpot, tipAt, wellSpot } from "./deck";
+import { NEEDLE, NOSE_TIP } from "../models/deck/labware-layout";
+import { Script, type Step } from "./script";
 
 /** Each well gives up and gets back this many millilitres, a third of its usual 1 mL. */
 export const DOSE = 0.3;
-const WELLS_PER_LOOP = 3;
+export const WELLS_PER_LOOP = 3;
 /** Every loop runs this long, so any moment maps straight to a loop and a time within it. */
-export const LOOP_SECONDS = 48;
-/** A loop uses two tips; once the reachable ones are gone the rack and chute are swapped for fresh ones. */
-export const LOOPS_PER_RACK = TIP_ORDER.length / 2;
-/** What a loop takes from the reservoir, as a share of a full one. */
-export const RESERVOIR_PER_LOOP = (DOSE * WELLS_PER_LOOP) / RESERVOIR.capacity;
+export const LOOP_SECONDS = 60;
+/** A loop uses a tip per well; once the reachable ones are gone the rack and bin are swapped for fresh ones. */
+export const LOOPS_PER_RACK = TIP_ORDER.length / WELLS_PER_LOOP;
+/**
+ * How far the bottles' levels move in a loop. A real bottle holds far more
+ * than three doses, so the demo exaggerates it to make the flow visible;
+ * both bottles are swapped with the rack.
+ */
+export const MEDIA_PER_LOOP = 0.06;
+export const WASTE_PER_LOOP = 0.06;
+
+/** How long each pump runs per well in the demo. The real protocol runs for as long as the volume takes at a gentle flow. */
+export const ASPIRATE_SECONDS = 1.4;
+export const DISPENSE_SECONDS = 1.2;
+/** The suction that clears a line, ten seconds on the machine, shortened for the demo. */
+export const SUCTION_SECONDS = 1.6;
 
 /** A few millimetres over the plate's top: the safe height for short hops between wells. */
 const HOP = tipAt(WELL.top + 0.05);
-/** Just over a trough's rim. */
-const OVER_TROUGH = tipAt(RESERVOIR.rim + 0.03);
+/** The needle's height over a well while it dispenses: clear of the plate, the stream falls into the media. */
+const DISPENSE_HEIGHT = needleAt(WELL.top + 0.08);
+/** The bare nose a little over the wash trough's rim. */
+const OVER_WASH = WASH.rim + 0.05 - (HEAD_AXIS.y + NOSE_TIP.top);
 
 /** A small seeded generator, so loop n always picks the same wells. */
 function random(seed: number) {
@@ -56,60 +78,45 @@ function pickUp(s: Script, socket: number) {
   s.lift(0);
 }
 
-/** Plunger to the first stop above the liquid, then a third of the stroke back in each well. */
-function takeSpent(s: Script, wells: number[]) {
-  wells.forEach((well, i) => {
-    s.travel(wellSpot(well), i === 0 ? 0 : HOP);
-    if (i === 0) {
-      s.lower(HOP);
-      s.press(FIRST_STOP, 0.4);
-    }
-    s.lower(tipAt(WELL.floor + 0.012), 0.7, "gentle");
-    s.press(plungerFor(DOSE * (i + 1)), 1, { kind: "draw", from: well, volume: DOSE, spent: true });
-    s.wait(0.3);
-    s.lift(HOP, 0.5);
-  });
-}
-
-/** Over the chute: empty the tip if it holds anything, blow out, then push on past blowout to eject it. */
-function toChute(s: Script, volume: number) {
-  s.travel(CHUTE.spot);
-  s.lower(OVER_TROUGH);
-  if (volume > 0) {
-    s.press(FIRST_STOP, 0.7, { kind: "give", to: "chute", volume });
-    s.press(BLOWOUT, 0.25);
-    s.wait(0.2);
-  }
-  s.press(EJECT, volume > 0 ? 0.15 : 0.5);
-  s.wait(0.45, { kind: "eject" });
-  s.press(0, 0.35);
+/** Into the well to just off its floor, the aspiration pump draws its share to waste, then straight back up and away from the plate. */
+function aspirate(s: Script, well: number) {
+  s.travel(wellSpot(well));
+  s.lower(HOP);
+  s.lower(tipAt(WELL.floor + 0.012), 0.7, "gentle");
+  s.wait(ASPIRATE_SECONDS, { kind: "aspirate", well, volume: DOSE });
+  s.wait(0.2);
+  s.lift(HOP, 0.5);
   s.lift(0);
 }
 
-/** Into the reservoir just under the surface, and a slow draw so no air comes in with it. */
-function drawFresh(s: Script, volume: number, level: number) {
-  s.travel(RESERVOIR.spot);
-  s.lower(OVER_TROUGH);
-  s.press(FIRST_STOP, 0.4);
-  const surface = RESERVOIR.floor + RESERVOIR.depth * level;
-  s.lower(tipAt(Math.max(RESERVOIR.floor + 0.012, surface - 0.03)), 0.6, "gentle");
-  s.press(plungerFor(volume), 1.5, { kind: "draw", from: "reservoir", volume, spent: false });
-  s.wait(0.5);
-  s.lift(OVER_TROUGH, 0.6, "gentle");
+/** Under the stripper plate, the nose slides into its slot and lifts out of the tip, which drops into the bin. */
+function stripTip(s: Script) {
+  s.travel(BIN.approach);
+  s.lower(BIN.under);
+  s.slide(BIN.slot, 0.5);
+  s.lift(BIN.under + 0.12, 0.45, "gentle", { kind: "strip" });
+  s.wait(0.45, { kind: "drop" });
+  s.slide(BIN.approach, 0.35);
   s.lift(0);
 }
 
-/** Each well gets its share just above its lowered surface; the last dispense ends with a blowout. */
-function feed(s: Script, wells: number[]) {
+/** Over the wash station, a pump runs back toward waste for a while so its line holds nothing. */
+function suction(s: Script, pump: "addition" | "aspiration") {
+  s.travel(pump === "addition" ? { x: WASH.spot.x - NEEDLE.dx, y: WASH.spot.y } : WASH.spot);
+  s.lower(OVER_WASH);
+  s.wait(SUCTION_SECONDS, { kind: "suction", pump });
+  s.lift(0);
+}
+
+/** The needle over each well in turn, just above the plate, while the addition pump gives it its share. */
+function add(s: Script, wells: number[]) {
   wells.forEach((well, i) => {
-    s.travel(wellSpot(well), i === 0 ? 0 : HOP);
-    s.lower(tipAt(WELL.floor + WELL.depth * (1 - DOSE) + 0.025), i === 0 ? undefined : 0.45);
-    s.press(s.plunger + FIRST_STOP * DOSE, 0.8, { kind: "give", to: well, volume: DOSE });
-    if (i === wells.length - 1) s.press(BLOWOUT, 0.25);
+    s.travel(needleSpot(well), i === 0 ? 0 : DISPENSE_HEIGHT);
+    if (i === 0) s.lower(DISPENSE_HEIGHT);
+    s.wait(DISPENSE_SECONDS, { kind: "dispense", well, volume: DOSE });
     s.wait(0.25);
-    s.lift(HOP, 0.45);
   });
-  s.press(0, 0.35);
+  s.lift(0);
 }
 
 /** The steps of loop `loop`, from parked to parked, exactly LOOP_SECONDS long. */
@@ -117,14 +124,15 @@ export function buildCycle(loop: number): Step[] {
   const s = new Script();
   const wells = wellsFor(loop);
   const round = loop % LOOPS_PER_RACK;
-  s.wait(1.2);
-  pickUp(s, TIP_ORDER[round * 2]);
-  takeSpent(s, wells);
-  toChute(s, DOSE * wells.length);
-  pickUp(s, TIP_ORDER[round * 2 + 1]);
-  drawFresh(s, DOSE * wells.length, 1 - round * RESERVOIR_PER_LOOP);
-  feed(s, wells);
-  toChute(s, 0);
+  s.wait(1);
+  wells.forEach((well, i) => {
+    pickUp(s, TIP_ORDER[round * WELLS_PER_LOOP + i]);
+    aspirate(s, well);
+    stripTip(s);
+  });
+  suction(s, "aspiration");
+  add(s, wells);
+  suction(s, "addition");
   s.travel(HOME);
   s.wait(0.6);
   s.wait(0.5, { kind: "flash" });

@@ -8,7 +8,7 @@ import type { Vec3 } from "@/components/three/types";
 
 export type { Vec3 };
 
-export type PartCategory = "Computer" | "Imaging" | "Environment" | "Control" | "Pipette" | "Motion" | "Labware";
+export type PartCategory = "Computer" | "Imaging" | "Environment" | "Control" | "Fluidics" | "Motion" | "Labware";
 
 /** Which 3D model draws the part. Several parts can share one (the three endstops). */
 export type PartModelKey =
@@ -20,21 +20,23 @@ export type PartModelKey =
   | "ph_sensor"
   | "ph_probe"
   | "pico"
-  | "as5600"
-  | "load_cell"
-  | "hx711"
-  | "pipette_home"
   | "printer_controller"
   | "endstop"
   | "heated_platform"
   | "well_plate"
   | "fan"
   | "co2_valve"
-  | "stepper_motor"
+  | "hepa_filter"
+  | "dispense_head"
+  | "addition_pump"
+  | "aspiration_pump"
+  | "addition_valve"
+  | "aspiration_valve"
   | "media_bottle"
+  | "cleaner_bottle"
   | "waste_container"
-  | "tip_rack"
-  | "pipette";
+  | "disposal_bin"
+  | "tip_rack";
 
 /** A pick volume, in machine axes relative to the part's position. */
 export interface PartHitBox {
@@ -67,7 +69,7 @@ export interface PartDefinition {
   center?: Vec3;
   /** Several smaller pick volumes for long thin parts like the camera ribbon. */
   hits?: PartHitBox[];
-  /** What carries the part when the machine moves (the gantry, the beam, the carriage or the plunger drive). Fixed parts leave it out. */
+  /** What carries the part when the machine moves (the gantry, the beam or the carriage). Fixed parts leave it out. */
   rig?: RigName;
   /** How far the part moves out in the exploded view. */
   exploded: Vec3;

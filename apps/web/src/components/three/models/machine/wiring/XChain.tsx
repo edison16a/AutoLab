@@ -18,15 +18,15 @@ const TRAY = { from: -0.62, to: 0.8, top: 3.49, thickness: 0.012, lip: 0.03 } as
 /**
  * The chain at rest: fixed on the tray at the left, running right to its
  * bend and back over itself to the moving end, on a printed arm off the
- * back of the pipette drive. The cables leave the fixed end toward the
- * left upright, well clear of the fan on the right wall. Exported so the
- * wiring can start and end in it.
+ * shelf on top of the tool's backplate. The fluid lines leave the fixed end
+ * toward the left upright, well clear of the fan on the right wall.
+ * Exported so the tubing can start and end in it.
  */
 export const X_CHAIN: ChainPath = { fixed: -0.5, moving: -0.15, loop: 0.3, y: TRAY.top + LINK.height / 2, radius: 0.1, z: -0.52 };
 const BRACKETS = [-0.45, 0.65];
-/** Back edge and underside of the pipette motor's printed shelf, which the moving end's arm is fixed to. */
+/** Back edge and top of the printed shelf on the tool's backplate, which the moving end's arm is fixed to (see ToolCarriage). */
 const DRIVE_BACK = -0.38;
-const SHELF_Y = 3.485;
+const SHELF_Y = 3.52;
 const PLA = "plaGrey";
 const COUNT = linkCount(X_CHAIN);
 
@@ -87,7 +87,8 @@ function Links() {
 
 /**
  * The X axis cable chain: an orange nylon chain lying on a slim aluminium
- * tray behind the beam, carrying the pipette tool's cables as it travels.
+ * tray behind the beam, carrying the dispense head's two fluid lines as it
+ * travels.
  * The tray hangs off the beam on printed brackets, so it rides up and
  * down with it on Z; the moving end rides the carriage.
  */
@@ -110,7 +111,7 @@ export function XChain() {
         {/* The fixed end, screwed to the tray. */}
         <Block position={[fixed - 0.05, y, z]} size={[0.1, LINK.height + 0.01, LINK.width + 0.012]} radius={0.01} material="chainOrange" />
       </Rig>
-      {/* The moving end, on a printed arm off the back of the pipette drive. */}
+      {/* The moving end, on a printed arm off the tool's shelf. */}
       <Rig rig="carriage">
         <Block position={[moving - 0.05, upper, z]} size={[0.1, LINK.height + 0.01, LINK.width + 0.012]} radius={0.01} material="chainOrange" />
         <Block position={[moving - 0.05, upper, (z + LINK.width / 2 + DRIVE_BACK) / 2]} size={[0.09, 0.05, DRIVE_BACK - z - LINK.width / 2]} radius={0.01} material={PLA} />

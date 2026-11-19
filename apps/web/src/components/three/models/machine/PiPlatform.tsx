@@ -30,25 +30,17 @@ const FEET: RepeatItem[] = [-1, 1].flatMap((sx) =>
 );
 const FOOT_SCALE: Vec3 = [0.05, PLATE.feet, 0.05];
 
-/** A mini breadboard the Pico is pushed into, under its registry position. */
-const BREADBOARD = { x: 2.82, z: 0.86, width: 0.4, depth: 0.74, top: 0.163 } as const;
-const BB_HOLES: RepeatItem[] = [-1, 1].flatMap((side) =>
-  [0.165, 0.135].flatMap((dx) =>
-    Array.from({ length: 24 }, (_, i) => ({ position: [BREADBOARD.x + side * dx, BREADBOARD.top + 0.0005, BREADBOARD.z + (i - 11.5) * 0.0314] as Vec3 })),
-  ),
-);
-const BB_HOLE_SCALE: Vec3 = [0.012, 0.001, 0.012];
-
 /** Six sides, so the standoffs read as the hex brass ones everyone uses for a Pi. */
 function hexGeometry() {
   return cachedGeometry("machine:hex-standoff", () => new CylinderGeometry(1, 1, 1, 6));
 }
 
 /**
- * A clean white platform beside the enclosure for the bare Raspberry Pi,
- * the Pico in its breadboard and the pH carrier. No case, so every board
- * stays in view; the Pi stands on brass standoffs with its ports facing
- * out over the right edge, and the camera ribbon drops straight into it.
+ * A clean white platform beside the enclosure for the bare Raspberry Pi
+ * and the pH carrier. No case, so every board stays in view; the Pi stands
+ * on brass standoffs with its ports facing out over the right edge, and
+ * the camera ribbon drops straight into it. The Pico lives on the fluidics
+ * platform on the other side.
  */
 export function PiPlatform() {
   const plateHeight = PLATE.top - PLATE.feet;
@@ -63,14 +55,6 @@ export function PiPlatform() {
       <Repeat items={FEET} shape="cylinderLow" material="rubber" scale={FOOT_SCALE} />
       <Repeat items={STANDOFFS} geometry={hexGeometry()} material="brass" scale={STANDOFF_SCALE} />
       <Repeat items={SCREWS} shape="cylinderLow" material="steel" scale={SCREW_SCALE} />
-      <Block
-        position={[BREADBOARD.x, (PLATE.top + BREADBOARD.top) / 2, BREADBOARD.z]}
-        size={[BREADBOARD.width, BREADBOARD.top - PLATE.top, BREADBOARD.depth]}
-        radius={0.01}
-        material="plasticWhite"
-      />
-      <Block position={[BREADBOARD.x, BREADBOARD.top, BREADBOARD.z]} size={[0.03, 0.004, BREADBOARD.depth - 0.04]} material="plasticGrey" />
-      <Repeat items={BB_HOLES} material="plasticBlack" scale={BB_HOLE_SCALE} />
     </group>
   );
 }

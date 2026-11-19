@@ -19,8 +19,8 @@ const MARKING = [{ text: "KW11-3Z", weight: 600 as const }, { text: "5A 250VAC" 
 /**
  * A lever microswitch: black body with its two mounting holes and moulded
  * rating, the red plunger near one end, a bright stainless lever hinged at
- * the other end lying over it, and three tinned tabs. Used for the pipette
- * home switch and on each endstop board. Origin at the middle of the body.
+ * the other end lying over it, and three tinned tabs. Used on each endstop
+ * board. Origin at the middle of the body.
  */
 export function MicroswitchModel() {
   const hinge: Vec3 = [-L / 2 + mm(1.5), H / 2 + mm(0.6), 0];

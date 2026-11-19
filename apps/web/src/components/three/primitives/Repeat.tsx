@@ -36,7 +36,7 @@ const UNIT_SCALE: Vec3 = [1, 1, 1];
 
 /**
  * Draws many copies of one shape in a single draw call: header pins, wells
- * in a plate, pipette tips in a rack, fan blades. Pass a stable `items`
+ * in a plate, tips in a rack, fan blades. Pass a stable `items`
  * array (a module constant or a memo) so matrices are only written when the
  * layout actually changes.
  */

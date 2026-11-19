@@ -1,10 +1,10 @@
 /**
  * Everything inside (or on) the incubation chamber that keeps cultures at
- * 37 °C, 5% CO₂ and 85 to 95% RH, plus the labware. Placement follows the
- * system design sketch: CO₂ valve on the top left corner with its tubing
- * down the left side, Temp/RH sensor high on the back right, fan on the
- * right wall, heated platform with the 24-well plate in the middle, media
- * on the left and waste on the right.
+ * 37 °C, 5% CO₂ and 85 to 95% RH, plus the labware in it. Placement
+ * follows the system design sketch: CO₂ valve on the top left corner with
+ * its tubing down the left side, Temp/RH sensor high on the back right,
+ * fan on the right wall, heated platform with the 24-well plate in the
+ * middle, and the media bottle and tip rack at the front left.
  */
 import type { PartDefinition } from "./hardware-parts-types";
 
@@ -41,7 +41,7 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     center: [0, 0, 0.055],
     // Pulled forward off its plate on the back wall rail.
     exploded: [0, 0, 0.5],
-    // From high on the front left, over the X motor and the cables, which hide it from level.
+    // From high on the front left, over the X motor and the fluid lines, and clear of the HEPA unit.
     view: [-0.6, 1.0, 1],
     inspectRotation: [Math.PI / 2, 0, 0],
   },
@@ -67,7 +67,7 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     name: "Heated platform",
     shortName: "Heated platform",
     category: "Environment",
-    purpose: "Holds the plate nest, the media reservoir and the tip chute, and keeps them at 37 °C.",
+    purpose: "Holds the plate nest, the wash station and the tip disposal bin, and keeps the plate at 37 °C.",
     connection: "Heater output from the Pi",
     model: "heated_platform",
     liveNow: false,
@@ -89,7 +89,7 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     liveNow: false,
     position: [0, 0.9, 0.3],
     size: [1.58, 0.25, 1.06],
-    // Up out of the nest and toward the door, clear of the pipette above it.
+    // Up out of the nest and toward the door, clear of the head above it.
     exploded: [0, 0.25, 0.95],
     view: [0.3, 0.95, 1],
   },
@@ -133,8 +133,8 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     name: "Fresh media supply",
     shortName: "Media bottle",
     category: "Labware",
-    purpose: "Fresh culture media for feeding.",
-    connection: "",
+    purpose: "Fresh culture media, kept at 37 °C in the chamber. Its dip tube feeds the addition valve.",
+    connection: "Media line to the 3-way valve",
     model: "media_bottle",
     liveNow: false,
     // In the front left corner, ahead of the tip rack.
@@ -146,30 +146,15 @@ export const CHAMBER_PARTS: PartDefinition[] = [
     view: [0.35, 0.35, 1],
   },
   {
-    id: "waste_container",
-    name: "Waste container",
-    shortName: "Waste",
-    category: "Labware",
-    purpose: "Collects spent media.",
-    connection: "",
-    model: "waste_container",
-    liveNow: false,
-    position: [1.55, 0.46, 1.1],
-    size: [0.62, 1.02, 0.62],
-    center: [0, 0.5, 0],
-    exploded: [0, 0, 0.8],
-    view: [0.35, 0.35, 1],
-  },
-  {
     id: "tip_rack",
-    name: "Pipette tip rack",
+    name: "Tip rack",
     shortName: "Tip rack",
     category: "Labware",
-    purpose: "Sterile filtered P1000 tips.",
+    purpose: "Sterile 1000 µL tips. The head takes a fresh one for each well it empties.",
     connection: "",
     model: "tip_rack",
     liveNow: false,
-    // Front left, just ahead of where the gantry's left foot plate can reach, so the pipette can pick from its back rows.
+    // Front left, just ahead of where the gantry's left foot plate can reach, so the head can pick from its back rows.
     position: [-1.4, 0.46, 0.78],
     size: [0.6, 0.7, 0.82],
     center: [0, 0.35, 0],

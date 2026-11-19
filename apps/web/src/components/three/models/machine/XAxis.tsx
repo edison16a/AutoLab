@@ -39,7 +39,7 @@ const CARRIAGE_BOLTS: Vec3[] = [-0.2, 0.2].flatMap((dx) => [-1, 1].map((side) =>
 /**
  * The X axis: the 2040 beam between the Z carriages, the motor behind its
  * left end, a GT2 belt above it to the tensioned idler on the right, and
- * the wheeled carriage the pipette tool hangs from. The tensioner is the
+ * the wheeled carriage the dispense head hangs from. The tensioner is the
  * Ender's own, black anodised; the motor plate and pulleys are bare
  * aluminium.
  */
@@ -79,7 +79,7 @@ export function XAxis() {
   );
 }
 
-/** The wheeled plate the pipette tool hangs from, clamped to the belt's lower run. */
+/** The wheeled plate the dispense head hangs from, clamped to the belt's lower run. */
 function XCarriage() {
   return (
     <group>

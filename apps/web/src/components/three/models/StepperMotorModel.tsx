@@ -48,9 +48,9 @@ function Housing({ y, height, inset = 0, material }: { y: number; height: number
  * caps with chamfered corners around the black stator, a white rating
  * label, the centring boss and D-cut shaft on +Y, four long screws through
  * the back, and the six pin socket on the side with the red, blue, green
- * and black leads plugged in. Origin at the middle of the body. Drives the
- * pipette plunger and all three axes; `shaft` turns the shaft in the Home
- * demo.
+ * and black leads plugged in. Origin at the middle of the body. Drives all
+ * three axes and both peristaltic pumps; `shaft` turns the shaft in the
+ * Home demo.
  */
 export interface StepperMotorProps extends PartModelProps {
   /** Turns the shaft in the Home demo. */

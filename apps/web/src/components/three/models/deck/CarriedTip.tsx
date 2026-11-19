@@ -10,10 +10,10 @@ import { TipBody } from "./TipBody";
 const { length, point, taper } = TIP_SHAPE;
 
 /**
- * The media inside a carried tip: the tip's own cone, a little narrower,
- * scaled about the point. A cone scaled evenly keeps its shape, so the
- * liquid always fits the tip; its height goes with the cube root of the
- * volume. Pink while fresh, amber once it is spent media.
+ * Spent media passing up through a carried tip while the aspiration pump
+ * draws: the tip's own cone, a little narrower, scaled about the point. A
+ * cone scaled evenly keeps its shape, so the liquid always fits the tip;
+ * its height goes with the cube root of the volume.
  */
 function TipLiquid() {
   const scaler = useRef<Group>(null);
@@ -24,7 +24,6 @@ function TipLiquid() {
       if (!group || !liquid.current) return;
       group.visible = pose.tip && pose.fill > 0.005;
       group.scale.setScalar(Math.cbrt(Math.max(pose.fill, 0.001)));
-      liquid.current.material = getMaterial(pose.spent ? "wasteAmber" : "mediaPink");
     },
     () => {
       if (scaler.current) scaler.current.visible = false;
@@ -37,7 +36,7 @@ function TipLiquid() {
         ref={liquid}
         renderOrder={2}
         geometry={taperGeometry(taper)}
-        material={getMaterial("mediaPink")}
+        material={getMaterial("wasteAmber")}
         position={[0, (length * 0.88) / 2 + 0.004, 0]}
         scale={[point * 0.7, length * 0.88, point * 0.7]}
         dispose={null}
@@ -47,9 +46,10 @@ function TipLiquid() {
 }
 
 /**
- * The tip on the pipette's nose, origin at its point. It is always there on
- * the still machine; in the Home demo it comes and goes as tips are picked
- * up and ejected, and fills as the pipette draws.
+ * The tip on the dispense head's nose, origin at its point. It is always
+ * there on the still machine; in the Home demo it comes and goes as tips are
+ * picked up and stripped, and shows the spent media the aspiration line
+ * draws through it.
  */
 export function CarriedTip() {
   const group = useRef<Group>(null);

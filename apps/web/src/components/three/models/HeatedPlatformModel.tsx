@@ -66,9 +66,10 @@ function Nest() {
  * The heated platform: an aluminium plate on four standoffs with the
  * orange silicone heater pad and its thermistor underneath, the Ender's
  * black textured sheet on top, the fixed nest that holds the 24-well
- * plate at 37 °C, and on its left margin the media reservoir and the tip
- * chute the pipette works from. Origin at the platform's centre, 0.15
- * above the chamber floor.
+ * plate at 37 °C, and on its left margin the wash station the head parks
+ * over while a line runs its suction. The tip disposal bin in front of it
+ * is its own part. Origin at the platform's centre, 0.15 above the
+ * chamber floor.
  */
 export function HeatedPlatformModel() {
   return (

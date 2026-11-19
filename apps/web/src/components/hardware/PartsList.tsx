@@ -14,7 +14,7 @@ interface PartsListProps {
   onHover: (id: string | null) => void;
 }
 
-/** Matches names, short names and categories, so "pipette" finds the whole tool. */
+/** Matches names, short names and categories, so "fluidics" finds the whole liquid handling system. */
 function matches(part: PartDefinition, query: string) {
   return `${part.name} ${part.shortName} ${part.category}`.toLowerCase().includes(query);
 }

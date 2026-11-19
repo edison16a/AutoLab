@@ -6,27 +6,26 @@
  */
 import type { ComponentType } from "react";
 import type { PartModelKey } from "@/data/hardware-parts";
-import { AS5600Model } from "./AS5600Model";
-import { MediaBottleModel, WasteContainerModel } from "./BottleModel";
+import { CleanerBottleModel, MediaBottleModel, WasteContainerModel } from "./BottleModel";
 import { CameraModel } from "./CameraModel";
 import { CO2SensorModel } from "./CO2SensorModel";
 import { CO2ValveModel } from "./CO2ValveModel";
 import { EndstopModel } from "./EndstopModel";
 import { FanModel } from "./FanModel";
 import { FPCModel } from "./FPCModel";
+import { DispenseHeadModel } from "./fluidics/DispenseHeadModel";
+import { DisposalBinModel } from "./fluidics/DisposalBinModel";
+import { HepaFilterModel } from "./fluidics/HepaFilterModel";
+import { AdditionPumpModel, AspirationPumpModel } from "./fluidics/PeristalticPumpModel";
+import { AdditionValveModel, AspirationValveModel } from "./fluidics/PinchValveModel";
 import { HeatedPlatformModel } from "./HeatedPlatformModel";
-import { HX711Model } from "./HX711Model";
-import { LoadCellModel } from "./LoadCellModel";
-import { MicroswitchModel } from "./MicroswitchModel";
 import type { PartModelProps } from "./model-props";
 import { PHModuleModel } from "./PHModuleModel";
 import { PHProbeModel } from "./PHProbeModel";
 import { PicoModel } from "./PicoModel";
-import { PipetteModel } from "./PipetteModel";
 import { PrinterControllerModel } from "./PrinterControllerModel";
 import { RaspberryPiModel } from "./RaspberryPiModel";
 import { SHT85Model } from "./SHT85Model";
-import { StepperMotorModel } from "./StepperMotorModel";
 import { TipRackModel } from "./TipRackModel";
 import { WellPlateModel } from "./WellPlateModel";
 
@@ -42,19 +41,21 @@ export const PART_MODELS: Record<PartModelKey, ComponentType<PartModelProps>> = 
   ph_sensor: PHModuleModel,
   ph_probe: PHProbeModel,
   pico: PicoModel,
-  as5600: AS5600Model,
-  load_cell: LoadCellModel,
-  hx711: HX711Model,
-  pipette_home: MicroswitchModel,
   printer_controller: PrinterControllerModel,
   endstop: EndstopModel,
   heated_platform: HeatedPlatformModel,
   well_plate: WellPlateModel,
   fan: FanModel,
   co2_valve: CO2ValveModel,
-  stepper_motor: StepperMotorModel,
+  hepa_filter: HepaFilterModel,
+  dispense_head: DispenseHeadModel,
+  addition_pump: AdditionPumpModel,
+  aspiration_pump: AspirationPumpModel,
+  addition_valve: AdditionValveModel,
+  aspiration_valve: AspirationValveModel,
   media_bottle: MediaBottleModel,
+  cleaner_bottle: CleanerBottleModel,
   waste_container: WasteContainerModel,
+  disposal_bin: DisposalBinModel,
   tip_rack: TipRackModel,
-  pipette: PipetteModel,
 };
