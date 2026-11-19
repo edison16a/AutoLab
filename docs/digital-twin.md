@@ -16,14 +16,15 @@ The model follows the system design sketch, the fluidics sketch and the enclosur
 - **The gantry**: the converted Ender-3 motion system, carrying the camera dock and the **dispense head**.
 - **The dispense head** replaces the pipette. Its stainless nose takes a disposable tip for aspiration, and a blunt needle beside it is the end of the addition line. It has no motor or electronics; the pumps do the work.
 - **The fluidics platform**, outside on the left so bleach fumes and motor heat stay out of the chamber, holds what the fluidics sketch calls the combined system:
-  - **Pump 1 (addition)**, a reversible peristaltic pump. Behind it the **3-way valve** connects it to fresh media, cleaner or waste.
-  - **Pump 2 (aspiration)**, the same pump. Behind it the **2-way valve** connects it to waste or cleaner.
+  - **Pump 1 (addition)** and **pump 2 (aspiration)**: Simply Pumps PMST100 stepper peristaltic pumps, modelled from the maker's dimensional drawing. Each mounts through an aluminium panel as designed, round flange and four roller head in front, NEMA 17 behind, both tube fittings pointing down. On 1/16" ID tubing each moves 0.065 mL a revolution, up to 75 RPM.
+  - Under each pump's motor, its selector valve: the **3-way valve** connects pump 1 to fresh media, cleaner or waste, and the **2-way valve** connects pump 2 to waste or cleaner.
+  - Behind the motors, a Simply Pumps **SMC10** controller for each pump, wired as its quick start guide shows: 24 V and the motor's two coils on its screw terminals, and the Pico's enable, direction and speed lines on its I/O header. A 24 V supply sits on the bench behind the platform.
   - The **cleaner** bottle (70% ethanol) and the **waste bottle and bleach trap**, shared by both valves. The waste has a float switch, so the pumps stop before it's full.
   - The **Pico** and its driver board, which run all of the above.
 - **Inside the chamber**: the heated platform with the 24-well plate, the wash station and the **tip disposal bin** with its stripper, the tip rack, and the **media bottle**, kept at 37 °C, whose line runs out to the 3-way valve.
 - **The Pi platform** on the right with the Pi and the pH board, and the environment sensors and outputs around the chamber.
 
-The fluid lines are coloured by what usually runs in them, like the sketch's key: pink for fresh media, amber for spent media and waste, green for cleaner.
+The fluid lines are clear Tygon with the liquid showing inside, coloured like the sketch's key: pink for fresh media, amber for spent media and waste, green for cleaner.
 
 ## Using the Hardware screen
 
@@ -44,7 +45,7 @@ Home runs a looping media change on three wells, the protocol from the fluidics 
 4. The addition pump runs back with its valve open to waste, so the line doesn't drip.
 5. The head parks, the camera's LED blinks for a picture, and the loop starts again with other wells.
 
-Z always lifts to a safe height before any X or Y travel. Travel is quick with eased starts and stops, and moves onto a tip or into liquid are slow. Lead screws, pulleys and motor shafts turn with their axes, the drag chain rolls, the cables and fluid lines bend across the moving joints, and the circulation and HEPA fans spin. Each pump's rotor turns while it runs, one way to push toward the head and the other to draw back, and each pinch valve's green light shows which port is open.
+Z always lifts to a safe height before any X or Y travel. Travel is quick with eased starts and stops, and moves onto a tip or into liquid are slow. Lead screws, pulleys and motor shafts turn with their axes, the drag chain rolls, the cables and fluid lines bend across the moving joints, and the circulation and HEPA fans spin. The liquid really moves: while a pump runs, its rotor turns at the PMST100's 75 RPM, one way to push toward the head and the other to draw back, and the liquid in every line it's pumping through travels along at the speed 0.065 mL a revolution gives in a 1/16" bore, with the line glowing while it flows. Only the bottle line its valve has open moves; the valve's green light shows which. Each dose takes as long as it really would at that speed, so the wells empty and fill, the media bottle goes down and the waste comes up in step with the pumps, and the SMC10s' status lights show which pump is running.
 
 The demo pauses when the model is scrolled out of view or the tab is hidden. On Home it's off entirely when the system asks for reduced motion. The Hardware screen runs it only when you press **Live view**, and then it plays whatever the motion setting, since you asked for it.
 
@@ -82,7 +83,7 @@ That's an example of the format only. Nothing in the app or the agent sends samp
 | `src/components/hardware` | The Hardware screen: the list, the details panel, the toolbar and `MachineView`, the one component every screen embeds. |
 | `src/components/hardware/scene` | The canvas, the scene, each selectable part node, camera framing and the Connections overlay. |
 | `src/components/three` | The shared 3D kit: the stage, lighting and shadows, materials and colours, primitives, camera controls and picking. |
-| `src/components/three/models` | One model per part, with shared board details (chips, headers, connectors), the machine body, labware, the fluidics under `fluidics/`, and the wiring and tubing under `machine/wiring`. |
+| `src/components/three/models` | One model per part, with shared board details (chips, headers, connectors), the machine body, labware, the fluidics under `fluidics/` (the real parts' dimensions in `pump-spec.ts`, the moving liquid in `flow.ts`), and the wiring and tubing under `machine/wiring`. |
 | `src/components/three/motion` | The demo. `script.ts` and `cycle.ts` write the loop as a robot program, `timeline.ts` turns a time into a machine pose (axes, pump rotors, open valve ports, liquid levels), and the moving parts read that pose each frame. |
 
 To change where a part sits, edit its registry entry. The model, its hit boxes, the camera framing, the exploded view and the demo's reach all follow from it, and so do the ends of its fluid lines. The whole fluidics platform moves with `FLUIDICS` in `machine/layout.ts`. To swap a hand built model for a GLB file, keep the model's origin and scale and replace its body.

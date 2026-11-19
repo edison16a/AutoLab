@@ -4,7 +4,7 @@
 
 <h1 align="center">Autolab</h1>
 
-Autolab is a low cost automated cell culture system for neuronal cultures, built by the Neurotech wet lab team. A desktop 3D printer gantry sits inside an insulated enclosure that holds 37 °C, 5% CO₂ and 85 to 95% humidity. The gantry carries a dispense head for media changes and a Raspberry Pi HQ camera for checking the culture. Two reversible peristaltic pumps do the liquid handling, a HEPA fan filter unit keeps a laminar downflow over the plate, and it's all run by a Raspberry Pi 4 with a Pico for the fluidics.
+Autolab is a low cost automated cell culture system for neuronal cultures, built by the Neurotech wet lab team. A desktop 3D printer gantry sits inside an insulated enclosure that holds 37 °C, 5% CO₂ and 85 to 95% humidity. The gantry carries a dispense head for media changes and a Raspberry Pi HQ camera for checking the culture. Two Simply Pumps PMST100 stepper peristaltic pumps, each run by an SMC10 controller, do the liquid handling, a HEPA fan filter unit keeps a laminar downflow over the plate, and it's all run by a Raspberry Pi 4 with a Pico for the fluidics.
 
 This repository is the software. You sign in, connect your Autolab over Bluetooth, and then watch the live camera, take photos, run object detection and browse the results. In lab mode the Pi talks to Supabase itself, so you can watch, take photos and follow along from any phone or laptop, with no computer kept on next to the machine. A 3D model of the whole machine shows every part and what state it's in.
 
