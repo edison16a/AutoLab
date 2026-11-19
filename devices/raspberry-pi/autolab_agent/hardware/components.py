@@ -15,11 +15,14 @@ from .environment import Readings
 
 # The order the parts are listed in.
 ORDER = (
-    "pico", "addition_pump", "aspiration_pump", "addition_valve", "aspiration_valve",
+    "pico", "addition_pump", "aspiration_pump", "addition_controller", "aspiration_controller",
+    "addition_valve", "aspiration_valve",
     "hepa_filter", "waste_container", "sht85", "co2_sensor", "ph_sensor",
     "heated_platform", "circulation_fan", "co2_valve", "printer_controller",
 )
 PUMP_IDS = {"addition": "addition_pump", "aspiration": "aspiration_pump"}
+# Each PMST100 pump has its own Simply Pumps SMC10 stepper controller.
+CONTROLLER_IDS = {"addition": "addition_controller", "aspiration": "aspiration_controller"}
 VALVE_IDS = {"addition": "addition_valve", "aspiration": "aspiration_valve"}
 
 
@@ -46,13 +49,24 @@ def _pump(id: str, info: dict, state: dict, at: float) -> dict:
     telemetry = {
         "running": running,
         "direction": direction if running else None,
-        "flow_ul_s": state.get("flow_ul_s"),
+        "rpm": state.get("rpm") if running else 0.0,
+        "flow_ul_s": state.get("flow_ul_s") if running else 0.0,
         "remaining_s": state.get("remaining_s"),
-        "max_flow_ul_s": info.get("max_flow_ul_s"),
-        "steps_per_ul": info.get("steps_per_ul"),
+        "ul_per_rev": info.get("ul_per_rev"),
         "calibrated": info.get("calibrated"),
     }
     return component(id, at, status, telemetry)
+
+
+def _controller(id: str, info: dict, state: dict, at: float) -> dict:
+    """What the Pico drives on the SMC10's inputs. Nothing comes back from the board."""
+    enabled = bool(state.get("enabled"))
+    telemetry = {
+        "enabled": enabled,
+        "speed_v": state.get("speed_v"),
+        "rpm_at_5v": info.get("rpm_at_5v"),
+    }
+    return component(id, at, "Enabled" if enabled else "Disabled", telemetry)
 
 
 def _fan(state: dict, at: float) -> dict:
@@ -70,9 +84,13 @@ def pico_components(hello: dict, status: dict, at: float) -> list[dict]:
     """The Pico itself and every part it says is configured."""
     result = [component("pico", at, "Online", {"firmware": f"{hello.get('firmware')} {hello.get('version')}"})]
     pumps = status.get("pumps") or {}
-    for name, info in (hello.get("pumps") or {}).items():
-        if name in PUMP_IDS and name in pumps:
-            result.append(_pump(PUMP_IDS[name], info, pumps[name], at))
+    configured = [
+        (name, info) for name, info in (hello.get("pumps") or {}).items() if name in PUMP_IDS and name in pumps
+    ]
+    for name, info in configured:
+        result.append(_pump(PUMP_IDS[name], info, pumps[name], at))
+    for name, info in configured:
+        result.append(_controller(CONTROLLER_IDS[name], info, pumps[name], at))
     valves = status.get("valves") or {}
     for name in hello.get("valves") or {}:
         if name in VALVE_IDS and name in valves:

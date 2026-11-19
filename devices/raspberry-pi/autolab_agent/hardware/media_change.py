@@ -14,6 +14,9 @@ needle doesn't drip.
 
 CLEANING: over the bin, each line pushes cleaner out to_head, then pulls the
 spent cleaner back into waste from_head.
+
+Without a flow, each pump step runs at that line's gentle default (30 uL/s
+for addition, 50 uL/s for aspiration), the suction steps included.
 """
 
 import logging
@@ -28,6 +31,15 @@ log = logging.getLogger("agent")
 SUCTION_S = 10.0
 ADDITION, ASPIRATION = "addition", "aspiration"
 TO_HEAD, FROM_HEAD = "to_head", "from_head"
+
+# Both pumps are Simply Pumps PMST100s with 1/16" ID tubing: 65 uL per
+# revolution and 75 rpm at most, so 81.25 uL/s flat out. The Pico has the
+# calibrated figures and refuses anything faster than a pump's max.
+PMST100_UL_PER_REV = 65.0
+PMST100_MAX_RPM = 75.0
+PMST100_MAX_FLOW_UL_S = PMST100_MAX_RPM * PMST100_UL_PER_REV / 60
+# Gentle on the neurons, and well under the pump's max.
+DEFAULT_FLOW_UL_S = {ADDITION: 30.0, ASPIRATION: 50.0}
 
 
 class Motion(Protocol):
@@ -93,6 +105,14 @@ def parse_wells(text: str, rows: int = 4, columns: int = 6) -> list[str]:
     return wells
 
 
+def flow_for(pump: str, flow_ul_s: float | None) -> float:
+    """The flow a step runs at: the one given, or the pump's gentle default."""
+    flow = DEFAULT_FLOW_UL_S[pump] if flow_ul_s is None else flow_ul_s
+    if not 0 < flow <= PMST100_MAX_FLOW_UL_S:
+        raise ValueError(f"Flow must be above 0 and at most {PMST100_MAX_FLOW_UL_S:g} uL/s (the PMST100's max)")
+    return flow
+
+
 def _pump(pump: str, direction: str, *, volume_ul: float | None = None,
           seconds: float | None = None, flow_ul_s: float | None = None) -> Step:
     args: dict[str, Any] = {"pump": pump, "direction": direction}
@@ -100,8 +120,7 @@ def _pump(pump: str, direction: str, *, volume_ul: float | None = None,
         args["volume_ul"] = volume_ul
     if seconds is not None:
         args["seconds"] = seconds
-    if flow_ul_s is not None:
-        args["flow_ul_s"] = flow_ul_s
+    args["flow_ul_s"] = flow_for(pump, flow_ul_s)
     return Step("pump", args)
 
 

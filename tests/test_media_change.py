@@ -107,6 +107,25 @@ def test_flow_is_passed_through_for_the_pico_to_cap():
     assert pump.describe() == "addition pump to_head for 100 uL at 15 uL/s"
 
 
+def test_default_flows_are_gentle_and_under_the_pmst100_max():
+    # PMST100 on 1/16" ID tubing: 65 uL per revolution, 75 rpm at most.
+    assert mc.PMST100_MAX_FLOW_UL_S == 81.25
+    flows = {}
+    for steps in (mc.aspiration_plan(["A1"], 20), mc.addition_plan(["A1"], 500, prime_ul=100), mc.cleaning_plan()):
+        for s in steps:
+            if s.action == "pump":
+                flows.setdefault(s.args["pump"], set()).add(s.args["flow_ul_s"])
+    assert flows == {"addition": {30.0}, "aspiration": {50.0}}
+    step = next(s for s in mc.addition_plan(["A1"], 100) if s.action == "pump")
+    assert step.describe() == "addition pump to_head for 100 uL at 30 uL/s"
+
+
+@pytest.mark.parametrize("flow", [0, -5, 82])
+def test_a_flow_the_pump_cannot_give_is_refused_before_anything_moves(flow):
+    with pytest.raises(ValueError, match="81.25 uL/s"):
+        mc.addition_plan(["A1"], 100, flow_ul_s=flow)
+
+
 @pytest.mark.parametrize(
     "text, wells",
     [("A1-A6", ROW_A), ("A", ROW_A), ("b2, C3", ["B2", "C3"]), ("D4-D6", ["D4", "D5", "D6"])],

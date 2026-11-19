@@ -1,6 +1,7 @@
 """The heartbeat's components list: only parts that answered, in the format the app reads."""
 
 import asyncio
+import json
 import re
 import time
 
@@ -46,14 +47,26 @@ def test_the_pico_and_its_parts_come_from_hello_and_status(tmp_path):
     ask("fan", duty=0.5)
     reports = parts.pico_components(ask("hello"), ask("status"), AT)
     by_id = {r["id"]: r for r in reports}
-    assert list(by_id) == ["pico", "addition_pump", "aspiration_pump", "addition_valve", "aspiration_valve", "hepa_filter", "waste_container"]
+    assert list(by_id) == ["pico", "addition_pump", "aspiration_pump", "addition_controller", "aspiration_controller",
+                           "addition_valve", "aspiration_valve", "hepa_filter", "waste_container"]
     for report in reports:
         validate(report)
-    assert by_id["pico"]["telemetry"] == {"firmware": "autolab-fluidics 0.1.0"}
+    assert by_id["pico"]["telemetry"] == {"firmware": "autolab-fluidics 0.2.0"}
     assert by_id["aspiration_pump"]["status"] == "Running from head"
-    assert by_id["aspiration_pump"]["telemetry"]["flow_ul_s"] == 40.0
+    # 40 uL/s at 65 uL per revolution is 36.92 rpm.
+    assert by_id["aspiration_pump"]["telemetry"] == {
+        "running": True, "direction": "from_head", "rpm": 36.92, "flow_ul_s": 40.0,
+        "remaining_s": 10.0, "ul_per_rev": 65.0, "calibrated": False,
+    }
     assert by_id["addition_pump"]["status"] == "Idle"
-    assert "direction" not in by_id["addition_pump"]["telemetry"]
+    assert by_id["addition_pump"]["telemetry"] == {
+        "running": False, "rpm": 0.0, "flow_ul_s": 0.0, "ul_per_rev": 65.0, "calibrated": False,
+    }
+    # 36.92 rpm of the SMC10's 75 rpm at 5 V is 2.46 V on its speed input.
+    assert by_id["aspiration_controller"]["status"] == "Enabled"
+    assert by_id["aspiration_controller"]["telemetry"] == {"enabled": True, "speed_v": 2.462, "rpm_at_5v": 75.0}
+    assert by_id["addition_controller"]["status"] == "Disabled"
+    assert by_id["addition_controller"]["telemetry"] == {"enabled": False, "speed_v": 0.0, "rpm_at_5v": 75.0}
     assert by_id["aspiration_valve"]["telemetry"] == {"port": "waste"}
     assert by_id["addition_valve"]["status"] == "Closed"
     assert by_id["waste_container"]["telemetry"] == {"full": False}
@@ -78,6 +91,20 @@ def test_a_part_the_firmware_leaves_out_is_not_reported():
     hello = {"firmware": "f", "version": "v", "pumps": {}, "valves": {}, "fan": False, "waste_sensor": False}
     status = {"pumps": {}, "valves": {}, "fan": None, "waste_full": None}
     assert [r["id"] for r in parts.pico_components(hello, status, AT)] == ["pico"]
+
+
+def test_a_controller_is_listed_only_with_its_pump(tmp_path):
+    import types
+
+    from fluidics import config
+
+    cfg = types.SimpleNamespace(**{k: getattr(config, k) for k in dir(config) if not k.startswith("__")})
+    cfg.PUMPS = {"aspiration": dict(config.PUMPS["aspiration"]), "addition": {**config.PUMPS["addition"], "speed": None}}
+    controller = Controller(FakeHal(), cfg, str(tmp_path / "c.json"))
+    ask = lambda cmd: json.loads(protocol.handle_line(controller, json.dumps({"id": 1, "cmd": cmd})))
+    ids = [r["id"] for r in parts.pico_components(ask("hello"), ask("status"), AT)]
+    assert "aspiration_controller" in ids and "aspiration_pump" in ids
+    assert "addition_controller" not in ids and "addition_pump" not in ids
 
 
 def test_only_sensors_with_a_good_reading_are_listed():
@@ -165,14 +192,15 @@ def test_a_station_round_lists_what_answered_and_marks_what_went_quiet(tmp_path)
     station.environment = FakeEnvironment(Readings(temperature_c=37.0, humidity_percent=90.0, sht85_at=AT))
     station.poll()
     ids = [c["id"] for c in station.components()]
-    assert ids == ["pico", "addition_pump", "aspiration_pump", "addition_valve", "aspiration_valve",
-                   "hepa_filter", "waste_container", "sht85"]
+    assert ids == ["pico", "addition_pump", "aspiration_pump", "addition_controller", "aspiration_controller",
+                   "addition_valve", "aspiration_valve", "hepa_filter", "waste_container", "sht85"]
 
     station.pico.fail = True
     station.poll()
     listed = {c["id"]: c for c in station.components()}
     assert station.pico is None
     assert listed["pico"]["status"] == "Not responding" and listed["pico"]["online"] is False
+    assert listed["addition_controller"]["status"] == "Not responding"
     assert listed["sht85"]["online"] is True
     for component in listed.values():
         validate(component)

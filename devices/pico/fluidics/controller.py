@@ -9,7 +9,9 @@ Rules it always keeps:
   when it fills is stopped.
 - With no command or ping for WATCHDOG_MS while a pump runs, every pump
   stops and every valve closes.
-- Flow above a pump's max is refused, not quietly lowered.
+- Flow above a pump's max is refused, not quietly lowered, and so is any
+  speed above the PMST100's 75 rpm.
+- A pump's direction changes only while it is stopped.
 """
 
 from . import config as default_config
@@ -46,11 +48,12 @@ class Controller:
         for name, ports in cfg.VALVES.items():
             self.valves[name] = Valve(name, hal, ports)
         self.pumps = {}
+        limits = {"max_rpm": cfg.MAX_RPM, "input_max_v": cfg.SMC10_INPUT_MAX_V, "pwm_freq": cfg.SPEED_PWM_FREQ}
         for name, pump_cfg in cfg.PUMPS.items():
-            if pump_cfg.get("step") is None or pump_cfg.get("valve") not in self.valves:
+            pins = (pump_cfg.get("enable"), pump_cfg.get("dir"), pump_cfg.get("speed"))
+            if None in pins or pump_cfg.get("valve") not in self.valves:
                 continue
-            steps_per_ul = self.calibration.get(name, pump_cfg["steps_per_ul"])
-            self.pumps[name] = Pump(name, hal, pump_cfg, steps_per_ul)
+            self.pumps[name] = Pump(name, hal, pump_cfg, limits, self.calibration.get(name))
         self.fan = Fan(hal, cfg.FAN) if cfg.FAN and cfg.FAN.get("pwm") is not None else None
         waste = cfg.WASTE or {}
         self.waste_pin = hal.input_pullup(waste["pin"]) if waste.get("pin") is not None else None
@@ -85,12 +88,9 @@ class Controller:
     def hello(self, _request, _now):
         pumps = {}
         for name, pump in self.pumps.items():
-            pumps[name] = {
-                "valve": pump.valve,
-                "max_flow_ul_s": pump.max_flow,
-                "steps_per_ul": pump.steps_per_ul,
-                "calibrated": name in self.calibration,
-            }
+            pumps[name] = pump.info()
+            pumps[name]["controller"] = "SMC10"
+            pumps[name]["calibrated"] = self._calibrated(name)
         valves = {}
         for name, valve in self.valves.items():
             valves[name] = valve.names()
@@ -163,26 +163,24 @@ class Controller:
         if direction == FROM_HEAD and self.waste_full:
             raise FluidicsError("the waste bottle is full; empty it first")
 
+        rpm, volts, _duty = pump.speed_for(flow)
         if seconds is None:
             seconds = volume / flow
         if seconds > self.cfg.MAX_RUN_S:
             raise FluidicsError("a single run is limited to %d s" % self.cfg.MAX_RUN_S)
-        rate = flow * pump.steps_per_ul
-        if rate > self.cfg.MAX_STEP_RATE:
-            raise FluidicsError("that flow needs %d steps/s; check the calibration" % rate)
-        steps = int(seconds * rate + 0.5)
-        if steps < 1:
-            raise FluidicsError("that run is shorter than one step")
+        if seconds < self.cfg.MIN_RUN_S:
+            raise FluidicsError("that run is shorter than %g s" % self.cfg.MIN_RUN_S)
 
-        pump.start(direction, steps, flow, now)
+        run = pump.start(direction, seconds, flow, now)
         self._update_led()
         return {
             "pump": name,
             "direction": direction,
-            "steps": steps,
+            "rpm": round(rpm, 2),
+            "speed_v": round(volts, 3),
             "flow_ul_s": flow,
-            "volume_ul": round(steps / pump.steps_per_ul, 1),
-            "seconds": round(steps / rate, 2),
+            "volume_ul": round(flow * run["duration_ms"] / 1000, 1),
+            "seconds": round(run["duration_ms"] / 1000, 2),
         }
 
     def stop(self, request, now):
@@ -222,38 +220,59 @@ class Controller:
         return self.fan.state()
 
     def calibrate(self, request, _now):
-        """Set steps per uL directly, or from a run: commanded_ul and what was measured."""
+        """Set ul_per_rev directly or from a weighed run, and optionally rpm_at_5v.
+
+        From a run: commanded_ul is what the Pico was asked for, measured_ul
+        what came out. Delivering less than asked means fewer uL per turn.
+        """
         name = request.get("pump")
         pump = self.pumps.get(name)
         if pump is None:
             raise FluidicsError("unknown pump %r" % (name,))
         if pump.running:
             raise FluidicsError("stop the %s pump before calibrating it" % name)
-        value = _number(request, "steps_per_ul")
+        ul_per_rev = _number(request, "ul_per_rev")
+        rpm_at_5v = _number(request, "rpm_at_5v")
         commanded = _number(request, "commanded_ul")
         measured = _number(request, "measured_ul")
-        if value is None:
+        if commanded is not None or measured is not None:
+            if ul_per_rev is not None:
+                raise FluidicsError("give ul_per_rev, or commanded_ul and measured_ul, not both")
             if commanded is None or measured is None or commanded <= 0 or measured <= 0:
-                raise FluidicsError("give steps_per_ul, or commanded_ul and measured_ul above 0")
-            value = pump.steps_per_ul * commanded / measured
-        if not self.cfg.MIN_STEPS_PER_UL <= value <= self.cfg.MAX_STEPS_PER_UL:
-            raise FluidicsError("steps_per_ul %g is out of range" % value)
+                raise FluidicsError("give both commanded_ul and measured_ul above 0")
+            ul_per_rev = pump.ul_per_rev * measured / commanded
+        if ul_per_rev is None and rpm_at_5v is None:
+            raise FluidicsError("give ul_per_rev, or commanded_ul and measured_ul, and/or rpm_at_5v")
+        entry = dict(self.calibration.get(name) or {})
+        for key, value in (("ul_per_rev", ul_per_rev), ("rpm_at_5v", rpm_at_5v)):
+            if value is None:
+                continue
+            low, high = self.cfg.CALIBRATION_RANGES[key]
+            if not low <= value <= high:
+                raise FluidicsError("%s %g is out of range (%g to %g)" % (key, value, low, high))
+            entry[key] = value
         saved = dict(self.calibration)
-        saved[name] = value
+        saved[name] = entry
         try:
             self.cfg.save_calibration(saved, self.calibration_path)
         except OSError as exc:
             raise FluidicsError("could not save the calibration (%s)" % exc) from None
         self.calibration = saved
-        pump.steps_per_ul = value
-        return {"pump": name, "steps_per_ul": value}
+        pump.ul_per_rev = entry.get("ul_per_rev", pump.ul_per_rev)
+        pump.rpm_at_5v = entry.get("rpm_at_5v", pump.rpm_at_5v)
+        return {
+            "pump": name,
+            "ul_per_rev": pump.ul_per_rev,
+            "rpm_at_5v": pump.rpm_at_5v,
+            "calibrated": self._calibrated(name),
+        }
 
     # Safety and housekeeping, run every few milliseconds
 
     def tick(self):
         now = self.hal.ticks_ms()
         for name, pump in self.pumps.items():
-            if pump.finished():
+            if pump.finished(now):
                 summary = pump.complete(now)
                 event = {"event": "pump_done", "pump": name}
                 event.update(summary)
@@ -281,6 +300,10 @@ class Controller:
     def pop_events(self):
         events, self.events = self.events, []
         return events
+
+    def _calibrated(self, name):
+        """ul_per_rev measured by weighing. rpm_at_5v alone isn't a flow calibration."""
+        return "ul_per_rev" in (self.calibration.get(name) or {})
 
     def _any_running(self):
         for pump in self.pumps.values():

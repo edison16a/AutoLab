@@ -10,8 +10,6 @@ from pico_support import PicoOnSerial
 from autolab_agent.hardware import pico as pico_module
 from autolab_agent.hardware.pico import PicoClient, PicoError, PicoTimeout, find_port
 
-ADDITION_STEP, ASPIRATION_STEP = 2, 6
-
 
 @pytest.fixture
 def wire(tmp_path):
@@ -62,12 +60,16 @@ def test_a_refusal_raises_with_the_pico_reason(client):
 
 def test_run_waits_for_the_end_of_the_run(client, wire):
     client.valve("addition", "media")
-    thread, result = in_background(lambda: client.run("addition", "to_head", volume_ul=200, flow_ul_s=20))
+    starts = []
+    thread, result = in_background(lambda: client.run("addition", "to_head", volume_ul=200, flow_ul_s=20,
+                                                      on_start=starts.append))
     assert wait_for(lambda: "pump" in wire.commands())
     assert thread.is_alive()
-    wire.finish(ADDITION_STEP)
+    wire.finish("addition")
     thread.join(2)
     assert result["value"]["event"] == "pump_done" and result["value"]["volume_ul"] == 200.0
+    assert result["value"]["seconds"] == 10.0
+    assert starts[0]["rpm"] == 18.46 and starts[0]["speed_v"] == 1.231 and starts[0]["seconds"] == 10.0
     assert wire.sent[-1] == {"id": 3, "cmd": "pump", "pump": "addition", "direction": "to_head",
                              "volume_ul": 200, "flow_ul_s": 20}
 
@@ -90,7 +92,7 @@ def test_pings_keep_the_pico_watchdog_fed_while_a_pump_runs(wire, monkeypatch):
         fresh.valve("addition", "media")
         fresh.pump("addition", "to_head", seconds=30)
         assert wait_for(lambda: wire.commands().count("ping") >= 2)
-        wire.finish(ADDITION_STEP)
+        wire.finish("addition")
         assert wait_for(lambda: not fresh._running)
         count = wire.commands().count("ping")
         time.sleep(0.2)
@@ -146,3 +148,15 @@ def test_a_refused_second_start_keeps_the_running_pump_pinged(client):
     assert "addition" in client._running
     client.stop()
     assert not client._running
+
+
+def test_calibrate_sends_ul_per_rev_and_rpm_at_5v(client, wire):
+    reply = client.calibrate("aspiration", commanded_ul=1000, measured_ul=1100, rpm_at_5v=70)
+    assert reply["ul_per_rev"] == 71.5 and reply["rpm_at_5v"] == 70.0 and reply["calibrated"] is True
+    assert wire.sent[-1] == {"id": 2, "cmd": "calibrate", "pump": "aspiration", "commanded_ul": 1000,
+                             "measured_ul": 1100, "rpm_at_5v": 70}
+    client.calibrate("aspiration", ul_per_rev=10)
+    client.valve("aspiration", "waste")
+    with pytest.raises(PicoError, match="300.0 rpm; the PMST100's max is 75 rpm"):
+        client.pump("aspiration", "from_head", seconds=1, flow_ul_s=50)
+    assert "aspiration" not in client._running

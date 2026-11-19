@@ -14,32 +14,32 @@ if str(ROOT / "devices/pico") not in sys.path:
 
 
 class FakePin:
-    def __init__(self, value=0):
+    def __init__(self, value=0, pin=None, log=None):
         self.v = value
         self.history = [value]
+        self.pin = pin
+        self.log = log if log is not None else []
 
     def value(self, v=None):
         if v is None:
             return self.v
         self.v = 1 if v else 0
         self.history.append(self.v)
+        self.log.append((self.pin, self.v))
 
 
-class FakeSteps:
-    def __init__(self):
-        self.started = None
-        self.finished = False
-        self.stopped = 0
+class FakePwm:
+    """A PWM output. Every duty it is given goes into the shared write log too."""
 
-    def start(self, steps, rate):
-        self.started = (steps, rate)
-        self.finished = False
+    def __init__(self, pin, freq, log):
+        self.pin, self.freq, self.log = pin, freq, log
+        self.duty = 0.0
+        self.history = []
 
-    def done(self):
-        return self.finished
-
-    def stop(self):
-        self.stopped += 1
+    def set_duty(self, duty):
+        self.duty = duty
+        self.history.append(duty)
+        self.log.append((self.pin, ("duty", duty)))
 
 
 class FakeFanDriver:
@@ -59,20 +59,21 @@ class FakeHal:
         self.now = 1000
         self.outputs = {}
         self.inputs = {}
-        self.steppers = {}
+        self.pwms = {}
+        self.log = []  # (pin, level) and (pin, ("duty", d)) in the order they were written
         self.fan_driver = FakeFanDriver()
 
     def output(self, pin, value=0):
-        self.outputs[pin] = FakePin(value)
+        self.outputs[pin] = FakePin(value, pin, self.log)
         return self.outputs[pin]
 
     def input_pullup(self, pin):
         self.inputs[pin] = FakePin(1)
         return self.inputs[pin]
 
-    def step_generator(self, sm_id, pin):
-        self.steppers[pin] = FakeSteps()
-        return self.steppers[pin]
+    def pwm(self, pin, freq):
+        self.pwms[pin] = FakePwm(pin, freq, self.log)
+        return self.pwms[pin]
 
     def fan(self, pwm, tach, freq):
         return self.fan_driver
@@ -123,9 +124,10 @@ class PicoOnSerial:
     def push(self, text):
         self.lines.put(text)
 
-    def finish(self, pump_pin):
-        """The PIO burst for the pump on this STEP pin ends."""
-        self.hal.steppers[pump_pin].finished = True
+    def finish(self, pump):
+        """Let the clock run to the end of that pump's timed run."""
+        run = self.controller.pumps[pump].run
+        self.hal.now = run["started"] + run["duration_ms"]
         self.tick()
 
     def tick(self):

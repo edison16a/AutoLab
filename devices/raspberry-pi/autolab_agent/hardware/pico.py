@@ -177,11 +177,17 @@ class PicoClient:
     def run(
         self, pump: str, direction: str, *, volume_ul: float | None = None,
         seconds: float | None = None, flow_ul_s: float | None = None,
+        on_start: Callable[[dict], None] | None = None,
     ) -> dict:
-        """Start a run and wait for it to finish. Raises if it stops early."""
+        """Start a run and wait for it to finish. Raises if it stops early.
+
+        on_start gets the Pico's reply to the start (rpm, speed_v, seconds).
+        """
         with self._cond:
             mark = self._seq
         started = self.pump(pump, direction, volume_ul=volume_ul, seconds=seconds, flow_ul_s=flow_ul_s)
+        if on_start is not None:
+            on_start(started)
 
         def ends_run(event: dict) -> bool:
             return event.get("pump") == pump or event.get("event") in ("watchdog", "ready")

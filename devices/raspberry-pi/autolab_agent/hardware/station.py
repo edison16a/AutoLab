@@ -20,7 +20,10 @@ log = logging.getLogger("agent")
 
 POLL_EVERY = 5.0
 RETRY_EVERY = 30.0
-PICO_IDS = ("pico", "addition_pump", "aspiration_pump", "addition_valve", "aspiration_valve", "hepa_filter", "waste_container")
+PICO_IDS = (
+    "pico", "addition_pump", "aspiration_pump", "addition_controller", "aspiration_controller",
+    "addition_valve", "aspiration_valve", "hepa_filter", "waste_container",
+)
 SENSOR_IDS = ("sht85", "co2_sensor", "ph_sensor")
 
 

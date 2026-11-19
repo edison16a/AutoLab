@@ -1,7 +1,7 @@
 """Autolab fluidics controller. Runs at boot on the Pico (MicroPython).
 
 Talks line-based JSON over the USB serial port (see docs/firmware.md).
-All valves start closed and both pump drivers start disabled.
+All valves start closed and both SMC10 pump controllers start disabled.
 """
 
 import sys

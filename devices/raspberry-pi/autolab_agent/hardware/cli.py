@@ -47,9 +47,10 @@ def add_commands(sub: Any) -> None:
     fan = actions.add_parser("fan", help="HEPA fan duty from 0 to 1")
     fan.add_argument("duty", type=float)
 
-    calibrate = actions.add_parser("calibrate", help="save steps per uL for a pump")
+    calibrate = actions.add_parser("calibrate", help="save uL per revolution (and rpm at 5 V) for a pump")
     calibrate.add_argument("pump", choices=["addition", "aspiration"])
-    calibrate.add_argument("--steps-per-ul", type=float)
+    calibrate.add_argument("--ul-per-rev", type=float, help="set uL per pump revolution directly")
+    calibrate.add_argument("--rpm-at-5v", type=float, help="the rpm the SMC10 runs at with 5 V on its speed input")
     calibrate.add_argument("--commanded-ul", type=float, help="what the run asked for")
     calibrate.add_argument("--measured-ul", type=float, help="what came out (weigh it: 1 mg is 1 uL of water)")
 
@@ -58,7 +59,8 @@ def add_commands(sub: Any) -> None:
     change.add_argument("--wells", default="A1-A6", help="e.g. A1-A6, A1,B2 or A (default: A1-A6)")
     change.add_argument("--seconds", type=float, default=20.0, help="aspiration time per well")
     change.add_argument("--volume-ul", type=float, default=500.0, help="per well for add, per line for clean")
-    change.add_argument("--flow", type=float, default=None, help="uL/s (default: the pump's max)")
+    change.add_argument("--flow", type=float, default=None,
+                        help="uL/s (default: 30 for addition, 50 for aspiration)")
     change.add_argument("--first-tip", type=int, default=0, help="rack index of the next unused tip")
     change.add_argument("--prime-ul", type=float, default=0.0, help="refill the addition line over the bin first")
     change.add_argument("--dwell", type=float, default=0.0, help="seconds to leave cleaner in the lines")
@@ -107,13 +109,15 @@ def _fluidics(pico: PicoClient, args: argparse.Namespace) -> dict:
     if args.action == "fan":
         return pico.fan(args.duty)
     if args.action == "calibrate":
-        fields = {k: v for k, v in (("steps_per_ul", args.steps_per_ul), ("commanded_ul", args.commanded_ul),
-                                     ("measured_ul", args.measured_ul)) if v is not None}
+        given = (("ul_per_rev", args.ul_per_rev), ("rpm_at_5v", args.rpm_at_5v),
+                 ("commanded_ul", args.commanded_ul), ("measured_ul", args.measured_ul))
+        fields = {k: v for k, v in given if v is not None}
         return pico.calibrate(args.pump, **fields)
     if args.action == "pump":
         valve = pico.status()["valves"].get(args.pump)
         print(f"{args.pump} valve is {valve}")
-        return pico.run(args.pump, args.direction, volume_ul=args.volume_ul, seconds=args.seconds, flow_ul_s=args.flow)
+        return pico.run(args.pump, args.direction, volume_ul=args.volume_ul, seconds=args.seconds,
+                        flow_ul_s=args.flow, on_start=_print_start)
     # prime
     bottle = args.bottle or ("media" if args.pump == "addition" else "cleaner")
     pico.valve(args.pump, bottle)
@@ -121,6 +125,12 @@ def _fluidics(pico: PicoClient, args: argparse.Namespace) -> dict:
         return pico.run(args.pump, "to_head", volume_ul=args.volume_ul, flow_ul_s=args.flow)
     finally:
         pico.valve(args.pump, "closed")
+
+
+def _print_start(reply: dict) -> None:
+    print(f"{reply.get('pump')} pump {reply.get('direction')} at {reply.get('flow_ul_s')} uL/s: "
+          f"{reply.get('rpm')} rpm, {reply.get('speed_v')} V on the SMC10 speed input, "
+          f"{reply.get('seconds')} s")
 
 
 def _media_change(args: argparse.Namespace, steps: list[media_change.Step]) -> int:
